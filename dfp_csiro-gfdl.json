@@ -1,0 +1,41 @@
+{
+    "_control_vocabulary_file":     "CMIP6_CV.json",
+    "_cmip6_option":                "CMIP6",
+
+    "activity_id":                  "CMIP",
+    "outpath":                      "CMIP6",
+    "#experiment_id":                "piControl-spinup",
+    "#experiment_id":                "pdControl",
+    "experiment_id":                "ism-pdControl-std",
+    "#calendar":                     "proleptic_gregorian",
+    "calendar":                     "noleap",
+    "realization_index":            "1",
+    "initialization_index":         "1",
+    "physics_index":                "1",
+    "forcing_index":                "1",
+    "source_type":                  "AOGCM",
+    "sub_experiment":               "none",
+    "sub_experiment_id":            "none",
+    "contact ":                     "The Decadal Forecasting Proect wiki: https://confluence.csiro.au/display/DFP/Decadal+Forecasting+Project. Python Coder (Mark.Collier@csiro.au) ",
+    "branch_time":                  "90945",
+    "branch_method":                "standard",
+
+    "#further_info_url":             "http://furtherinfo.es-doc.org/<mip_era><institution_id><source_id><experiment_id><sub_experiment_id><variant_label>",
+    "grid":                         "native atmosphere N96 gaussian grid (90x144 latxlon)",
+    "grid_label":                  "gn",
+    "#grid_resolution":              "1.875 degrees EW x approx 1.25 degree NS",
+    "grid_resolution":              "100 km",
+    "nominal_resolution":           "100 km",
+    "tracking_prefix":		    "hdl:21.14100",
+
+    "institution_id":               "CSIRO",
+    "institution":                  "Commonwealth Scientific and Industrial Research Organisation, Australia",
+
+    "references":                   "Model system described by O'Kane et al. (2017)",
+    "run_variant":                  "forcing: GHG, Oz, SA, Sl, Vl, BC, OC, (GHG = CO2, N2O, CH4, CFC11, CFC12, CFC113, HCFC22, HFC125, HFC134a)",
+    "source_id":                    "CAFE-1-0",
+    "source":                       "CAFE-1-0",
+    "output_path_template":         "<activity_id><institution_id><source_id><experiment_id><variant_label><table><variable_id><grid_label><version>",
+    "output_file_template":         "<variable_id><table><experiment_id><source_id><variant_label><grid_label>",
+    "license":			    "CMIP6 model data produced by CSIRO is licensed under a Creative Commons Attribution \"Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). Use of the data must be acknowledged following guidelines found at.* Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in data files). The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law."
+}
