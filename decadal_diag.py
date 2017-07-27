@@ -26,26 +26,51 @@ def finish(file_name,odir,ofil,ofil_modified,season):
   return
 
 #begin
-def filemonth_index(season,ybeg,yend):
+def filemonth_index(season,ybeg,yend,mbeg,mend):
   '''
   System for generating array of indices to select months used in temporal averaging from each input file.
+  Current thinking is to have it dimensioned nyears,12 even if all months are not there for first and/or last year.
   '''
   import numpy as np
+
+  nmy=12
   
-  tindex_select=np.zeros((yend-ybeg+1,12))
+  tindex_select_maxyears_by_nmy=np.zeros((yend-ybeg+1,12))
   
-  #print(tindex_select.shape)
+  print(tindex_select_maxyears_by_nmy.shape)
 
   ybeg_now=0
   yend_now=yend-ybeg
 
+  #mbeg=4 #temporary
+  #mend=2 #temporary
+  #mbeg=1 #temporary
+  #mend=12 #temporary
+
+  #season='MAM' #tempoarary
+  #season='DJF' #tempoarary
+
   print('ybeg_now=',ybeg_now,' yend_now=',yend_now) 
+  print('mbeg=',mbeg,' mend=',mend) 
   
   if ( season=='MON' ):
     sstr=''
     times_in_season=12
     times_in_season=1
-    tindex_select[:]=1
+    tindex_select_maxyears_by_nmy[:]=1
+
+    if(mbeg!=1):
+      tindex_select_maxyears_by_nmy[0,0:mbeg-1]=0
+    if(mend!=12):
+      tindex_select_maxyears_by_nmy[yend_now-ybeg_now,mend::]=0
+
+    #if(mbeg>1):
+    #  tindex_select_maxyears_by_nmy[0,0:mbeg]=0
+    #if(mend<12):
+    #  tindex_select_maxyears_by_nmy[-1,-(nmy-mend)]=0
+    #print(tindex_select_maxyears_by_nmy)
+    #raise SystemExit('Forced exit.')
+
   elif ( season=='DJF' ):
 
     times_in_season=3
@@ -55,40 +80,88 @@ def filemonth_index(season,ybeg,yend):
     #for y in range(ybeg_now,yend_now+1):
     for y in range(ybeg_now,yend_now+1):
       print('y=',y)
-      if(y==0):
-        tindex_select[y,11]=1
+      if(y==ybeg_now):
+        if(mbeg<=12): #check, in the least, the first year must have december defined, even if a short year. This may not be true for an odd season definition like NDJF.
+          tindex_select_maxyears_by_nmy[y-ybeg_now,11]=1
+          #tindex_select_maxyears_by_nmy[y-ybeg_now+1,0:0+times_in_season-1]=1
+
       elif(y==yend_now):
-        tindex_select[y,0:2]=1
+        if(mend>1): #check
+          tindex_select_maxyears_by_nmy[y-ybeg_now,0:0+times_in_season-1]=1
+        else:
+          tindex_select_maxyears_by_nmy[y-ybeg_now-1,11]=0 #have to unassign previous year december as a consequence.
       else:
-        tindex_select[y,0:2]=1
-        tindex_select[y,11]=1
+        tindex_select_maxyears_by_nmy[y-ybeg_now,0:0+times_in_season-1]=1
+        tindex_select_maxyears_by_nmy[y-ybeg_now,11]=1
+
+    #print(tindex_select_maxyears_by_nmy)
+    #raise SystemExit('Forced exit.')
+
   elif ( season=='MAM' ):
     times_in_season=3
     sstr='_'+season
+    for y in range(ybeg_now,yend_now+1):
+      print('y=',y)
+      if(y==ybeg_now):
+        if(mbeg<=3): #check
+          tindex_select_maxyears_by_nmy[y-ybeg_now,2:2+times_in_season]=1
+      elif(y==yend_now):
+        if(mend>=5): #check
+          tindex_select_maxyears_by_nmy[y-ybeg_now,2:2+times_in_season]=1
+      else:
+        tindex_select_maxyears_by_nmy[y-ybeg_now,2:2+times_in_season]=1
+
     #index_start=5 #base 0
     #index_end=(yend-ybeg)*nmy+index_start
     #for y in range(ybeg_now,yend_now+1):
     #for y in range(ybeg_now-ybeg_now,yend_now+1-ybeg_now):
-    for y in range(ybeg_now,yend_now+1):
-      tindex_select[y-1,2:2+3]=1
+    #for y in range(ybeg_now,yend_now+1):
+    #  tindex_select_maxyears_by_nmy[y-1,2:2+3]=1
+    #print(tindex_select_maxyears_by_nmy)
+    #raise SystemExit('Forced exit.')
+
   elif ( season=='JJA' ):
     times_in_season=3
     sstr='_'+season
+    for y in range(ybeg_now,yend_now+1):
+      print('y=',y)
+      if(y==ybeg_now):
+        if(mbeg<=6): #check
+          tindex_select_maxyears_by_nmy[y-ybeg_now,5:5+times_in_season]=1
+      elif(y==yend_now):
+        if(mend>=8): #check
+          tindex_select_maxyears_by_nmy[y-ybeg_now,5:5+times_in_season]=1
+      else:
+        tindex_select_maxyears_by_nmy[y-ybeg_now,5:5+times_in_season]=1
+
     #index_start=5 #base 0
     #index_end=(yend-ybeg)*nmy+index_start
     #for y in range(ybeg_now-ybeg_now,yend_now-ybeg_now+1):
     #for y in range(ybeg_now-ybeg_now,yend_now+1-ybeg_now):
-    for y in range(ybeg_now,yend_now+1):
-      tindex_select[y-1,5:5+3]=1
+
+    #for y in range(ybeg_now,yend_now+1):
+    #  tindex_select_maxyears_by_nmy[y-1,5:5+3]=1
+
   elif ( season=='SON' ):
     times_in_season=3
     sstr='_'+season
+    for y in range(ybeg_now,yend_now+1):
+      print('y=',y)
+      if(y==ybeg_now):
+        if(mbeg<=9): #check
+          tindex_select_maxyears_by_nmy[y-ybeg_now,8:8+times_in_season]=1
+      elif(y==yend_now):
+        if(mend>=11): #check
+          tindex_select_maxyears_by_nmy[y-ybeg_now,8:8+times_in_season]=1
+      else:
+        tindex_select_maxyears_by_nmy[y-ybeg_now,8:8+times_in_season]=1
     #index_start=5 #base 0
     #index_end=(yend-ybeg)*nmy+index_start
     #for y in range(ybeg_now,yend_now+1):
     #for y in range(ybeg_now-ybeg_now,yend_now+1-ybeg_now):
-    for y in range(ybeg_now,yend_now+1):
-      tindex_select[y-1,8:8+3]=1
+    #for y in range(ybeg_now,yend_now+1):
+    #  tindex_select_maxyears_by_nmy[y-1,8:8+3]=1
+
   elif ( season=='SO' ):
     times_in_season=2
     sstr='_'+season
@@ -96,7 +169,7 @@ def filemonth_index(season,ybeg,yend):
     #index_end=(yend-ybeg)*nmy+index_start
     #for y in range(ybeg_now-ybeg_now,yend_now+1-ybeg_now):
     for y in range(ybeg_now,yend_now+1):
-      tindex_select[y-1,8:8+2]=1
+      tindex_select_maxyears_by_nmy[y-1,8:8+2]=1
   elif ( season=='DecJan' ):
   #use better season name when months (2 in this case)  may be ambiguous
     times_in_season=2
@@ -105,16 +178,31 @@ def filemonth_index(season,ybeg,yend):
     #index_end=(yend-ybeg)*nmy+index_start
     #for y in range(ybeg_now-ybeg_now,yend_now+1-ybeg_now):
     for y in range(ybeg_now,yend_now+1):
-      tindex_select[y-1,0]=1
-      tindex_select[y-1,11]=1
+      tindex_select_maxyears_by_nmy[y-1,0]=1
+      tindex_select_maxyears_by_nmy[y-1,11]=1
+
   elif ( season=='ANN' ):
     times_in_season=12
     sstr='_'+season
-    tindex_select[:]=1
+    for y in range(ybeg_now,yend_now+1):
+      print('y=',y)
+      if(y==ybeg_now):
+        tindex_select_maxyears_by_nmy[y-ybeg_now,mbeg-1:12]=1
+        #if(mbeg<=1): #check
+        #  tindex_select_maxyears_by_nmy[y-ybeg_now,0:0+times_in_season]=1
+      elif(y==yend_now):
+        tindex_select_maxyears_by_nmy[y-ybeg_now,0:mend]=1
+        #if(mend>=0): #check
+        #  tindex_select_maxyears_by_nmy[y-ybeg_now,0:0+times_in_season]=1
+      else:
+        tindex_select_maxyears_by_nmy[y-ybeg_now,0:0+times_in_season]=1
+
+    #tindex_select_maxyears_by_nmy[:]=1
+
   else:
     raise SystemExit('That season not established yet.')
   #raise SystemExit('Forced exit.')
-  return sstr,times_in_season,tindex_select
+  return sstr,times_in_season,tindex_select_maxyears_by_nmy
 
 def time_avg(var,input_fhs,file_index,month_index,weights_values,ibeg,iend,season):
   import numpy as np
@@ -159,99 +247,57 @@ def time_avg(var,input_fhs,file_index,month_index,weights_values,ibeg,iend,seaso
   #raise SystemExit('Forced exit.')
   return(time)
 
-def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season):
+#def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season,Forecast,icnt,month_in_file):
+def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,MonthlyWeights,month_index_ntims):
   '''
   '''
   import numpy as np
   import numpy.ma as ma
   nmy=12
+  days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31] #approx (ignoring leap years).
 
-####for testing...quicker to grab one month than average 12.
-#  data=input_fhs[file_index[ibeg]].variables[ivarSnow][0,]
-#  #data.set_fill_value=1e20
-#  #print('here data=',data)
-#  ma.set_fill_value(data, 1e20)
-#  #print('now data=',data)
-#  #print(data.get_fill_value())
-#  #raise SystemExit('Forced exit.')
-#  return(data)
-#  print('data.shape=',data.shape)
-#  raise SystemExit('Forced exit.')
-####
+  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s)
 
-  print('ibeg,iend=',ibeg,iend)
-  unique_fhs=np.unique(file_index[ibeg:iend+1])
-  #print('unique_fhs=',unique_fhs)
-  print('xxx levels=',levels)
-  print('xxx nlev=',nlev)
-  print('ivarSnow=',ivarSnow)
+  locate_file_index_Ntimes_b1_flat_nominus1s=locate_file_index_Ntimes_b1_flat_nominus1s-1 #values are b1, need to subtract 1 to make b0
 
-  #transition=
-  jjj=file_index[ibeg:iend+1]
-  #kkk=jjj-file_index[ibeg]
-  #print('jjj=',jjj)
-  #print('kkk=',kkk)
+  print('data_wavg: ivarSnow=',ivarSnow)
+  #print('data_wavg: input_fhs=',input_fhs)
+  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s)
+  print('data_wavg: ind_beg,ind_end=',ind_beg,ind_end)
+  print('data_wavg: month_in_file_total_months_beg_to_end=',month_in_file_total_months_beg_to_end)
+  print('data wavg: month_in_file_total_months_beg_to_end.shape=',month_in_file_total_months_beg_to_end.shape)
+  print('data_wavg: levels=',levels)
+  print('data_wavg: MonthlyWeights=',MonthlyWeights)
+  print('data_wavg: month_index_ntims=',month_index_ntims)
+  print('data_wavg: month_index_ntims.shape=',month_index_ntims.shape)
 
-  fhs_break=99
-  for test in list(range(1,len(jjj))):
-    #print('test=',test)
-    #if(test!=jjj[test-1]):
-    if(jjj[test]!=jjj[test-1]):
-      fhs_break=test
-      break
+#testing out on MONTHLY case. Some of this code needs to be taken up into makn routine as it doesn't need to be here.
 
-  print('fhs_break=',fhs_break)
-  #if(season=='MON'):
-  if(season=='MON' or season=='ANN'):
-    fhs_break=nmy-1
+  weights=[]
+  for month in list(range(ind_beg,ind_end+1)):
+    print('month=',month)
 
-  print('len(unique_fhs)=',len(unique_fhs))
-  if(len(unique_fhs)==1):
-    if 'nlev' in locals() and nlev>0:
-      #print('qqq')
-      print('levels=',levels)
-      print('nlev=',nlev)
-      #levels=[1,3,6]
-      #levels=[0,1]
-      #nlev=2
-      data=input_fhs[file_index[ibeg]].variables[ivarSnow][month_index[ibeg:ibeg+fhs_break+1],levels,]
-      #data=input_fhs[file_index[ibeg]].variables[ivarSnow][month_index[ibeg:ibeg+fhs_break+1],:,]
-      print('data.shape=',data.shape)
-      #raise SystemExit('Forced exit.')
+    print('month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]=',month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]])
+    weights.append(days_in_month[month_index_ntims[month]]) 
+
+    if(month==ind_beg):
+      data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]
     else:
-      print('ppp')
-      print('ibeg,iend,ibeg+fhs_break+1=',ibeg,iend,ibeg+fhs_break+1)
-      #data=input_fhs[file_index[ibeg]].variables[ivarSnow][month_index[ibeg:ibeg+fhs_break+1],]
-      data=input_fhs[file_index[ibeg]].variables[ivarSnow][month_index[ibeg:iend+1],]
-      print('data.shape=',data.shape)
+      data=np.vstack((data, input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]))
+    print('data.shape=',data.shape)
+
+  print('weights=',weights)
+
+  if(MonthlyWeights):
+    avgdata=np.average(data,axis=0,weights=weights) #note that np.average has weights option. Use None if equal.
   else:
-    #dataA=input_fhs[file_index[0]].variables[ivarSnow][month_index[ibeg:ibeg+fhs_break],levels,]
-    #dataB=input_fhs[file_index[1]].variables[ivarSnow][month_index[ibeg+fhs_break:iend+1],levels,]
-    #dataC=np.concatenate((dataA,dataB),axis=0)
-    if 'nlev' in locals() and nlev>0:
-      print('qqq')
-      data=np.concatenate(( input_fhs[file_index[ibeg]].variables[ivarSnow][month_index[ibeg:ibeg+fhs_break+1],levels,],input_fhs[file_index[ibeg+fhs_break+1]].variables[ivarSnow][month_index[ibeg+fhs_break+1:iend+1],levels,]), axis=0)
-    else:
-      print('xxx hello')
-      data=np.concatenate(( input_fhs[file_index[ibeg]].variables[ivarSnow][month_index[ibeg:ibeg+fhs_break+1],],input_fhs[file_index[ibeg+fhs_break+1]].variables[ivarSnow][month_index[ibeg+fhs_break+1:iend+1],]), axis=0)
-  print('aaa data.shape=',data.shape)
-  if(season!='MON'):
-    print("weights_values=",weights_values)
-    print('ibeg,iend=',ibeg,iend)
-    #something wrong with weights_values...override for now...
-    #weights_values=np.array([1,1,1,1,1,1,1,1,1,1,1,1])
-    for xxx in range(iend-ibeg+1):
-      #print('xxx=',xxx)
-      data[xxx,]=data[xxx,]*weights_values[ibeg+xxx]
-    data=np.sum(data,axis=0)/sum(weights_values[ibeg:iend+1])
-    #print('data=',data)
-    #print('dataA.shape=',dataA.shape)
-    #print('dataB.shape=',dataB.shape)
-    #print('dataC.shape=',dataC.shape)
-  #print('weights=',weights_values[ibeg:iend+1])
-  #print('xxx data.shape=',data.shape)
+    avgdata=np.average(data,axis=0) #note that np.average has weights option.
+
+  print('avgdata.shape=',avgdata.shape)
+  tdata=np.expand_dims(avgdata,axis=0) #add time-dimension when averaging to form season.
+  print('tdata.shape=',tdata.shape)
   #raise SystemExit('Forced exit.')
-  return(data)
+  return(tdata)
 
 def diag_nhblocking_index(data,lat,lon):
   '''
@@ -968,7 +1014,7 @@ def diag_nhice_cover(data,area_t,lat,lon):
   data=np.sum(np.sum(step2*area_t[200:300,:],axis=0),axis=0)*1e-12
   return data
 
-def diag_rws(data1,data2,lat,lon):
+def diag_rws(data1,data2,lats,lons,rws_string):
   '''
     pfull = 3.65029282220392, 19.0883974368005, 52.3401931985815, 
     99.1299239257332, 157.381018593963, 224.749226564636, 298.944381749781, 
@@ -984,59 +1030,77 @@ def diag_rws(data1,data2,lat,lon):
   from windspharm.tools import prep_data, recover_data, order_latdim
   #print('data1.shape=',data1.shape)
   #print('data2.shape=',data2.shape)
+  #print('uwnd.shape=',uwnd.shape)
+  #print('vwnd.shape=',vwnd.shape)
+  #print('lats=',lats[:])
+  #print('lons=',lons[:])
+  #raise SystemExit('Forced exit.')
+
+  #lats=lats_tmp[:]
 
   uwnd,uwnd_info = prep_data(data1,'zyx')
   vwnd,vwnd_info = prep_data(data2,'zyx')
-  #print('uwnd.shape=',uwnd.shape)
-  #print('vwnd.shape=',vwnd.shape)
-  #print('lat=',lat[:])
 
-  lat, uwnd, vwnd = order_latdim(lat, uwnd, vwnd)
-  #raise SystemExit('Forced exit.')
+  lats, uwnd, vwnd = order_latdim(lats, uwnd, vwnd)
 
-  w = VectorWind(uwnd, vwnd)
-  eta = w.absolutevorticity()
+  #print('lats=',lats[:])
+
+  w5 = VectorWind(uwnd, vwnd)
+  eta5 = w5.absolutevorticity()
+  div5 = w5.divergence()
+  uchi5, vchi5 = w5.irrotationalcomponent()
+  etax5, etay5 = w5.gradient(eta5)
+  rws5 = -eta5 * div5 - uchi5 * etax5 + vchi5 * etay5
+
+  #print(eta.shape)
   #eta = recover_data(eta, uwnd_info)
-  div = w.divergence()
-  uchi, vchi = w.irrotationalcomponent()
-  etax, etay = w.gradient(eta)
-  S1 = -eta * div
-  S2 = -(uchi * etax + vchi * etay)
-  S = S1 + S2
-  S = recover_data(S, uwnd_info)
+  #S1 = -eta * div
+  #S2 = -(uchi * etax + vchi * etay)
+  #S = S1 + S2
+  #S = -eta * div - (uchi * etax + vchi * etay)
+
+  if "rws5" in rws_string:
+    rws5 = recover_data(rws5, uwnd_info)
+  if "div5" in rws_string:
+    div5 = recover_data(div5, uwnd_info)
+  if "eta5" in rws_string:
+    eta5 = recover_data(eta5, uwnd_info)
+  if "uchi5" in rws_string:
+    uchi5 = recover_data(uchi5, uwnd_info)
+  if "vchi5" in rws_string:
+    vchi5 = recover_data(vchi5, uwnd_info)
+
   #print('S.shape=',S.shape)
   #Sx=np.flip(S,1)
-  Sx=S[:,::-1,::]
+  #Sx=S[:,::-1,::]
   #Sx=np.rollaxis(S,2)
   #('data.shape=', (90, 144, 24))
-  print('Sx.shape=',Sx.shape)
-  #raise SystemExit('Forced exit.')
-  return Sx
+  #print('Sx.shape=',Sx.shape)
+  #return Sx
+  #return S
+  #return recover_data(uwnd, uwnd_info)
+  #return recover_data(vwnd, uwnd_info)
+
+  s=",";return_what=s.join(rws_string)
+  #return_what="rws,div,eta,uchi,vchi"
+  print("return_what=",return_what)
+
+  #if "rws" in rws_string:
+  #  print("yes")
+  #else:
+  #  print("no")
+#  raise SystemExit('Forced exit.')
+
+  #return(rws,div,eta,uchi,vchi)
+  return(eval(return_what))
 
 def diag_isothetaoNc(data,lev,value):
   '''
-  pretty inefficient at the moment. Might need to look at places where there is no data 
-
-only 4 profiles (and of course missing data over land).
-
-                       less    <T>    more
------------------------------------------------------------------------
-            -       -                  -                         -
-           -        -                   -                        -
- ^         -         -                    -                      -
- z       -           -                     -                     -
- v      -             -                      -                   -
-       -              -                       -                  -
-      -               -                        -                 -
-     -                -                         -                -
--------|-----------------|-----------------|------------------|--------
-       20                20                20                 20
-
-iso    defined           not-defined       defined            not-defined
   '''
   import numpy as np
   import numpy.ma as ma
-  from decadal_diag import calc_iso_surface
+  #from decadal_diag import calc_iso_surface
+  #from decadal_diag import calc_isoN 
 
   nmy=12
 
@@ -1066,22 +1130,29 @@ iso    defined           not-defined       defined            not-defined
   #print('data=',data[:,0,180])
   #raise SystemExit('Forced exit.')
 
+  lmax=25 #hard-wired for CAFE (approx. 500m)
+  ymin=59 #hard-wired for CAFE (approx. 45S)
+  ymax=209 #hard-wired for CAFE (approx. 45N)
+
   if(data_size==3):
   #single time data e.g. ANN
     #('data.shape=', (50, 300, 360))
-    data=np.swapaxes(data,0,2)
-    data=np.swapaxes(data,0,1)
-    data=calc_iso_surface(data, my_value=value, zs=lev, interp_order=6)
-    data=np.nan_to_num(data)
-    data=np.where(data==0,1e20,data)
+    #data=np.swapaxes(data,0,2)
+    #data=np.swapaxes(data,0,1)
+    #data=calc_iso_surface(data, my_value=value, zs=lev, interp_order=6)
+    #data=np.nan_to_num(data)
+    #newdata=np.where(data==0,1e20,data)
+    newdata=calc_isoN(data, value=value, levs=lev, lmax=lmax, ymin=ymin, ymax=ymax, diag=False)
   else:
   #monthly time data MON
     newdata=np.zeros((nmy,data_shape[2],data_shape[3]))
     for mnow in range(0,nmy):
-      data_tmp=data[mnow,] 
-      data_tmp=np.swapaxes(data_tmp,0,2)
-      data_tmp=np.swapaxes(data_tmp,0,1)
-      newdata[mnow,]=calc_iso_surface(data_tmp, my_value=value, zs=lev, interp_order=6)
+      print('mnow=',mnow)
+      newdata[mnow,]=calc_isoN(data[mnow,], value=value, levs=lev, lmax=lmax, ymin=ymin, ymax=ymax, diag=False)
+      #data_tmp=data[mnow,] 
+      #data_tmp=np.swapaxes(data_tmp,0,2)
+      #data_tmp=np.swapaxes(data_tmp,0,1)
+      #newdata[mnow,]=calc_iso_surface(data_tmp, my_value=value, zs=lev, interp_order=6)
     return newdata
 
     #('data.shape=', (12, 50, 300, 360))
@@ -1194,33 +1265,42 @@ def create_odirs(ovars,institution_id,source_id,experiment_id,ripf,table,grid_la
       odir.append('CMIP6/CMIP/'+institution_id+'/'+source_id+'/'+experiment_id+'/'+ripf+'/'+table+'/'+ovars[o]+'/'+grid_label+'/'+version)
     return odir
 
-def create_ofils(season,table,ovars,experiment_id,source_id,ripf,grid_label,ybeg,yend):
+def create_ofils(season,table,ovars,experiment_id,source_id,ripf,grid_label,ybeg,yend,mbeg,mend,dbeg,dend):
     """
     Text
     """
     ofil=[]
     ofil_modified=[]
+    #mbeg=1 #temporary
+    #mend=12 #temporary
 
     for o in range(0,len(ovars)):
+      #if(dbeg>0 or dend>0): print('hello')
+      #print(table)
+      #raise SystemExit('Forced exit.')
 
-      if(season == "DJF" or season == "DecJan"):
+      if(season == 'DJF' or season == 'DecJan'):
         ybeg_here=ybeg+1
       else:
         ybeg_here=ybeg
 
-      if(table=='fx' or table=='Ofx'):
+      if(table=='Oday' or table=='day'):
+        ofil.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg))+str('{0:02d}'.format(mbeg))+str('{0:02d}'.format(dbeg))+'-'+str('{0:04d}'.format(yend))+str('{0:02d}'.format(mend))+str('{0:02d}'.format(dend))+'.nc')
+        ofil_modified.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg))+str('{0:02d}'.format(mbeg))+str('{0:02d}'.format(dbeg))+'-'+str('{0:04d}'.format(yend))+str('{0:02d}'.format(mend))+str('{0:02d}'.format(dend))+'.nc')
+
+      elif(table=='fx' or table=='Ofx'):
         ofil.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'.nc')
         ofil_modified.append(ofil)
 
       else:
         if(season=='MON'):
-          ofil.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg_here))+'01-'+str('{0:04d}'.format(yend))+'12.nc')
+          ofil.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg_here))+str('{0:02d}'.format(mbeg))+'-'+str('{0:04d}'.format(yend))+str('{0:02d}'.format(mend))+'.nc')
         else:
           ofil.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg_here))+'-'+str('{0:04d}'.format(yend))+'.nc')
     
-        if(season=='MON'):
+        if(season=='MON' or season=='None'):
           #ofil_modified.append(ofil)
-          ofil_modified.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg_here))+'01-'+str('{0:04d}'.format(yend))+'12.nc')
+          ofil_modified.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg_here))+str('{0:02d}'.format(mbeg))+'-'+str('{0:04d}'.format(yend))+str('{0:02d}'.format(mend))+'.nc')
         else:
           ofil_modified.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+str('{0:04d}'.format(ybeg_here))+'-'+str('{0:04d}'.format(yend))+'_'+season+'.nc')
 
@@ -1310,8 +1390,8 @@ def vertical_interpolate(data,zt,newlevs,ps,type):
   #consider extrapolation down (beyond lowest model pressure level) and up (above highest model pressure level).
 
   #put this vertical interpolation stuff in a function later...
-  print('zt=',zt[:])
-  print('newlevs=',newlevs[:])
+  #print('zt=',zt[:])
+  #print('newlevs=',newlevs[:])
 
   ps_shape=ps.shape
 
@@ -1356,17 +1436,18 @@ def vertical_interpolate(data,zt,newlevs,ps,type):
       index_lo[lll]=nzt-2
       index_hi[lll]=nzt-1
 
-  print('index_hi,index_lo=',index_hi,index_lo)
+  #print('index_hi,index_lo=',index_hi,index_lo)
   #raise SystemExit('Forced exit.')
 
   if(type=='linear'):
-    print('linear interpolation chosen.')
+    #print('linear interpolation chosen.')
     for lll in range(0,nnewlevs):
-      #print('level=',lll)
+      #print('level=',lll,' value=',newlevs[lll],' hi=',zt[index_hi[lll]],' lo=',zt[index_lo[lll]])
       dx = zt[index_hi[lll]] - zt[index_lo[lll]]
       dy = data[index_hi[lll],:,:] - data[index_lo[lll],:,:]
       dp = newlevs[lll] - zt[index_lo[lll]]
       interpolated_data[lll,:,:] = data[index_lo[lll],:,:] + dp * dy/dx
+      #interpolated_data[lll,:,:] = data[index_lo[lll],:,:]
 
       #lon=np.where(lon<360.,lon,lon-360.)
       interpolated_data[lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[lll,:,:],1e20)
@@ -1430,3 +1511,214 @@ def calc_iso_surface(my_array, my_value, zs, interp_order=6, power_parameter=0.5
         z += zi*wi**power_parameter
     z /= w_total
     return z
+
+def calc_isoN(data, value, levs, lmax, ymin, ymax, diag):
+  '''
+   calc_isoN
+   inputs:
+
+   data(depth,lat,lon): note only 1 time is processed each
+     call and therefore dimension is stripped away prior to
+     calling this routine.
+   value: critical value of isosurface (e.g. 20degC)
+   levs: depth levels (vector)
+   lmax: truncate number of levels to search (minimum of lmax, size(levs))
+   ymin: start processing at this latitude index (starting 0)
+   ymax: finish processing at this latitude index
+   diag: turn on/off diagnostics
+
+   output:
+
+   data(lat,lon), units are in units of depth.
+
+   wrote this as found the one off web  (calc_iso_surface) was
+   not working for our data with missing values.
+   quite inefficient, could speed up by creating 2d array of
+   above and below, and performing depth interpolation as array
+   rather than individually.
+
+   only 4 profiles (and of course missing data over land).
+   could be critical value at surface (or at any exact level) too.
+
+   if want to speed up comment # out if(diag) statements...
+
+                       less    <T>    more
+-----------------------------------------------------------------------
+            -       -                  -                         -
+           -        -                   -                        -
+ ^         -         -                    -                      -
+ z       -           -                     -                     -
+ v      -             -                      -                   -
+       -              -                       -                  -
+      -               -                        -                 -
+     -                -                         -                -
+-------|-----------------|-----------------|------------------|--------
+       20                20                20                 20
+
+iso    defined           not-defined       defined            not-defined
+  '''
+  import numpy as np
+  import numpy.ma as ma
+
+  nlev=data.shape[0]
+  nlat=data.shape[1]
+  nlon=data.shape[2]
+
+  #if(diag):
+  #  print('data.shape=',data.shape)
+  #  print('value=',value)
+  #  print('levs=',levs)
+  #  print('nlev,nlat,nlon=',nlev,nlat,nlon)
+
+  newdata=np.zeros((nlat,nlon))
+
+  #labove=np.zeros((nlat,nlon))
+  #lbelow=np.zeros((nlat,nlon))
+  #dabove=np.zeros((nlat,nlon))
+  #dbelow=np.zeros((nlat,nlon))
+
+  if(ymin<0): raise SystemExit('ymin<0.')
+  if(ymax>nlat): raise SystemExit('ymax>nlat.')
+
+  xabove=np.zeros((nlat,nlon))
+  xbelow=np.zeros((nlat,nlon))
+
+  newdata=newdata+1e20 #assign default value, missing.
+
+  nlev_now=min(nlev,lmax)
+
+  ymin=max(0,ymin)
+  ymax=min(nlat,ymax)
+
+  #print(ymin,ymax)
+  #raise SystemExit('Forced exit.')
+
+  #xspot=50
+  #yspot=50
+
+  #xspot=0
+  #yspot=0
+
+  #fillvalue=data.get_fill_value()
+  #print('fillvalue=',fillvalue)
+  #print('data=',data[0,yspot,xspot].mask)
+  #if(data[0,yspot,xspot]==fillvalue):
+  #if(mask[0,yspot,xspot]):
+  #  print('hello')
+  #else:
+  #  print('there')
+  #j=np.equal(data[0,yspot,xspot], fillvalue)
+  #print(j)
+  #if(data[0,yspot,xspot]==nan):
+  #raise SystemExit('Forced exit.')
+
+  #mask=ma.getmask(data)
+  mask=ma.getmaskarray(data[0,]) #only need surface
+  #print('mask.shape=',mask.shape)
+
+  mask2=ma.zeros(mask.shape,dtype=float)
+  mask2.mask=True
+  #print('mask2=',mask2)
+  #raise SystemExit('Forced exit.')
+
+  #if(diag): ifound1=ifound2=ifound3=ifound4=ifound5=0
+
+  for y in range(ymin,ymax):
+    for x in range(0,nlon):
+      #if(diag): found1=found2=found3=found4=found5=False #if not found, then assign point missing as either temperature always greater or less than critical value.
+
+      #if(not (found1 and found2)):
+      #  raise SystemExit('XXXced exit.')
+      #raise SystemExit('abc')
+
+      #print('mask,y,x=',mask[0,y,x],y,x)
+      if(not mask[y,x]): #skip over points where missing (land) at surface.
+        mask2[y,x]=False #these False (ocean) points will be used in final calculation.
+        #print(data[0,y,x])
+        #raise SystemExit('Forced exit.')
+        if(data[0,y,x]==value): #if surface equals critical, then assign and start on new y,x
+          #if(diag):
+          #  found1=True
+          #  ifound1+=1
+          mask2[y,x]=True
+          #print('1 yes')
+          #print(data[:,y,x])
+          newdata[y,x]=levs[0]
+          #raise SystemExit('Forced exit.')
+        else:
+          #print(data[:,y,x])
+          #print(data[0,y,x])
+          for l in range(1,nlev_now):
+            #print('l=',l)
+            if(data[l,y,x]<value and data[l-1,y,x]>value):
+              #if(diag):
+              #  found2=True
+              #  ifound2+=1
+              #print('5 yes')
+              #warm at top, cooler at depth
+              #print(data[:,y,x])
+              xabove[y,x]=l-1
+              xbelow[y,x]=l
+              #labove[y,x]=levs[l-1]
+              #lbelow[y,x]=levs[l]
+              #dabove[y,x]=data[l-1,y,x]
+              #dbelow[y,x]=data[l,y,x]
+              #print('labove,lbelow,dabove,dbelow=',labove[y,x],lbelow[y,x],dabove[y,x],dbelow[y,x])
+              #newdata[y,x] = (dabove[y,x] - value) / (dabove[y,x] - dbelow[y,x]) * (lbelow[y,x] - labove[y,x]) + labove[y,x]
+              #print(newdata[y,x])
+              #raise SystemExit('Forced exit.')
+              break #found a case, get out of depth scan, star on new y,x
+            elif(data[l,y,x]==value):
+              #if(diag):
+              #  found3=True
+              #  ifound3+=1
+              mask2[y,x]=True
+              #found a level with exact critical value
+              #print('2 yes')
+              #print(data[:,y,x])
+              newdata[y,x] = levs[l]
+              #print(newdata[y,x])
+              #raise SystemExit('Forced exit.')
+              break #found a case, get out of depth scan, start on new y,x
+            elif(data[l,y,x]>value and data[l-1,y,x]<value):
+              #if(diag):
+              #  found4=True
+              #  ifound4+=1
+              #print('4 yes')
+              #cool at top, warmer at depth
+              #print(data[:,y,x])
+              xabove[y,x]=l-1
+              xbelow[y,x]=l
+              #labove[y,x]=levs[l-1]
+              #lbelow[y,x]=levs[l]
+              #dabove[y,x]=data[l-1,y,x]
+              #dbelow[y,x]=data[l,y,x]
+              #print('labove,lbelow,dabove,dbelow=',labove[y,x],lbelow[y,x],dabove[y,x],dbelow[y,x])
+              #newdata[y,x] = (dabove[y,x] - value) / (dabove[y,x] - dbelow[y,x]) * (lbelow[y,x] - labove[y,x]) + labove[y,x]
+              #print(newdata[y,x])
+              #raise SystemExit('Forced exit.')
+              break #found a case, get out of depth scan, start on new y,x
+            elif(data[l-1,y,x]==value):
+              #if(diag):
+              #  found5=True
+              #  ifound5+=1
+              mask2[y,x]=True
+              #found a level with exact critical value (note this block should not be executed as caught above when looking at surface value).
+              #print('3 yes')
+              newdata[y,x] = levs[l-1]
+              #print(newdata[y,x])
+              #raise SystemExit('Forced exit.')
+              break #found a case, get out of depth scan, start on new y,x
+          #raise SystemExit('Forced exit.')
+      #if(diag): print('found1,2,3,4,5,y,x=',found1,found2,found3,found4,found5,y,x)
+      #if(not (found1 and found2 and found3 and found4 and found5)):
+        #newdata[y,x]=1e20
+        #raise SystemExit('Forced exit.')
+  #print('mask2=',mask2)
+  for y in range(ymin,ymax):
+    for x in range(0,nlon):
+      if(not mask2[y,x]): #skip over points where missing (combination of land and values alread set) at surface.
+        newdata[y,x] = (data[xabove[y,x],y,x] - value) / (data[xabove[y,x],y,x] - data[xbelow[y,x],y,x]) * (levs[xbelow[y,x]] - levs[xabove[y,x]]) + levs[xabove[y,x]]
+  #if(diag): print('ifound1,2,3,4,5=',ifound1,ifound2,ifound3,ifound4,ifound5)
+  newdata=np.where(np.isnan(newdata),1e20,newdata) #for model output need this.
+  return newdata
