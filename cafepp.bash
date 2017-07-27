@@ -58,13 +58,11 @@ declare -a ivars=("nino34")
 declare -a ivars=("iod")
 declare -a ivars=("sam")
 declare -a ivars=("zg500")
-declare -a ivars=("tos")
 declare -a ivars=("pp")
 declare -a ivars=("nflux")
 declare -a ivars=("ep")
 declare -a ivars=("hur") #no raw input yet.
 declare -a ivars=("hur10") #no raw input yet
-
 declare -a ivars=("zg10")
 declare -a ivars=("ua")
 declare -a ivars=("ua10")
@@ -80,12 +78,12 @@ declare -a ivars=("isothetao20c")
 declare -a ivars=("zg")
 declare -a ivars=("tauv")
 declare -a ivars=("tauu")
+declare -a ivars=("tos")
 
 #cbeg=451
 #cend=500
 #cbeg=1
 #cend=500
-
 
 for ivar in "${ivars[@]}"
 do
@@ -135,7 +133,7 @@ if [ $experiment == 'v0' ];then
 idir='/g/data1/v14/coupled_model/v0/OUTPUT'
 ybeg_min=295
 yend_max=625
-export CCFS_EXPERIMENT=v0
+export CAFE_EXPERIMENT=v0
 elif [ $experiment == 'v1' ];then
 idir='/g/data1/v14/coupled_model/v1/OUTPUT'
 ybeg_min=1
@@ -145,10 +143,10 @@ ybeg=1
 yend=5
 yend=500
 yend=2
-export CCFS_EXPERIMENT=v1
+export CAFE_EXPERIMENT=v1
 elif [ $experiment == 'v2' ];then
-idir='/short/v14/lxs599/coupled_model/feb17a/OUTPUT'
 idir='/short/r67/mac599/coupled_model/feb17a/OUTPUT'
+idir='/short/v14/lxs599/coupled_model/feb17a/OUTPUT'
 ybeg_min=1
 yend_max=286
 yend_max=500
@@ -164,10 +162,11 @@ yend=285
 yend=100
 ybeg=1
 yend=2
-ybeg=400
 yend=401
+
+ybeg=391
 yend=400
-export CCFS_EXPERIMENT=v2
+export CAFE_EXPERIMENT=v2
 else
 echo 'problem.'
 exit
@@ -181,13 +180,20 @@ season='DecJan'
 season='JJA'
 season='DJF'
 season='MON'
+season='MAM'
 season='ANN'
 
 #levs='A'
 #levs='B'
 #levs='C'
 
-./cafepp.py -w -i5 -v $ivar --ybeg=$ybeg --yend=$yend --ybeg_min=$ybeg_min --yend_max=$yend_max --idir=$idir --season=$season --levs=$levs
+#-w
+
+realisation=0
+let mbeg_now=1
+let mend_now=12
+
+./cafepp.py -i5 --version v20170726 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg --yend=$yend --ybeg_min=$ybeg_min --yend_max=$yend_max --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --idir=$idir --season=$season --levs=$levs
 
 #--vertical_interpolation_method='linear'
 
