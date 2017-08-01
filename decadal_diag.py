@@ -1,32 +1,34 @@
-def finish(file_name,odir,ofil,ofil_modified,season):
+from __future__ import print_function #this is to allow print(,file=xxx) feature
+
+def finish(file_name,odir,ofil,ofil_modified,season,fh_logfile):
   '''
   finish
   '''
   import os
 
-  print('Output: ',file_name)
-  print('Will need to put in "importance flag", perhaps it can go in another standard metadata tag?')
+  print('Output: ',file_name,file=fh_logfile)
+  print('Will need to put in "importance flag", perhaps it can go in another standard metadata tag?',file=fh_logfile)
   if(season!='ANN' or season!='MON'):
-    print('Will need to move this CMIP6 file to slightly different name to clearly specify that it is a special season where the time axis is not continguous.')
+    print('Will need to move this CMIP6 file to slightly different name to clearly specify that it is a special season where the time axis is not continguous.',file=fh_logfile)
   #o.close()
   #if(tdir != odir):
   #  os.rename(tdir+'/'+ofil,odir+'/'+ofil)
-  #print('Output file: '+odir+'/'+ofil)
+  #print('Output file: '+odir+'/'+ofil,file=fh_logfile)
 
   if(os.path.exists(odir+'/'+ofil) and season != 'MON'):
-    print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified)
+    print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified,file=fh_logfile)
     os.rename(odir+'/'+ofil,odir+'/'+ofil_modified)
   elif(season=='MON'):
     pass
   else:
-    print('xxx',odir+'/'+ofil)
+    print('xxx',odir+'/'+ofil,file=fh_logfile)
     raise SystemExit('Something wrong, expected output file doesn\'t exist.')
 
   #raise SystemExit('Finished O.K.')
   return
 
 #begin
-def filemonth_index(season,ybeg,yend,mbeg,mend):
+def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
   '''
   System for generating array of indices to select months used in temporal averaging from each input file.
   Current thinking is to have it dimensioned nyears,12 even if all months are not there for first and/or last year.
@@ -37,7 +39,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
   
   tindex_select_maxyears_by_nmy=np.zeros((yend-ybeg+1,12))
   
-  print(tindex_select_maxyears_by_nmy.shape)
+  print(tindex_select_maxyears_by_nmy.shape,file=fh_logfile)
 
   ybeg_now=0
   yend_now=yend-ybeg
@@ -50,8 +52,8 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
   #season='MAM' #tempoarary
   #season='DJF' #tempoarary
 
-  print('ybeg_now=',ybeg_now,' yend_now=',yend_now) 
-  print('mbeg=',mbeg,' mend=',mend) 
+  print('ybeg_now=',ybeg_now,' yend_now=',yend_now,file=fh_logfile) 
+  print('mbeg=',mbeg,' mend=',mend,file=fh_logfile) 
   
   if ( season=='MON' ):
     sstr=''
@@ -68,7 +70,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
     #  tindex_select_maxyears_by_nmy[0,0:mbeg]=0
     #if(mend<12):
     #  tindex_select_maxyears_by_nmy[-1,-(nmy-mend)]=0
-    #print(tindex_select_maxyears_by_nmy)
+    #print(tindex_select_maxyears_by_nmy,file=fh_logfile)
     #raise SystemExit('Forced exit.')
 
   elif ( season=='DJF' ):
@@ -79,7 +81,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
     #index_end=index_start+2
     #for y in range(ybeg_now,yend_now+1):
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y)
+      print('y=',y,file=fh_logfile)
       if(y==ybeg_now):
         if(mbeg<=12): #check, in the least, the first year must have december defined, even if a short year. This may not be true for an odd season definition like NDJF.
           tindex_select_maxyears_by_nmy[y-ybeg_now,11]=1
@@ -94,14 +96,14 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
         tindex_select_maxyears_by_nmy[y-ybeg_now,0:0+times_in_season-1]=1
         tindex_select_maxyears_by_nmy[y-ybeg_now,11]=1
 
-    #print(tindex_select_maxyears_by_nmy)
+    #print(tindex_select_maxyears_by_nmy,file=fh_logfile)
     #raise SystemExit('Forced exit.')
 
   elif ( season=='MAM' ):
     times_in_season=3
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y)
+      print('y=',y,file=fh_logfile)
       if(y==ybeg_now):
         if(mbeg<=3): #check
           tindex_select_maxyears_by_nmy[y-ybeg_now,2:2+times_in_season]=1
@@ -117,14 +119,14 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
     #for y in range(ybeg_now-ybeg_now,yend_now+1-ybeg_now):
     #for y in range(ybeg_now,yend_now+1):
     #  tindex_select_maxyears_by_nmy[y-1,2:2+3]=1
-    #print(tindex_select_maxyears_by_nmy)
+    #print(tindex_select_maxyears_by_nmy,file=fh_logfile)
     #raise SystemExit('Forced exit.')
 
   elif ( season=='JJA' ):
     times_in_season=3
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y)
+      print('y=',y,file=fh_logfile)
       if(y==ybeg_now):
         if(mbeg<=6): #check
           tindex_select_maxyears_by_nmy[y-ybeg_now,5:5+times_in_season]=1
@@ -146,7 +148,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
     times_in_season=3
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y)
+      print('y=',y,file=fh_logfile)
       if(y==ybeg_now):
         if(mbeg<=9): #check
           tindex_select_maxyears_by_nmy[y-ybeg_now,8:8+times_in_season]=1
@@ -185,7 +187,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend):
     times_in_season=12
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y)
+      print('y=',y,file=fh_logfile)
       if(y==ybeg_now):
         tindex_select_maxyears_by_nmy[y-ybeg_now,mbeg-1:12]=1
         #if(mbeg<=1): #check
@@ -247,55 +249,57 @@ def time_avg(var,input_fhs,file_index,month_index,weights_values,ibeg,iend,seaso
   #raise SystemExit('Forced exit.')
   return(time)
 
-#def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season,Forecast,icnt,month_in_file):
-def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,MonthlyWeights,month_index_ntims):
+#def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season,Forecast,icnt,month_in_file,fh_logfile):
+def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,MonthlyWeights,month_index_ntims,fh_logfile):
+  #from __future__ import print_function
   '''
   '''
+
   import numpy as np
   import numpy.ma as ma
   nmy=12
   days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31] #approx (ignoring leap years).
 
-  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s)
+  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s,file=fh_logfile)
 
   locate_file_index_Ntimes_b1_flat_nominus1s=locate_file_index_Ntimes_b1_flat_nominus1s-1 #values are b1, need to subtract 1 to make b0
 
-  print('data_wavg: ivarSnow=',ivarSnow)
-  #print('data_wavg: input_fhs=',input_fhs)
-  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s)
-  print('data_wavg: ind_beg,ind_end=',ind_beg,ind_end)
-  print('data_wavg: month_in_file_total_months_beg_to_end=',month_in_file_total_months_beg_to_end)
-  print('data wavg: month_in_file_total_months_beg_to_end.shape=',month_in_file_total_months_beg_to_end.shape)
-  print('data_wavg: levels=',levels)
-  print('data_wavg: MonthlyWeights=',MonthlyWeights)
-  print('data_wavg: month_index_ntims=',month_index_ntims)
-  print('data_wavg: month_index_ntims.shape=',month_index_ntims.shape)
+  print('data_wavg: ivarSnow=',ivarSnow,file=fh_logfile)
+  #print('data_wavg: input_fhs=',input_fhs,file=fh_logfile)
+  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s,file=fh_logfile)
+  print('data_wavg: ind_beg,ind_end=',ind_beg,ind_end,file=fh_logfile)
+  print('data_wavg: month_in_file_total_months_beg_to_end=',month_in_file_total_months_beg_to_end,file=fh_logfile)
+  print('data wavg: month_in_file_total_months_beg_to_end.shape=',month_in_file_total_months_beg_to_end.shape,file=fh_logfile)
+  print('data_wavg: levels=',levels,file=fh_logfile)
+  print('data_wavg: MonthlyWeights=',MonthlyWeights,file=fh_logfile)
+  print('data_wavg: month_index_ntims=',month_index_ntims,file=fh_logfile)
+  print('data_wavg: month_index_ntims.shape=',month_index_ntims.shape,file=fh_logfile)
 
 #testing out on MONTHLY case. Some of this code needs to be taken up into makn routine as it doesn't need to be here.
 
   weights=[]
   for month in list(range(ind_beg,ind_end+1)):
-    print('month=',month)
+    print('month=',month,file=fh_logfile)
 
-    print('month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]=',month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]])
+    print('month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]=',month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]],file=fh_logfile)
     weights.append(days_in_month[month_index_ntims[month]]) 
 
     if(month==ind_beg):
       data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]
     else:
       data=np.vstack((data, input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]))
-    print('data.shape=',data.shape)
+    print('data.shape=',data.shape,file=fh_logfile)
 
-  print('weights=',weights)
+  print('weights=',weights,file=fh_logfile)
 
   if(MonthlyWeights):
     avgdata=np.average(data,axis=0,weights=weights) #note that np.average has weights option. Use None if equal.
   else:
     avgdata=np.average(data,axis=0) #note that np.average has weights option.
 
-  print('avgdata.shape=',avgdata.shape)
+  print('avgdata.shape=',avgdata.shape,file=fh_logfile)
   tdata=np.expand_dims(avgdata,axis=0) #add time-dimension when averaging to form season.
-  print('tdata.shape=',tdata.shape)
+  print('tdata.shape=',tdata.shape,file=fh_logfile)
   #raise SystemExit('Forced exit.')
   return(tdata)
 
@@ -1113,8 +1117,8 @@ def diag_isothetaoNc(data,lev,value):
 
 #      depwgts[:,j,i]=depdiffs
 
-  print('data=',data)
-  print('data.shape=',data.shape)
+  #print('data=',data)
+  #print('data.shape=',data.shape)
 
   data=ma.getdata(data)
 
@@ -1124,9 +1128,6 @@ def diag_isothetaoNc(data,lev,value):
   data_shape=data.shape
   data_size=len(data.shape)
 
-  print('data=',data)
-  print('data.shape=',data.shape)
-
   #print('data=',data[:,0,180])
   #raise SystemExit('Forced exit.')
 
@@ -1134,7 +1135,7 @@ def diag_isothetaoNc(data,lev,value):
   ymin=59 #hard-wired for CAFE (approx. 45S)
   ymax=209 #hard-wired for CAFE (approx. 45N)
 
-  if(data_size==3):
+  if(data_size==3): #this doesn't exist anymore, all arrays must have leading time dimension.
   #single time data e.g. ANN
     #('data.shape=', (50, 300, 360))
     #data=np.swapaxes(data,0,2)
@@ -1145,15 +1146,20 @@ def diag_isothetaoNc(data,lev,value):
     newdata=calc_isoN(data, value=value, levs=lev, lmax=lmax, ymin=ymin, ymax=ymax, diag=False)
   else:
   #monthly time data MON
-    newdata=np.zeros((nmy,data_shape[2],data_shape[3]))
-    for mnow in range(0,nmy):
-      print('mnow=',mnow)
-      newdata[mnow,]=calc_isoN(data[mnow,], value=value, levs=lev, lmax=lmax, ymin=ymin, ymax=ymax, diag=False)
+    #newdata=np.zeros((nmy,data_shape[2],data_shape[3])) #monthly
+    newdata=np.zeros((data_shape[0],data_shape[2],data_shape[3]))
+    #for mnow in range(0,nmy): #monthly
+    for tnow in range(0,data_shape[0]):
+      print('tnow=',tnow)
+      newdata[tnow,]=calc_isoN(data[tnow,], value=value, levs=lev, lmax=lmax, ymin=ymin, ymax=ymax, diag=False)
+
+    #raise SystemExit('Forced exit.')
+
       #data_tmp=data[mnow,] 
       #data_tmp=np.swapaxes(data_tmp,0,2)
       #data_tmp=np.swapaxes(data_tmp,0,1)
       #newdata[mnow,]=calc_iso_surface(data_tmp, my_value=value, zs=lev, interp_order=6)
-    return newdata
+  return newdata
 
     #('data.shape=', (12, 50, 300, 360))
     #('data.shape=', (12, 360, 300, 50))

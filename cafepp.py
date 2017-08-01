@@ -1,6 +1,7 @@
-#!/apps/python/2.7.6/bin/python
-##!/short/p66/mac599/anaconda3/bin/ipython
+#!/usr/bin/env python
 # Filename : cafepp.py
+
+from __future__ import print_function #this is to allow print(,file=xxx) feature
 
 """
 CAFE Post-Processor for monthly inputs
@@ -16,6 +17,8 @@ There are 3 kinds of outputs:
 2. SEASONAL: e.g. DJF, MAM, SO input are monthly and read in for a "years" season at a time and processed by wavg. A single time is written out at a time.
 3. ANN: 12 continuous months (January to December) are read in at a time. A single time is written out at a time. Partial years are ignored.
 
+Trying to adapt it so that all variables (broadcast or diagnosed) have a leading time dimension, size 1 or more.
+
 look into cartopy: http://ajdawson.github.io/software.html
 
 """
@@ -26,7 +29,7 @@ import os
 from time import strftime
 import netCDF4
 from math import radians, cos, sin, asin, sqrt
-import seawater
+#import seawater
 import sys
 import getopt
 import string
@@ -40,7 +43,8 @@ from datetime import date
 import filecmp
 from shutil import copyfile
 import cdms2
-from regrid2 import Regridder
+#from regrid2 import Regridder
+#https://infohost.nmt.edu/tcc/help/pubs/python/web/print-as-function.html
 #
 #
 #from subprocess import call
@@ -61,7 +65,7 @@ def usage(script_name):
     print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --levs=one of pre-defined set --idir=input directory --season="MON"')
 
 try:
-    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rF",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","levs=","realisation=","initialisation=","physics=","forcings=","season=","idir=","vertical_interpolation_method=","version="])
+    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rFl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","levs=","realisation=","initialisation=","physics=","forcings=","season=","idir=","vertical_interpolation_method=","version=","logfile="])
 except getopt.GetoptError as err:
     print(err)
     usage(os.path.realpath(__file__))
@@ -81,6 +85,11 @@ levs_test=None
 MonthlyWeights=False
 #CMIP6=False
 #StdLev=False #write out on standard levels, at this stage focusing on 3D atmosphere pressure level data.
+
+fh_printfile=sys.stdout
+#fh_printfile=sys.stderr
+
+logfile='log'
 mbeg=1
 mend=12
 for o, a in opts:
@@ -103,10 +112,13 @@ for o, a in opts:
 #        Anom=True
 #    elif o == '-C':
 #        Clim=True
+    elif o == '-l':
+         printfile=a
+         fh_printfile=open(printfile,"w")
     elif o == '-v':
          dvar=a
          #ivarS=[str(x) for x in a.split(',')]
-         #print('ivarS=',ivarS)
+         #print('ivarS=',ivarS,file=fh_logfile)
     elif o == '--ybeg':
         ybeg=int(a) 
     elif o == '--yend':
@@ -170,6 +182,8 @@ for o, a in opts:
         ReGrid=True
     elif o == '--version':
         version=a
+    elif o == '--logfile':
+        logfile=a
 #    elif o == '--stdlev':
 #        StdLev=True
     elif o == '-F':
@@ -189,6 +203,9 @@ netcdf='NETCDF3_64BIT'
 netcdf='NETCDF3_CLASSIC'
 netcdf='NETCDF4'
 
+print(sys.argv,file=fh_printfile)
+#raise SystemExit('Forced exit.')
+
 #if(delClim and not Anom):
 #  raise SystemExit('If choose -d then must chose -A.')
 
@@ -196,12 +213,11 @@ netcdf='NETCDF4'
 #  weights=np.array([1,1,1,1,1,1,1,1,1,1,1,1])
 
 #if CMIP6:
-#  print('Generating CMIP6 like netCDF output.')
+#  print('Generating CMIP6 like netCDF output.',file=fh_printfile)
 #else:
-#  print('Generating basic netCDF output.')
+#  print('Generating basic netCDF output.',file=fh_printfile)
 
 #print(levels)
-#raise SystemExit('Forced exit.')
 
 #if not Anom and not Clim then simple broadcast of data.
 #odir='.'
@@ -213,7 +229,7 @@ netcdf='NETCDF4'
 #diag='aaa'
 #setattr(ivarS,diag,True)
 #ivarS.myatt
-#print(getattr(ivarS,diag))
+#print(getattr(ivarS,diag),file=fh_printfile)
 
 area_t=False
 area_u=False
@@ -476,7 +492,7 @@ elif(dvar=='iod'):
   frequency='month'
   levels=0
   nlev=0
-  #print('len(ovars)=',len(ovars))
+  #print('len(ovars)=',len(ovars),file=fh_printfile)
   #raise SystemExit('Forced exit.')
 
 elif(dvar=='ua'):
@@ -838,11 +854,11 @@ else:
   #cdtime.DefaultCalendar=cdtime.GregorianCalendar
   cdtime.DefaultCalendar=cdtime.NoLeapCalendar
 
-cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile='log')
+cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=logfile)
 
-#print(dvar)
+#print(dvar,file=fh_printfile)
 
-#print(inputs)
+#print(inputs,file=fh_printfile)
 #raise SystemExit('Forced exit.')
 dfp_defs='dfp_csiro-gfdl.json'
 cmor.dataset_json(dfp_defs)
@@ -900,17 +916,19 @@ if(ReGrid):
   data=fh.variables['mld']
 
   ingrid=data.getGrid()
-  print('ingrid=',ingrid)
+  #print('ingrid=',file=fh_printfile)
+  #raise SystemExit('Forced exit.')
+  #print('ingrid=',ingrid,file=fh_printfile)
 
-  #print(data)
+  #print(data,file=fh_printfile)
   outgrid=cdms2.createUniformGrid(-88.875, 72, 2.5, 0, 144, 2.5)
 
-  print('outgrid=',outgrid)
+  print('outgrid=',outgrid,file=fh_printfile)
 
-  #print(outgrid.getAxisList())
+  #print(outgrid.getAxisList(),file=fh_printfile)
 
   #lat = outgrid.getLatitude() 
-  #print(lat)
+  #print(lat,file=fh_printfile)
 
   #k=cdms2.regrid(a,regridTool='esmf',regridMethod='linear', coordSys='deg', diag={}, periodicity=1)
   regridfunc = Regridder(ingrid,outgrid)
@@ -918,7 +936,7 @@ if(ReGrid):
 
   #newdata=data.regrid(outgrid)
   newdata=regridfunc(data)
-  print('newdata.shape=',newdata.shape)
+  print('newdata.shape=',newdata.shape,file=fh_printfile)
   #raise SystemExit('Forced exit.')
 
 elif(levs=='gn1'):
@@ -942,35 +960,35 @@ else:
 
 today=date.today()
 t=today.timetuple()
-#print('today=',today)
+#print('today=',today,file=fh_printfile)
 #for i in t:
-#  print('i=',i)
+#  print('i=',i,file=fh_printfile)
 #version='v20170315'
 
 if not 'version' in locals(): version='v'+str('{0:04d}'.format(t[0])) + str('{0:02d}'.format(t[1])) + str('{0:02d}'.format(t[2]))
 
 odir=create_odirs(ovars,institution_id,source_id,experiment_id,ripf,table,grid_label,version)
 
-#print('odir=',odir)
+#print('odir=',odir,file=fh_printfile)
 #raise SystemExit('Forced exit.')
 
 #odir='CMIP6/CMIP/'+institution_id+'/'+source_id+'/'+experiment_id+'/'+ripf+'/'+table+'/'+dvar+'/'+grid_label+'/'+version
 
-#print(mbeg)
+#print(mbeg,file=fh_printfile)
 
 #mbeg=2 #temporary
 #mend=12 #temporary
 
-mbeg=1 #temporary
-mend=12 #temporary
+#mbeg=1 #temporary
+#mend=12 #temporary
 
 #season='SON' #temporary
 #season='JJA' #temporary
 #season='DJF' #temporary
 
-season='MON' #temporary
-season='MAM' #temporary
-season='ANN' #temporary
+#season='MON' #temporary
+#season='MAM' #temporary
+#season='ANN' #temporary
 
 # OUTPUT FILE STUFF USED TO BE HERE MOVED DOWN TO PRIOR TO DATA WRITES...
 
@@ -1034,7 +1052,10 @@ tables.append(cmor.load_table('cmor/Tables/CMIP6_'+table+'.json'))
 tables.append(cmor.load_table('cmor/Tables/CMIP6_grids.json'))
 tables.append(cmor.load_table('cmor/Tables/CMIP6_coordinate.json'))
 
-xfh=netCDF4.Dataset('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+if os.path.exists('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
+  xfh=netCDF4.Dataset('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+else:
+  xfh=netCDF4.Dataset('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
 if(area_t):
   #afh=netCDF4.Dataset('/short/v19/mtc599/ao_am2/sep16f/OUTPUT/ocean_month_0001_01.nc')
   #area_t=afh.variables['area_t']
@@ -1099,20 +1120,20 @@ yend_now=yend
 mbeg_now=mbeg
 mend_now=mend
 
-print('total_months_beg_to_end=',total_months_beg_to_end)
+print('total_months_beg_to_end=',total_months_beg_to_end,file=fh_printfile)
 
-print('ybeg_now=',ybeg_now,' yend_now=',yend_now)
+print('ybeg_now=',ybeg_now,' yend_now=',yend_now,file=fh_printfile)
 
-sstr,times_in_season,tindex_select_maxyears_by_nmy_0or1=filemonth_index(season,ybeg_now,yend_now,mbeg_now,mend_now) #MON special case where times_in_season=1, so always reading/writing one month at a time...
+sstr,times_in_season,tindex_select_maxyears_by_nmy_0or1=filemonth_index(season,ybeg_now,yend_now,mbeg_now,mend_now,fh_printfile) #MON special case where times_in_season=1, so always reading/writing one month at a time...
 
 #iii=np.arange(total_months_beg_to_end).reshape((yend-ybeg+1),12)
 #tindex_select_maxyears_by_nmy_0or1=np.zeros(iii.shape)
 #tindex_select_maxyears_by_nmy_0or1[index_start]=1
 #tindex_select_maxyears_by_nmy_0or1[index_end]=1
-#print(iii)
-print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1)
+#print(iii,file=fh_printfile)
+print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1,file=fh_printfile)
 
-print('total_months_beg_to_end,total_months_beg_to_end,index_start,end=',total_months_beg_to_end,total_months_beg_to_end)
+print('total_months_beg_to_end,total_months_beg_to_end,index_start,end=',total_months_beg_to_end,total_months_beg_to_end,file=fh_printfile)
 #,index_start,index_end)
 #raise SystemExit('Forced exit.')
 
@@ -1131,7 +1152,7 @@ if(Forecast):
 else:
   ifil=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(1))+'.nc' #always 1
 
-print(y,' ',idir+idir_extra+'/'+ifil)
+print(y,' ',idir+idir_extra+'/'+ifil,file=fh_printfile)
 #raise SystemExit('Forced exit.')
 
 f=netCDF4.Dataset(idir+idir_extra+'/'+ifil)
@@ -1174,7 +1195,7 @@ elif(dvar=='ep'):
   var_size=f.variables['det'].shape
   depth_edges=f.variables['st_edges_ocean']
 elif(dvar=='nino34' or dvar=='iod'):
-  #print('hello')
+  #print('hello',file=fh_printfile)
   ivar=f.variables['temp']
   var_dims=f.variables['temp'].dimensions
   var_size=f.variables['temp'].shape
@@ -1299,10 +1320,10 @@ else:
 
 nvar_dims=len(var_dims)
 
-print('var_size=',var_size)
-print(var_dims)
-print(nvar_dims)
-print('dvar=',dvar)
+print('var_size=',var_size,file=fh_printfile)
+print(var_dims,file=fh_printfile)
+print(nvar_dims,file=fh_printfile)
+print('dvar=',dvar,file=fh_printfile)
 #raise SystemExit('Forced exit.')
 
 if(nvar_dims == 4):
@@ -1319,8 +1340,8 @@ else:
 nlev=0
 levels=0
 
-print('var_size=',var_size)
-print('var_dims=',var_dims)
+print('var_size=',var_size,file=fh_printfile)
+print('var_dims=',var_dims,file=fh_printfile)
 
 if(levs=='gn1'):
   levels=[0,3,5]
@@ -1353,7 +1374,7 @@ refString='days since 0001-01-01'
 #raise SystemExit('Forced exit.')
 
 if(table=='fx' or table=='Ofx'):
-  print('As this is a table fx parameter, all time information will be ignored.')
+  print('As this is a table fx parameter, all time information will be ignored.',file=fh_printfile)
   input_fhs={}
   input_fhs[0]=netCDF4.Dataset(idir+'/'+realm+'_'+frequency+'_'+str('{0:04d}'.format(ybeg_now))+'_'+'01'+'.nc')
 else:
@@ -1375,7 +1396,7 @@ else:
     else:
       mbeg_now=1
       mend_now=12 #12 files per year of 1 months each.
-    #print(mbeg_now,mend_now)
+    #print(mbeg_now,mend_now,file=fh_printfile)
     #raise SystemExit('Forced exit.')
 
     if(not Forecast):
@@ -1388,23 +1409,30 @@ else:
       else:
         idir_extra=''
       iend=ibeg+12
-      print(' y=',y,' m=',m,' mend_now=',mend_now,' ibeg=',ibeg,',',' iend=',iend)
+      print(' y=',y,' m=',m,' mend_now=',mend_now,' ibeg=',ibeg,',',' iend=',iend,file=fh_printfile)
       ifila=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(m))+'.nc'
-      print(y,' ',idir+idir_extra+'/'+ifila)
+      print(y,' ',idir+idir_extra+'/'+ifila,file=fh_printfile)
       input_files[tindex]=idir+idir_extra+'/'+ifila
       if not os.path.exists(idir+idir_extra+'/'+ifila):
         raise SystemExit('Missing '+idir+idir_extra+'/'+ifila+'.')
       input_fhs[tindex]=netCDF4.Dataset(input_files[tindex])
       tindex+=1
 
-  print('input files=',input_files)
-  #print(len(input_files))
-  print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1)
-  #print(tindex_select_maxyears_by_nmy_0or1.shape)
+  print('input files=',input_files,file=fh_printfile)
+  #print(len(input_files),file=fh_printfile)
+  print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1,file=fh_printfile)
+  #print(tindex_select_maxyears_by_nmy_0or1.shape,file=fh_printfile)
+
   #raise SystemExit('Forced exit.')
 
   findex_select_maxyears_by_nmy_b1_withminus1s=np.copy(tindex_select_maxyears_by_nmy_0or1)
-  findex_select_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s*0-1 #set to -1, means no file at this position in year,month array.
+
+  if(Forecast):
+    findex_select_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s*0-1 #set to -1, means no file at this position in year,month array.
+  else:
+    findex_select_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s*0-1
+
+  print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
 
   yindex_select_maxyears_by_nmy=np.copy(tindex_select_maxyears_by_nmy_0or1)
 
@@ -1424,7 +1452,7 @@ else:
         mbeg_now=1
         mend_now=12 #12 files per year of 1 months each.
       for m in range(mbeg_now,mend_now+1):
-        print('y,fff,y*,m*,mbeg,mend_now=',y,fff,y-ybeg_now,m-mbeg_now,mbeg_now,mend_now)
+        print('y,fff,y*,m*,mbeg,mend_now=',y,fff,y-ybeg_now,m-mbeg_now,mbeg_now,mend_now,file=fh_printfile)
         if(tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]!=0):
           findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]*fff + 1
         else:
@@ -1433,27 +1461,28 @@ else:
   else:
     y=ybeg_now
     for fff in range(len(input_files)):
-      #print(fff)
-      if(tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]!=0):
-        findex_select_maxyears_by_nmy_b1_withminus1s[fff,:]=tindex_select_maxyears_by_nmy_0or1[fff,:]*fff + 1
-      else:
-        findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=0
+      print(fff,file=fh_printfile)
+      #if(tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]!=0):
+      #  findex_select_maxyears_by_nmy_b1_withminus1s[fff,:]=tindex_select_maxyears_by_nmy_0or1[fff,:]*fff + 1
+      #else:
+      #  findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=0
+      findex_select_maxyears_by_nmy_b1_withminus1s[fff,:]=(tindex_select_maxyears_by_nmy_0or1[fff,:]*fff + 1)*tindex_select_maxyears_by_nmy_0or1[fff,:]
       y+=1
 
-  print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s)
+  print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
 
   #raise SystemExit('Forced exit.')
 
   tindex_select_maxyears_by_nmy_0or1_flat=tindex_select_maxyears_by_nmy_0or1.reshape((yend_now-ybeg_now+1)*12)
-  print('tindex_select_maxyears_by_nmy_0or1_flat=',tindex_select_maxyears_by_nmy_0or1_flat)
+  print('tindex_select_maxyears_by_nmy_0or1_flat=',tindex_select_maxyears_by_nmy_0or1_flat,file=fh_printfile)
   #raise SystemExit('Forced exit.')
 
   numtims=int(np.sum(tindex_select_maxyears_by_nmy_0or1_flat))
 
-  print('number of times used in each season definition, times_in_season=',times_in_season)
-  print('total number of times (months) read in including any partial begin and end year, total_months_beg_to_end=',total_months_beg_to_end)
-  print('number of times used from input file, numtims=',numtims)
-#  print('total number of seasons written out, numseas=',numseas)
+  print('number of times used in each season definition, times_in_season=',times_in_season,file=fh_printfile)
+  print('total number of times (months) read in including any partial begin and end year, total_months_beg_to_end=',total_months_beg_to_end,file=fh_printfile)
+  print('number of times used from input file, numtims=',numtims,file=fh_printfile)
+#  print('total number of seasons written out, numseas=',numseas,file=fh_printfile)
 
 #file_index_maxyears_by_nmy_b1_withminus1s is an array year,month. elements corresonding to the valid input months/years are inserted (0...max-1), a -1 means that no file is present or included. file_index_maxyears_by_nmy_b1_withminus1s_flat is vector version of file_index_maxyears_by_nmy_b1_withminus1s.
 #file_index_maxyears_by_nmy_b1_nominus1s_flat is list from 0...max-1 number of files, gets rid of any -1s indicating missing months.
@@ -1462,8 +1491,8 @@ else:
 
   file_index_maxyears_by_nmy_b1_withminus1s,month_index_ntims=np.where(tindex_select_maxyears_by_nmy_0or1==1)
 
-  print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s)
-  print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size)
+  print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
+  print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size,file=fh_printfile)
 
   year_index_ntims=file_index_maxyears_by_nmy_b1_withminus1s+ybeg_now
 
@@ -1471,31 +1500,31 @@ else:
 
   file_index_maxyears_by_nmy_b1_withminus1s=np.where(file_index_maxyears_by_nmy_b1_withminus1s>0,file_index_maxyears_by_nmy_b1_withminus1s+0,file_index_maxyears_by_nmy_b1_withminus1s) #add 1 to values > 0
 
-  print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s)
-  print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size)
+  print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
+  print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size,file=fh_printfile)
 
   #raise SystemExit('Forced exit.')
 
-  print('month_index_ntims=',month_index_ntims)
-  print('month_index_ntims.size=',month_index_ntims.size)
-  print('year_index_ntims=',year_index_ntims)
-  print('year_index_ntims.size=',year_index_ntims.size)
+  print('month_index_ntims=',month_index_ntims,file=fh_printfile)
+  print('month_index_ntims.size=',month_index_ntims.size,file=fh_printfile)
+  print('year_index_ntims=',year_index_ntims,file=fh_printfile)
+  print('year_index_ntims.size=',year_index_ntims.size,file=fh_printfile)
 
   file_index_maxyears_by_nmy_b1_withminus1s_flat=file_index_maxyears_by_nmy_b1_withminus1s.flatten()
 
-  print('file_index_maxyears_by_nmy_b1_withminus1s_flat=',file_index_maxyears_by_nmy_b1_withminus1s_flat)
+  print('file_index_maxyears_by_nmy_b1_withminus1s_flat=',file_index_maxyears_by_nmy_b1_withminus1s_flat,file=fh_printfile)
 
   file_index_maxyears_by_nmy_b1_nominus1s_flat=file_index_maxyears_by_nmy_b1_withminus1s_flat[np.where(file_index_maxyears_by_nmy_b1_withminus1s_flat>0,True,False)]
 
-  print('file_index_maxyears_by_nmy_b1_nominus1s_flat=',file_index_maxyears_by_nmy_b1_nominus1s_flat)
+  print('file_index_maxyears_by_nmy_b1_nominus1s_flat=',file_index_maxyears_by_nmy_b1_nominus1s_flat,file=fh_printfile)
 
   locate_file_index_Ntimes_b1_nominus1s_flat=file_index_maxyears_by_nmy_b1_nominus1s_flat[np.where(file_index_maxyears_by_nmy_b1_nominus1s_flat>0)]
 
-  print('locate_file_index_Ntimes_b1_nominus1s_flat=',locate_file_index_Ntimes_b1_nominus1s_flat)
-  print('locate_file_index_Ntimes_b1_nominus1s_flat.shape=',locate_file_index_Ntimes_b1_nominus1s_flat.shape)
+  print('locate_file_index_Ntimes_b1_nominus1s_flat=',locate_file_index_Ntimes_b1_nominus1s_flat,file=fh_printfile)
+  print('locate_file_index_Ntimes_b1_nominus1s_flat.shape=',locate_file_index_Ntimes_b1_nominus1s_flat.shape,file=fh_printfile)
 
   cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=len(locate_file_index_Ntimes_b1_nominus1s_flat)
-  print('cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=',cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat)
+  print('cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=',cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat,file=fh_printfile)
   #raise SystemExit('Forced exit.')
 
   tbeg=[]
@@ -1510,7 +1539,7 @@ else:
   else:
     ttt=cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat/times_in_season #this should be equal to number of valid months/3
 
-  print('ttt=',ttt,' times_in_season=',times_in_season)
+  print('ttt=',ttt,' times_in_season=',times_in_season,file=fh_printfile)
 
   for n in range(0,ttt):
     #ind_end=ind_beg+times_in_season-1
@@ -1521,24 +1550,26 @@ else:
     else:
       ind_end=ind_beg+times_in_season-1
 
-    #print('n,ind_beg,ind_end,year_beg,month_beg,year_end,month_end=',n,ind_beg,ind_end,year_index_ntims[ind_beg],month_index_ntims[ind_beg],year_index_ntims[ind_end],month_index_ntims[ind_end])
+    #print('n,ind_beg,ind_end,year_beg,month_beg,year_end,month_end=',n,ind_beg,ind_end,year_index_ntims[ind_beg],month_index_ntims[ind_beg],year_index_ntims[ind_end],month_index_ntims[ind_end],file=fh_printfile)
 
     month_index_beg=month_index_ntims[ind_beg]+1
     year_index_beg=year_index_ntims[ind_beg]
 
-    #print('year,month_index_beg=',year_index_beg,month_index_beg)
+    #print('year,month_index_beg=',year_index_beg,month_index_beg,file=fh_printfile)
 
     tbeg.append(cdtime.comptime(year_index_beg,month_index_beg,day1).torel(refString).value)
-    #print(month_index_ntims[ind_beg])
+    #print(month_index_ntims[ind_beg],file=fh_printfile)
 
     if(season=='MON'):
       if(n==0):
-        month_index_end=month_index_ntims[ind_beg]+1+1
-        year_index_end=year_index_ntims[ind_beg]
-      else:
+        #print('n==0',file=fh_printfile)
         month_index_end=month_index_beg+1
-        year_index_end=year_index_end
-    if(season=='ANN'):
+        year_index_end=year_index_beg
+      else:
+        #print('n!=0',file=fh_printfile)
+        month_index_end=month_index_beg+1
+        year_index_end=year_index_beg
+    elif(season=='ANN'):
       if(n==ttt-1): #last one special
         month_index_end=month_index_ntims[ind_end-1]+1+1+1
         year_index_end=year_index_ntims[ind_end-1]
@@ -1553,11 +1584,11 @@ else:
         month_index_end=month_index_ntims[ind_end]+1
         year_index_end=year_index_ntims[ind_end]
 
-    if(month_index_end>12):
+    if(month_index_end>nmy):
        month_index_end=month_index_end-nmy
        year_index_end+=1
 
-    print('n=',n,' ind_beg=',ind_beg,' ind_end=',ind_end,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end)
+    print('n=',n,' ind_beg=',ind_beg,' ind_end=',ind_end,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end,file=fh_printfile)
 
     tdelta=1.0
     tdelta=0.0
@@ -1566,7 +1597,7 @@ else:
     #tdelta=1
 
     tend.append(cdtime.comptime(year_index_end,month_index_end,day1).torel(refString).value-tdelta) #assume in days, -1 gets numer of days of wanted month (ie. prior month without having to know number of days in month)
-    #print('tbeg,tend=',tbeg,tend)
+    #print('tbeg,tend=',tbeg,tend,file=fh_printfile)
 
     #raise SystemExit('Forced exit.')
     ind_beg=ind_end+1
@@ -1582,15 +1613,18 @@ else:
 
   #raise SystemExit('Forced exit.')
 
-  print(tbeg,tend,tavg)
+  print('tbeg,tend,tavg=',tbeg,tend,tavg,file=fh_printfile)
+
+  #raise SystemExit('Forced exit.')
+
   #tables[0]=cmor.load_table('cmor/Tables/CMIP6_Amon.json')
   cmor.set_table(tables[0])
   #itime=cmor.axis(table_entry= 'time', length=5, units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:], interval=None)
   #itime=cmor.axis(table_entry= 'time', length=5, units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:])
   #itime=cmor.axis('time', units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:])
 
-  #print('tavg=',tavg)
-  #print('tval_bounds=',tval_bounds)
+  #print('tavg=',tavg,file=fh_printfile)
+  #print('tval_bounds=',tval_bounds,file=fh_printfile)
 
   time_axis_id=cmor.axis('time', units=refString, coord_vals=tavg, cell_bounds=tval_bounds)
   #raise SystemExit('Forced exit.')
@@ -1643,10 +1677,10 @@ if(dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='divg' or dvar=
   zbounds =np.column_stack((min_vals, max_vals))
   zbounds=np.where(zbounds<0.0,0.0,zbounds)
 
-  print('zt=',zt[:])
-  print('zt.shape=',zt.shape)
-  print('zbounds=',zbounds[:])
-  print('tables=',tables)
+  print('zt=',zt[:],file=fh_printfile)
+  print('zt.shape=',zt.shape,file=fh_printfile)
+  print('zbounds=',zbounds[:],file=fh_printfile)
+  print('tables=',tables,file=fh_printfile)
 
   cmor.set_table(tables[2]) #working zg
   cmor.set_table(tables[0])
@@ -1667,13 +1701,13 @@ if(dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10'
     zt=f.variables['phalf'][:]*100.0
   else:
     zt=f.variables['pfull'][:]*100.0
-  print('zt=',zt)
+  print('zt=',zt,file=fh_printfile)
 
   if(dvar=='ta19'):
     newlevs=np.array([100., 500., 1000., 2000., 3000., 5000., 7000., 10000., 15000., 20000., 25000., 30000., 40000., 50000., 60000., 70000., 85000., 92500., 100000.])
   else:
     newlevs=np.array([1000., 5000., 7000., 10000., 15000., 25000., 50000., 70000., 85000., 100000.])
-  #print('newlevs=',newlevs)
+  #print('newlevs=',newlevs,file=fh_printfile)
   #raise SystemExit('Forced exit.')
 
   cmor.set_table(tables[0])
@@ -1683,16 +1717,16 @@ if(dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dva
 #  lat_axis=f.variables['lat']
 #  lon_axis=f.variables['lon']
 
-  print('lat_vals.shape=',lat_vals.shape)
-  print('lon_vals.shape=',lon_vals.shape)
+  print('lat_vals.shape=',lat_vals.shape,file=fh_printfile)
+  print('lon_vals.shape=',lon_vals.shape,file=fh_printfile)
 
-  print('lat_vals_bounds.shape=',lat_vals_bounds.shape)
-  print('lon_vals_bounds.shape=',lon_vals_bounds.shape)
+  print('lat_vals_bounds.shape=',lat_vals_bounds.shape,file=fh_printfile)
+  print('lon_vals_bounds.shape=',lon_vals_bounds.shape,file=fh_printfile)
   lat_vals_bounds=np.where(lat_vals_bounds>90.0,90.0,lat_vals_bounds)
   lat_vals_bounds=np.where(lat_vals_bounds<-90.0,-90.0,lat_vals_bounds)
 
-  print('max=',np.max(lat_vals_bounds))
-  print('min=',np.min(lat_vals_bounds))
+  print('max=',np.max(lat_vals_bounds),file=fh_printfile)
+  print('min=',np.min(lat_vals_bounds),file=fh_printfile)
 
   nlats=lat_vals.shape[0] #check this
   nlons=lon_vals.shape[0] #check this, should it be 1?
@@ -1724,7 +1758,7 @@ if(dvar=='mfo'):
   cmor.set_table(tables[0])
 
   oline_axis_id = cmor.axis(table_entry='oline', units='', length=len(lines), coord_vals=lines)
-  print oline_axis_id
+  print(oline_axis_id,file=fh_printfile)
 
 elif(dvar=='msftyyz'):
   cmor.set_table(tables[0])
@@ -1739,7 +1773,7 @@ elif(dvar=='msftyyz'):
   lon_vals=xfh.variables['grid_x_C']
   lon_vals_360=np.mod(lon_vals,360)
 
-  print('lon_vals=',lon_vals[:])
+  print('lon_vals=',lon_vals[:],file=fh_printfile)
 
   min_vals=np.append((1.5*lat_vals[0] - 0.5*lat_vals[1]), (lat_vals[0:-1] + lat_vals[1:])/2)
   max_vals=np.append((lat_vals[0:-1] + lat_vals[1:])/2, 1.5*lat_vals[-1] - 0.5*lat_vals[-2])
@@ -1759,10 +1793,10 @@ elif(dvar=='msftyyz'):
 
   #lon_axis_id=cmor.axis(table_entry='longitude', units='degrees_east', coord_vals=lon_vals[:], cell_bounds=lon_vals_bounds)
 
-  print('time_axis_id=', time_axis_id)
-  print('basin_axis_id=', basin_axis_id)
-  print('z_axis_id=', z_axis_id)
-  print('lat_axis_id=', lat_axis_id)
+  print('time_axis_id=', time_axis_id,file=fh_printfile)
+  print('basin_axis_id=', basin_axis_id,file=fh_printfile)
+  print('z_axis_id=', z_axis_id,file=fh_printfile)
+  print('lat_axis_id=', lat_axis_id,file=fh_printfile)
 
   #raise SystemExit('Forced exit.')
 
@@ -1790,8 +1824,8 @@ elif(dvar=='thetao' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='
 
   #z_axis_id=cmor.axis('depth_coord','m',coord_vals=zt[:],cell_bounds=zbounds[:])
 
-  #print('zt=',zt[:])
-  #print('zt=',zt[[0,3,5]])
+  #print('zt=',zt[:],file=fh_printfile)
+  #print('zt=',zt[[0,3,5]],file=fh_printfile)
   #z_axis_id=cmor.axis('depth_coord','m',coord_vals=zt[[0,3,5]])
   #raise SystemExit('Forced exit.')
 
@@ -1800,10 +1834,10 @@ elif(dvar=='thetao' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='
   j_axis_id=cmor.axis('j_index','1',coord_vals=np.arange(300))
   i_axis_id=cmor.axis('i_index','1',coord_vals=np.arange(360))
 
-  #print('time_axis_id=',time_axis_id)
-  print('z_axis_id=',z_axis_id)
-  print('j_axis_id=',j_axis_id)
-  print('i_axis_id=',i_axis_id)
+  #print('time_axis_id=',time_axis_id,file=fh_printfile)
+  print('z_axis_id=',z_axis_id,file=fh_printfile)
+  print('j_axis_id=',j_axis_id,file=fh_printfile)
+  print('i_axis_id=',i_axis_id,file=fh_printfile)
 
   lon_vertices=np.mod(get_vertices('geolon_t'),360)
   lat_vertices=get_vertices('geolat_t')
@@ -1825,8 +1859,8 @@ elif(dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='
     lon_vals=xfh.variables['x_T']
   lon_vals_360=np.mod(lon_vals,360)
 
-  print('lat_vals.shape=',lat_vals.shape)
-  print('lon_vals.shape=',lon_vals.shape)
+  print('lat_vals.shape=',lat_vals.shape,file=fh_printfile)
+  print('lon_vals.shape=',lon_vals.shape,file=fh_printfile)
 
   #print('lat_axis_bounds.shape=',lat_axis_bounds.shape)
 
@@ -1835,19 +1869,19 @@ elif(dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='
   j_axis_id=cmor.axis('j_index','1',coord_vals=np.arange(300))
   i_axis_id=cmor.axis('i_index','1',coord_vals=np.arange(360))
 
-  print('j_axis_id=',j_axis_id)
-  print('i_axis_id=',i_axis_id)
+  print('j_axis_id=',j_axis_id,file=fh_printfile)
+  print('i_axis_id=',i_axis_id,file=fh_printfile)
 
   lon_vertices=np.mod(get_vertices('geolon_t'),360)
   lat_vertices=get_vertices('geolat_t')
 
   axis_ids=np.array([j_axis_id, i_axis_id])
   grid_id=cmor.grid(axis_ids=axis_ids, latitude=lat_vals[:], longitude=lon_vals_360[:], latitude_vertices=lat_vertices[:], longitude_vertices=lon_vertices[:])
-  print('grid_id=',grid_id)
-  print('lat_vals.shape=',lat_vals.shape)
-  print('lon_vals.shape=',lon_vals.shape)
-  print('lat_vertices.shape=',lat_vertices.shape)
-  print('lon_vertices.shape=',lon_vertices.shape)
+  print('grid_id=',grid_id,file=fh_printfile)
+  print('lat_vals.shape=',lat_vals.shape,file=fh_printfile)
+  print('lon_vals.shape=',lon_vals.shape,file=fh_printfile)
+  print('lat_vertices.shape=',lat_vertices.shape,file=fh_printfile)
+  print('lon_vertices.shape=',lon_vertices.shape,file=fh_printfile)
 
 cmor.set_table(tables[0]) #working
 
@@ -1875,7 +1909,7 @@ elif(dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='rws500' or dvar=='tauu
   axis_ids=np.array([time_axis_id,lat_axis_id,lon_axis_id])
   axis_ids=np.array([lat_axis_id,lon_axis_id])
   axis_ids=[time_axis_id,lat_axis_id,lon_axis_id] #working zg500
-  print('axis_ids=',axis_ids)
+  print('axis_ids=',axis_ids,file=fh_printfile)
   if(dvar=='tauu' or dvar=='tauv'):
     positive="up"
   else:
@@ -1887,8 +1921,8 @@ elif(dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dva
   #cmor.set_table(tables[0])
   #axis_ids=[time_axis_id,z_axis_id,lat_axis_id,lon_axis_id]
   axis_ids=np.array([time_axis_id,z_axis_id,lat_axis_id,lon_axis_id])
-  print('axis_ids=',axis_ids)
-  print('dvar=',dvar,' units=',units)
+  print('axis_ids=',axis_ids,file=fh_printfile)
+  print('dvar=',dvar,' units=',units,file=fh_printfile)
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
 
 elif(dvar=='nino34' or dvar=='temptotal' or dvar=='salttotal' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep'):
@@ -1916,26 +1950,26 @@ elif(dvar=='msftyyz'):
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
 elif(dvar=='mfo'):
   axis_ids=np.array([time_axis_id, oline_axis_id])
-  print('axis_ids=',axis_ids)
+  print('axis_ids=',axis_ids,file=fh_printfile)
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
 elif(dvar=='nhbi'):
   axis_ids=np.array([time_axis_id, lon_axis_id])
-  print('axis_ids=',axis_ids)
+  print('axis_ids=',axis_ids,file=fh_printfile)
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
   data_id.append(cmor.variable('GHGS','1.0',axis_ids=axis_ids, missing_value=-1e20))
   data_id.append(cmor.variable('GHGN','1.0',axis_ids=axis_ids, missing_value=-1e20))
 
 ofil,ofil_modified=create_ofils(season,table,ovars,experiment_id,source_id,ripf,grid_label,ybeg,yend,mbeg,mend,0,0) #don't need to worry about dbeg,dend, always monthly data input.
 
-print('odir=',odir)
-print('ofil=',ofil)
-print('ofil_modified=',ofil_modified)
+print('odir=',odir,file=fh_printfile)
+print('ofil=',ofil,file=fh_printfile)
+print('ofil_modified=',ofil_modified,file=fh_printfile)
 
-print('len(ovars)=',len(ovars))
+print('len(ovars)=',len(ovars),file=fh_printfile)
 for o in range(0,len(ovars)):
-  print('Output CMIP6 file:',odir[o]+'/'+ofil_modified[o])
+  print('Output CMIP6 file:',odir[o]+'/'+ofil_modified[o],file=fh_printfile)
 
-#print(NoClobber)
+#print(NoClobber,file=fh_printfile)
 #raise SystemExit('Forced exit.')
 
 for o in range(0,len(ovars)):
@@ -1994,12 +2028,12 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
 
   if(season=='MON'):
     if(n==0):
-      month_index_end=month_index_ntims[ind_beg]+1+1
-      year_index_end=year_index_ntims[ind_beg]
+      month_index_end=month_index_beg+1
+      year_index_end=year_index_beg
     else:
       month_index_end=month_index_beg+1
       year_index_end=year_index_end
-  if(season=='ANN'):
+  elif(season=='ANN'):
     if(n==ttt-1): #last one special
       month_index_end=month_index_ntims[ind_end-1]+1+1+1
       year_index_end=year_index_ntims[ind_end-1]
@@ -2018,16 +2052,19 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
      month_index_end=month_index_end-nmy
      year_index_end+=1
 
-  print('n=',n,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end,' ind_beg,end=',ind_beg,ind_end)
+  print('n=',n,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end,' ind_beg,end=',ind_beg,ind_end,file=fh_printfile)
 
   if(len(inputs)==2):
     if(dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='ta19'):
       nlev=0
   else:
-    print('levels=',levels)
-    print('nlev=',nlev)
+    print('levels=',levels,file=fh_printfile)
+    print('nlev=',nlev,file=fh_printfile)
 
-    data=data_wavg(inputs[0],input_fhs,locate_file_index_Ntimes_b1_nominus1s_flat,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,MonthlyWeights,month_index_ntims)
+    data=data_wavg(inputs[0],input_fhs,locate_file_index_Ntimes_b1_nominus1s_flat,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,MonthlyWeights,month_index_ntims,fh_printfile)
+
+    print('data.shape=',data.shape,file=fh_printfile)
+    #raise SystemExit('Forced exit.')
 
   if(dvar=='acc_drake'):
     data=diag_acc_drake(data,area_t,lat,lon)
@@ -2083,6 +2120,7 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
      data=diag_rws500(data1[9,:,:],data2[9,:,:],lat_vals[:],lon_vals[:])
   elif(dvar=='isothetao16c'):
     data=diag_isothetaoNc(data,zt[:],16.0)
+
   elif(dvar=='isothetao20c'):
     data=diag_isothetaoNc(data,zt[:],20.0)
 
@@ -2098,17 +2136,19 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
   else:
     ntimes_passed=1
 
-  if(dvar=='thetao'):
-    print('levels=',levels)
-    print('data.shape=',data.shape)
+  if(dvar=='thetao' or dvar=='isothetao20c'):
+    print('levels=',levels,file=fh_printfile)
+    print('data.shape=',data.shape,file=fh_printfile)
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:,:,:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
   elif(dvar=='tos' or dvar=='thetao' or dvar=='temptotal' or dvar=='salttotal' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
+
       #raise SystemExit('Forced exit.')
+
   elif(dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dvar=='divg' or dvar=='cl' or dvar=='rws500' or dvar=='rws' or dvar=='ta' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
-    print('data.shape=',data.shape)
+    #print('data.shape=',data.shape,file=fh_printfile)
     #raise SystemExit('Forced exit.')
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
@@ -2125,16 +2165,16 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
   ibeg=iend+1
   ind_beg=ind_end+1
 
-print('ovars=',ovars)
-print('len(ovars)=',len(ovars))
+print('ovars=',ovars,file=fh_printfile)
+print('len(ovars)=',len(ovars),file=fh_printfile)
 file_name=[]
 for o in range(0,len(ovars)):
-  #print('o=',o)
-  #print('file_name=',file_name)
+  #print('o=',o,file=fh_printfile)
+  #print('file_name=',file_name,file=fh_printfile)
   file_name.append(cmor.close(var_id=data_id[o], file_name=True))
 
 for o in range(0,len(ovars)):
-  finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season)
+  finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season,fh_printfile)
 
 raise SystemExit('Finished O.K.')
 

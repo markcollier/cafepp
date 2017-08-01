@@ -73,11 +73,11 @@ declare -a ivars=("hus")
 declare -a ivars=("ta")
 declare -a ivars=("ta10")
 declare -a ivars=("ta19")
-declare -a ivars=("thetao")
-declare -a ivars=("isothetao20c")
 declare -a ivars=("zg")
 declare -a ivars=("tauv")
 declare -a ivars=("tauu")
+declare -a ivars=("thetao")
+declare -a ivars=("isothetao20c")
 declare -a ivars=("tos")
 
 #cbeg=451
@@ -147,6 +147,7 @@ export CAFE_EXPERIMENT=v1
 elif [ $experiment == 'v2' ];then
 idir='/short/r67/mac599/coupled_model/feb17a/OUTPUT'
 idir='/short/v14/lxs599/coupled_model/feb17a/OUTPUT'
+idir='/Volumes/LaCie#1/coupled_model/feb17a/OUTPUT'
 ybeg_min=1
 yend_max=286
 yend_max=500
@@ -165,7 +166,7 @@ yend=2
 yend=401
 
 ybeg=391
-yend=400
+yend=393
 export CAFE_EXPERIMENT=v2
 else
 echo 'problem.'
@@ -179,9 +180,9 @@ tdir='/short/v14/mac599'
 season='DecJan'
 season='JJA'
 season='DJF'
-season='MON'
-season='MAM'
 season='ANN'
+season='MAM'
+season='MON'
 
 #levs='A'
 #levs='B'
@@ -193,7 +194,7 @@ realisation=0
 let mbeg_now=1
 let mend_now=12
 
-./cafepp.py -i5 --version v20170726 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg --yend=$yend --ybeg_min=$ybeg_min --yend_max=$yend_max --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --idir=$idir --season=$season --levs=$levs
+./cafepp.py -i5 --version v20170726 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg --yend=$yend --ybeg_min=$ybeg_min --yend_max=$yend_max --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --idir=$idir --season=$season --levs=$levs --logfile=cmor_log.txt -l stdout.txt
 
 #--vertical_interpolation_method='linear'
 
