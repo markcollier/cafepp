@@ -59,6 +59,7 @@ declare -a ivars=("psl")
 declare -a ivars=("tos")
 
 season="ANN"
+season="MAM"
 season="MON"
 
 breeding=true #process control/ensemble members of breeding forecast
@@ -88,16 +89,17 @@ for realisation in "${realisations[@]}";do
 #exit
 
 let ybeg_now=2004 #2002
-let yend_now=2014 #2016
+let yend_now=2015 #2016
 
 if [ $breeding = "true" ];then
   let mbeg_now=2
   let mend_now=6
 else
-  let mbeg_now=1
   let mbeg_now=3 #1
-  let mend_now=12 #6
+  let mbeg_now=1
   let mend_now=6
+  let mend_now=12 #6
+  let mend_now=3 #6
 fi
 
 if [ $breeding = "true" ];then
@@ -126,7 +128,7 @@ fi #breeding
 
 levs=""
 
-./cafepp.py -i 5 --version v20170609 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --idir=$idir --season=$season --levs=$levs -F
+./cafepp.py -i 5 --version v20170609 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --idir=$idir --season=$season --levs=$levs --logfile=cmor_log.txt -l stdoutF.txt -F
 
 #--new_ovars="rws,div,eta,uchi,vchi" --new_units="s-2,s-1,s-1,ms-1,ms-1"
 
