@@ -133,7 +133,7 @@ nmy=12
 #area_t=False
 
 frequency='daily'
-realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method=grab_var_meta(dvar,frequency)
+realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure=grab_var_meta(dvar,frequency)
 
 if 'new_ovars' in locals():
   ovars=new_ovars
@@ -197,13 +197,14 @@ for o in range(0,len(ovars)):
   if(os.path.exists(odir[o]+'/'+ofil[o]) and NoClobber):
     raise SystemExit('No Clobber set and ',odir[o]+'/'+ofil_modified[o],' exists')
 
+calendar='julian'
 cmor.set_cur_dataset_attribute('grid_label',grid_label)
 cmor.set_cur_dataset_attribute('grid',grid)
 cmor.set_cur_dataset_attribute('realization',realisation)
 cmor.set_cur_dataset_attribute('initialization_index',initialisation)
 cmor.set_cur_dataset_attribute('realization_index',realisation)
 cmor.set_cur_dataset_attribute('version',version)
-cmor.set_cur_dataset_attribute('calendar','julian')
+cmor.set_cur_dataset_attribute('calendar',calendar)
 
 cmor.set_cur_dataset_attribute('importance',importance)
 cmor.set_cur_dataset_attribute('season',season)
@@ -344,6 +345,20 @@ tavg=np.array(tavg_str)
 
 tbeg=tavg-0.5
 tend=tavg+0.5
+
+tbeg=tavg-0.0
+tend=tavg+1.0
+
+tavg=tavg+0.5
+
+timestamp_avg=netCDF4.num2date(tavg,units=refString,calendar=calendar)
+timestamp_beg=netCDF4.num2date(tbeg,units=refString,calendar=calendar)
+timestamp_end=netCDF4.num2date(tend,units=refString,calendar=calendar)
+
+ttt=len(tavg)
+print('timestamp_avg,beg,end:',file=fh_printfile)
+for n in range(0,ttt):
+  print(timestamp_avg[n],timestamp_beg[n],timestamp_end[n],file=fh_printfile)
 
 tval_bounds=np.column_stack((tbeg,tend))
 
@@ -568,7 +583,7 @@ for icnt in range(0,len(tavg)):
     data2=np.expand_dims(data2,axis=0)
     data3=np.expand_dims(data3,axis=0)
 
-    print('data1.shape=',data1.shape,file=fh_printfile)
+    print('data1.shape=',data1.shape)
 
     data1a=vertical_interpolate(data1,zt,newlevs,data3,vertical_interpolation_method)
     #raise SystemExit('Forced exit.')
