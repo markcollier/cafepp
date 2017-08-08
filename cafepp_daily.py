@@ -568,7 +568,7 @@ for icnt in range(0,len(tavg)):
     data2=np.expand_dims(data2,axis=0)
     data3=np.expand_dims(data3,axis=0)
 
-    print('data1.shape=',data1.shape)
+    print('data1.shape=',data1.shape,file=fh_printfile)
 
     data1a=vertical_interpolate(data1,zt,newlevs,data3,vertical_interpolation_method)
     #raise SystemExit('Forced exit.')

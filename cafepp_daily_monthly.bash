@@ -144,7 +144,7 @@ levs=""
 
 #-l stdoutF.txt
 
-./cafepp.py -i 5 --version v20170804 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --idir=$idir --season=$season --levs=$levs --cmorlogfile=cmor_log.txt -F
+./cafepp.py -i 5 --version v20170804 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --idir=$idir --season=$season --levs=$levs --cmorlogfile=cmor_log.txt -F -l stdout.txt
 
 #--new_ovars="rws,div,eta,uchi,vchi" --new_units="s-2,s-1,s-1,ms-1,ms-1"
 
