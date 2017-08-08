@@ -1,5 +1,10 @@
 #!/usr/bin/env python
+
+##!/apps/python/2.7.6/bin/python
+##!/short/p66/mac599/anaconda3/bin/ipython
 # Filename : cafepp_daily.py
+
+from __future__ import print_function #this is to allow print(,file=xxx) feature
 
 """
 CAFE Post-Processor for daily inputs/outputs
@@ -13,11 +18,11 @@ import os
 from time import strftime
 import netCDF4
 from math import radians, cos, sin, asin, sqrt
-#import seawater
+import seawater
 import sys
 import getopt
 import string
-from decadal_diag import MustHaveAllLevs,diag_acc_drake,diag_acc_africa,diag_mozmbq,diag_aabw,diag_nadw,diag_pp,diag_nflux,diag_ep,diag_ssh,diag_moc,diag_moc_atlantic,diag_moc_pacific,diag_moc_indian,diag_shice_cover,diag_nhice_cover,diag_nino34,xtra_nino34,init_data,sum_data,avg_data,filemonth_index,data_wavg,time_avg,diag_nhblocking_index,diag_rws,finish,diag_msftyyz,make_mask3D,diag_mfo,transPort,diag_rws500,create_odirs,create_ofils,diag_iod,diag_iod,xtra_iod,vertical_interpolate,diag_isothetaoNc,calc_iso_surface,calc_isoN
+from decadal_diag import MustHaveAllLevs,diag_acc_drake,diag_acc_africa,diag_mozmbq,diag_aabw,diag_nadw,diag_pp,diag_nflux,diag_ep,diag_ssh,diag_moc,diag_moc_atlantic,diag_moc_pacific,diag_moc_indian,diag_shice_cover,diag_nhice_cover,diag_nino34,xtra_nino34,init_data,sum_data,avg_data,filemonth_index,data_wavg,time_avg,diag_nhblocking_index,diag_rws,finish,diag_msftyyz,make_mask3D,diag_mfo,transPort,diag_rws500,create_odirs,create_ofils,diag_iod,diag_iod,xtra_iod,vertical_interpolate,diag_isothetaoNc,calc_iso_surface,calc_isoN,grab_var_meta
 import cmor
 import cdtime
 from app_funcs import *
@@ -27,25 +32,28 @@ from datetime import date
 import filecmp
 from shutil import copyfile
 import cdms2
-#from regrid2 import Regridder
+from regrid2 import Regridder
 
 def usage(script_name):
     """usage"""
     print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --idir=input directory')
 
 try:
-    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:r",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","realisation=","initialisation=","physics=","forcings=","idir=","vertical_interpolation_method=","version=","logfile=","new_ovars=","new_units="])
+    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","realisation=","initialisation=","physics=","forcings=","idir=","vertical_interpolation_method=","version=","cmorlogfile=","new_ovars=","new_units="])
 except getopt.GetoptError as err:
-    print(err)
+    print(err,file=fh_printfile)
     usage(os.path.realpath(__file__))
     sys.exit(2)
+
+fh_printfile=sys.stdout
+#fh_printfile=sys.stderr
 
 ReGrid=False
 NoClobber=False
 importance=5
-logfile='log'
+cmorlogfile='log'
 for o, a in opts:
-    #print(o)
+    #print(o,file=fh_printfile)
     if o in ('-h', '--help'):
         usage(os.path.realpath(__file__))
         sys.exit()
@@ -53,6 +61,9 @@ for o, a in opts:
         NoClobber=True
     elif o == '-i':
         importance=int(a)
+    elif o == '-l':
+         printfile=a
+         fh_printfile=open(printfile,"w")
     elif o == '-v':
          dvar=a
     elif o == '--ybeg':
@@ -100,8 +111,8 @@ for o, a in opts:
         ReGrid=True
     elif o == '--version':
         version=a
-    elif o == '--logfile':
-        logfile=a
+    elif o == '--cmorlogfile':
+        cmorlogfile=a
     elif o == '--new_ovars':
         new_ovars=[str(x) for x in a.split(',')]
     elif o == '--new_units':
@@ -114,261 +125,30 @@ netcdf='NETCDF3_64BIT'
 netcdf='NETCDF3_CLASSIC'
 netcdf='NETCDF4'
 
+print(sys.argv,file=fh_printfile)
+
 nmy=12
 
-area_u=False
-area_t=False
-
-if(dvar=='tos'):
-  area_t=True
-  inputs=['temp']
-  realm='ocean'
-  diag_dims=['time','yt_ocean','xt_ocean']
-  units='degC'
-  table='Oday'
-  ovars=[dvar]
-
-elif(dvar=='psl'):
-  area_t=False
-  inputs=['slp']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='hPa'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='pr'):
-  area_t=False
-  inputs=['precip']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='kg m-2 s-1'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='tas'):
-  area_t=False
-  inputs=['t_ref']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='K'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='huss'):
-  area_t=False
-  inputs=['q_ref']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='1.0'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='zg'):
-  area_t=False
-  inputs=['hght']
-  realm='atmos'
-  diag_dims=['time','phalf','lat','lon']
-  units='m'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='hfss'):
-  area_t=False
-  inputs=['shflx']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='W m-2'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='rlut'):
-  area_t=False
-  inputs=['olr']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='W m-2'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='sfcWind'):
-  area_t=False
-  inputs=['wind']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='m s-1'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='tslsi'):
-  area_t=False
-  inputs=['t_ref']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='K'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='hfls'):
-  area_t=False
-  inputs=['evap']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='W m-2'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='uas'):
-  area_t=False
-  inputs=['u_ref']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='m s-1'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='vas'):
-  area_t=False
-  inputs=['v_ref']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='m s-1'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='ta'):
-  area_t=False
-  inputs=['temp']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units='K'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='ua'):
-  area_t=False
-  inputs=['ucomp']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units='m s-1'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='va'):
-  area_t=False
-  inputs=['vcomp']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units='m s-1'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='hus'):
-  area_t=False
-  inputs=['sphum']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units='1.0'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='zg500'):
-  #diag=True
-  area_t=False
-  inputs=['h500']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='m'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='zg700'):
-  #diag=True
-  area_t=False
-  inputs=['hght','ps']
-  realm='atmos'
-  diag_dims=['time','lat','lon']
-  units='m'
-  table='day'
-  ovars=[dvar]
-
-elif(dvar=='hus5'):
-  area_t=False
-  inputs=['sphum','ps']
-  realm='atmos'
-  diag_dims=['time','phalf','lat','lon']
-  units='1.-'
-  table='day'
-  ovars=[dvar]
-  if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='pressure_cubed'
-
-elif(dvar=='zg5'):
-  area_t=False
-  inputs=['hght','ps']
-  realm='atmos'
-  diag_dims=['time','phalf','lat','lon']
-  units='m'
-  table='day'
-  ovars=[dvar]
-  if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
-
-elif(dvar=='ta5'):
-  area_t=False
-  inputs=['temp','ps']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units='K'
-  table='day'
-  ovars=[dvar]
-  if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
-
-elif(dvar=='ua5'):
-  area_t=False
-  inputs=['ucomp','ps']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units='m s-1'
-  table='day'
-  ovars=[dvar]
-  if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='linear'
-
-elif(dvar=='va5'):
-  area_t=False
-  inputs=['vcomp','ps']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units='m s-1'
-  table='day'
-  ovars=[dvar]
-  if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='linear'
-
-elif(dvar=='rws5'):
-  area_t=False
-  inputs=['ucomp','vcomp','ps']
-  realm='atmos'
-  diag_dims=['time','pfull','lat','lon']
-  units=['s-2','s-1','s-1','ms-1','ms-1']
-  table='day'
-  #ovars=[dvar]
-  ovars=['rws5','div5','eta5','uchi5','vchi5']
-  if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='linear'
-
-  if 'new_ovars' in locals():
-    ovars=new_ovars
-
-  if 'new_units' in locals():
-    units=new_units
-
-#print(ovars)
-#print(units)
-#raise SystemExit('Finished O.K.')
+#area_u=False
+#area_t=False
 
 frequency='daily'
+realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method=grab_var_meta(dvar,frequency)
+
+if 'new_ovars' in locals():
+  ovars=new_ovars
+
+if 'new_units' in locals():
+  units=new_units
+
+#print(ovars,file=fh_printfile)
+#print(units,file=fh_printfile)
+#raise SystemExit('Finished O.K.')
 
 #cdtime.DefaultCalendar=cdtime.NoLeapCalendar
 #cdtime.DefaultCalendar=cdtime.GregorianCalendar
 cdtime.DefaultCalendar=cdtime.JulianCalendar
-cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=logfile)
+cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=cmorlogfile)
 
 dfp_defs='dfp_csiro-gfdl.json'
 cmor.dataset_json(dfp_defs)
@@ -405,7 +185,7 @@ ofil,ofil_modified=create_ofils(season,table,ovars,experiment_id,source_id,ripf,
 #raise SystemExit('Finished O.K.')
 
 for o in range(0,len(ovars)):
-  print('Output CMIP6 file:',odir[o]+'/'+ofil_modified[o])
+  print('Output CMIP6 file:',odir[o]+'/'+ofil_modified[o],file=fh_printfile)
 
 #raise SystemExit('Finished O.K.')
 
@@ -426,6 +206,8 @@ cmor.set_cur_dataset_attribute('version',version)
 cmor.set_cur_dataset_attribute('calendar','julian')
 
 cmor.set_cur_dataset_attribute('importance',importance)
+cmor.set_cur_dataset_attribute('season',season)
+
 if 'vertical_interpolation_method' in locals(): cmor.set_cur_dataset_attribute('vertical_interpolation_method',vertical_interpolation_method)
 if(cafe_experiment == 'v0'):
   cmor.set_cur_dataset_attribute('history','input data from experiment raijin:/g/data1/v14/coupled_model/v1/OUTPUT')
@@ -445,7 +227,7 @@ if(table=='Oday' or table=='day'):
 cmor_tables=['coordinate','CV','Ofx','fx']
 #raise SystemExit('forced break')
 for cmor_table in cmor_tables:
-  #print(cmor_table)
+  #print(cmor_table,file=fh_printfile)
   fileA='TablesTemplates/CMIP6_'+cmor_table+'.json'
   fileB='cmor/Tables/CMIP6_'+cmor_table+'.json'
   if filecmp.cmp(fileA,fileB):
@@ -453,7 +235,7 @@ for cmor_table in cmor_tables:
   else:
     copyfile(fileA,fileB)
 
-#print('cmor/Tables/CMIP6_'+table+'.json')
+#print('cmor/Tables/CMIP6_'+table+'.json',file=fh_printfile)
 
 tables=[]
 tables.append(cmor.load_table('cmor/Tables/CMIP6_'+table+'.json'))
@@ -489,16 +271,16 @@ day_vec=[]
 tavg_str=[]
 
 for ynow in range(ybeg,yend+1):
-  #print("y="+str(ynow))
+  #print("y="+str(ynow),file=fh_printfile)
 
   days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31]
-  #print(days_in_month)
+  #print(days_in_month,file=fh_printfile)
   #raise SystemExit('Finished O.K.')
   if(ynow%4==0):
    #days_in_month[1]=28#noleap
    days_in_month[1]=29
 
-  #print('ydiff=',ydiff)
+  #print('ydiff=',ydiff,file=fh_printfile)
   #raise SystemExit('Finished O.K.')
 
   mbeg_now=1
@@ -521,10 +303,10 @@ for ynow in range(ybeg,yend+1):
 #  else:
 #    mbeg_now=1
 #    mend_now=mend
-  #print('mbeg_now,mend_now=',mbeg_now,mend_now)
+  #print('mbeg_now,mend_now=',mbeg_now,mend_now,file=fh_printfile)
   #raise SystemExit('Finished O.K.')
   for mnow in range(mbeg_now,mend_now+1):
-    #print('mnow=',mnow)
+    #print('mnow=',mnow,file=fh_printfile)
 
     dbeg_now=1
     if(ynow==ybeg and mnow==mbeg):
@@ -535,7 +317,7 @@ for ynow in range(ybeg,yend+1):
       dend_now=dend
 
     for dnow in range(dbeg_now,dend_now+1):
-      #print("ynow=",ynow," mnow=",mnow," dnow=",dnow)
+      #print("ynow=",ynow," mnow=",mnow," dnow=",dnow,file=fh_printfile)
       day_vec.append(dnow)
       month_vec.append(mnow)
       year_vec.append(ynow)
@@ -543,19 +325,19 @@ for ynow in range(ybeg,yend+1):
       ifila=realm+'_'+frequency+'_'+str('{0:04d}'.format(ynow))+'_'+str('{0:02d}'.format(mnow))+'_'+str('{0:02d}'.format(dnow))+'.nc'
       input_files[tindex]=idir+'/'+ifila
       if not os.path.exists(idir+'/'+ifila):
-        #print(input_files)
+        #print(input_files,file=fh_printfile)
         raise SystemExit('Missing '+idir+'/'+ifila+'.')
       input_fhs[tindex]=netCDF4.Dataset(input_files[tindex])
       tindex+=1
 
   ind_beg=0
 
-#print(input_files[0])
-#print(input_files)
+#print(input_files[0],file=fh_printfile)
+print('input files=',input_files,file=fh_printfile)
 #raise SystemExit('Finished O.K.')
 
 #day1=1
-#print("year,month,day=",tbeg,year_vec,month_vec,day_vec)
+#print("year,month,day=",tbeg,year_vec,month_vec,day_vec,file=fh_printfile)
 
 tavg=np.array(tavg_str)
 #print(tavg)
@@ -565,9 +347,9 @@ tend=tavg+0.5
 
 tval_bounds=np.column_stack((tbeg,tend))
 
-#print('refString=',refString)
-#print('tavg=',tavg)
-#print('tval_bounds=',tval_bounds)
+#print('refString=',refString,file=fh_printfile)
+#print('tavg=',tavg,file=fh_printfile)
+#print('tval_bounds=',tval_bounds,file=fh_printfile)
 
 cmor.set_table(tables[0])
 
@@ -575,7 +357,7 @@ time_axis_id=cmor.axis('time', units=refString, coord_vals=tavg, cell_bounds=tva
 
 #raise SystemExit('Finished O.K. abc')
 
-#print(tbeg,tend,tavg)
+#print(tbeg,tend,tavg,file=fh_printfile)
 
 cmor.set_table(tables[1])
 
@@ -598,7 +380,14 @@ if(dvar=='tos'):
   ztX=zt[[0,10,20]]
   zboundsX=zbounds[[0,10,20],:]
 
-if(dvar=='tos'):
+if(dvar=='nino34'):
+  lat_vals=xfh.variables['y_T'][:,0]
+  lon_vals=xfh.variables['x_T'][0,]
+
+  #print('lat_vals=',lat_vals)
+  #print('lon_vals=',lon_vals)
+  #raise SystemExit('Forced exit.')
+elif(dvar=='tos'):
   if(dvar=='umo'):
     lat_vals=xfh.variables['y_T']
     lon_vals=xfh.variables['x_C']
@@ -613,7 +402,7 @@ if(dvar=='tos'):
   nlats=lat_vals.shape[0]
   nlons=lon_vals.shape[1]
 
-  #print(nlats,nlons)
+  #print(nlats,nlons,file=fh_printfile)
   #raise SystemExit('Finished O.K.')
 
   cmor.set_table(tables[1])
@@ -621,8 +410,8 @@ if(dvar=='tos'):
   j_axis_id=cmor.axis('j_index','1',coord_vals=np.arange(nlats))
   i_axis_id=cmor.axis('i_index','1',coord_vals=np.arange(nlons))
 
-  #print('j_axis_id=',j_axis_id)
-  #print('i_axis_id=',i_axis_id)
+  #print('j_axis_id=',j_axis_id,file=fh_printfile)
+  #print('i_axis_id=',i_axis_id,file=fh_printfile)
 
   lon_vertices=np.mod(get_vertices('geolon_t'),360)
   lat_vertices=get_vertices('geolat_t')
@@ -637,8 +426,10 @@ elif(dvar=='psl' or dvar=='pr' or dvar=='tas' or dvar=='huss' or dvar=='zg' or d
     lon_vals = outgrid.getLongitude()
   else:
     if(dvar=='nino34'):
-      lat_vals=input_fhs[0].variables['yt_ocean']
-      lon_vals=input_fhs[0].variables['xt_ocean']
+      #lat_vals=input_fhs[0].variables['yt_ocean']
+      #lon_vals=input_fhs[0].variables['xt_ocean']
+      levels=0
+      nlev=1
     else:
       lat_vals=input_fhs[0].variables['lat']
       lon_vals=input_fhs[0].variables['lon']
@@ -674,7 +465,7 @@ if(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or d
     zt=input_fhs[0].variables['phalf'][:]*100.0
   else:
     zt=input_fhs[0].variables['pfull'][:]*100.0
-  #print('zt=',zt)
+  #print('zt=',zt,file=fh_printfile)
 
   newlevs=np.array([30000., 50000., 70000., 85000., 92500.])
 
@@ -682,16 +473,16 @@ if(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or d
   z_axis_id=cmor.axis('plev5','Pa',coord_vals=newlevs[:])
 
 if(dvar=='psl' or dvar=='pr' or dvar=='tas' or dvar=='huss' or dvar=='zg' or dvar=='hfss' or dvar=='rlut' or dvar=='sfcWind' or dvar=='tslsi' or dvar=='hfls' or dvar=='uas' or dvar=='vas' or dvar=='ua' or dvar=='va' or dvar=='ta' or dvar =='hus'  or dvar=='ta5' or dvar=='ua5' or dvar=='va5' or dvar=='zg5' or dvar=='hus5'or dvar=='zg500' or dvar=='zg700' or dvar=='rws5'):
-  #print('lat_vals.shape=',lat_vals.shape)
-  #print('lon_vals.shape=',lon_vals.shape)
+  #print('lat_vals.shape=',lat_vals.shape,file=fh_printfile)
+  #print('lon_vals.shape=',lon_vals.shape,file=fh_printfile)
 
-  #print('lat_vals_bounds.shape=',lat_vals_bounds.shape)
-  #print('lon_vals_bounds.shape=',lon_vals_bounds.shape)
+  #print('lat_vals_bounds.shape=',lat_vals_bounds.shape,file=fh_printfile)
+  #print('lon_vals_bounds.shape=',lon_vals_bounds.shape,file=fh_printfile)
   lat_vals_bounds=np.where(lat_vals_bounds>90.0,90.0,lat_vals_bounds)
   lat_vals_bounds=np.where(lat_vals_bounds<-90.0,-90.0,lat_vals_bounds)
 
-  #print('max=',np.max(lat_vals_bounds))
-  #print('min=',np.min(lat_vals_bounds))
+  #print('max=',np.max(lat_vals_bounds),file=fh_printfile)
+  #print('min=',np.min(lat_vals_bounds),file=fh_printfile)
 
   nlats=lat_vals.shape[0] #check this
   nlons=lon_vals.shape[0] #check this, should it be 1?
@@ -706,12 +497,16 @@ if(dvar=='psl' or dvar=='pr' or dvar=='tas' or dvar=='huss' or dvar=='zg' or dva
 cmor.set_table(tables[0]) #working
 
 data_id=[]
-if(dvar=='tos'):
+if(dvar=='nino34'):
+  axis_ids=[0] #working
+  #data_id=cmor.variable(dvar, units,  missing_value=-1e20)
+  data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
+elif(dvar=='tos'):
   axis_ids=[time_axis_id,grid_id] #working
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
 elif(dvar=='psl' or dvar=='pr' or dvar=='tas' or dvar=='huss' or dvar=='hfss' or dvar=='rlut' or dvar=='sfcWind' or dvar=='tslsi' or dvar=='hfls' or dvar=='uas' or dvar=='vas' or dvar=='zg500' or dvar=='zg700'):
   axis_ids=[time_axis_id,lat_axis_id,lon_axis_id] #working zg500
-  #print('axis_ids=',axis_ids)
+  #print('axis_ids=',axis_ids,file=fh_printfile)
   if(dvar=='hfss' or dvar=='tauu' or dvar=='tauv' or dvar=='rlut' or dvar=='hfls'):
     positive="up"
   else:
@@ -731,8 +526,21 @@ elif(dvar=='zg' or dvar=='ua' or dvar=='va' or dvar =='hus' or dvar=='ta' or dva
 ntimes_passed=1
 for icnt in range(0,len(tavg)):
 
+  print('icnt=',icnt,' input_fhs[]=',input_fhs[icnt],' tbeg[]=',tbeg[icnt],' tend[]=',tend[icnt],file=fh_printfile)
+
   #float temp(time, st_ocean, yt_ocean, xt_ocean) ;
-  if(dvar=='tos'):
+  if(dvar=='nino34'):
+    data=input_fhs[icnt].variables[inputs[0]][0,0,]
+    data=np.expand_dims(data,axis=0)
+    #print('data=',data)
+    #print('data.shape=',data.shape)
+    data=diag_nino34(data,area_t,lat_vals[:],lon_vals[:],fh_printfile)
+    #print('data=',data)
+    #print('data.shape=',data.shape)
+    #raise SystemExit('forced break')
+
+
+  elif(dvar=='tos'):
     data=input_fhs[icnt].variables[inputs[0]][0,0,]
   elif(dvar=='psl' or dvar=='pr' or dvar=='tas' or dvar=='huss' or dvar=='zg' or dvar=='hfss' or dvar=='rlut' or dvar=='sfcWind' or dvar=='tslsi' or dvar=='uas' or dvar=='vas' or dvar=='ua' or dvar=='va' or dvar =='hus' or dvar=='ta') or dvar=='zg500':
     data=input_fhs[icnt].variables[inputs[0]][0,]
@@ -746,7 +554,7 @@ for icnt in range(0,len(tavg)):
   elif(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5'):
     data1=input_fhs[icnt].variables[inputs[0]][0,]
     data2=input_fhs[icnt].variables[inputs[1]][0,]
-    #print(data.shape)
+    #print(data.shape,file=fh_printfile)
     #raise SystemExit('forced break')
     data=vertical_interpolate(data1,zt,newlevs,data2,vertical_interpolation_method)
     del data1,data2
@@ -756,20 +564,27 @@ for icnt in range(0,len(tavg)):
     data2=input_fhs[icnt].variables[inputs[1]][0,]#vcomp
     data3=input_fhs[icnt].variables[inputs[2]][0,]#ps
 
+    data1=np.expand_dims(data1,axis=0)
+    data2=np.expand_dims(data2,axis=0)
+    data3=np.expand_dims(data3,axis=0)
+
+    print('data1.shape=',data1.shape)
+
     data1a=vertical_interpolate(data1,zt,newlevs,data3,vertical_interpolation_method)
+    #raise SystemExit('Forced exit.')
     data2a=vertical_interpolate(data2,zt,newlevs,data3,vertical_interpolation_method)
     del data1,data2,data3
     #rws_string=('rws','div','eta','uchi','vchi')
     #jjj="rws,div,eta,uchi,vchi"
 
     #rws,div,eta,uchi,vchi=diag_rws(data1a,data2a,lat_vals[:],lon_vals[:],rws_string)
-    #print(jjj)
+    #print(jjj,file=fh_printfile)
     #eval(jjj)=diag_rws(data1a,data2a,lat_vals[:],lon_vals[:],rws_string)
     #rws_tuple=diag_rws(data1a,data2a,lat_vals[:],lon_vals[:],rws_string)
     rws_tuple=diag_rws(data1a,data2a,lat_vals[:],lon_vals[:],new_ovars)
-    #print(rws_tuple.shape)
-    #print(len(rws_tuple))
-    #print(len(rws_tuple[0]))
+    #print(rws_tuple.shape,file=fh_printfile)
+    #print(len(rws_tuple),file=fh_printfile)
+    #print(len(rws_tuple[0]),file=fh_printfile)
     del data1a,data2a
     #raise SystemExit('Forced exit.')
 
@@ -777,32 +592,39 @@ for icnt in range(0,len(tavg)):
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
 
-  if(dvar=='rws5'):
-    #print(rws_string)
-    #print(data_id)
+  if(dvar=='nino34'):
+    newdata=np.zeros((1,1),dtype='f')
+    newdata[0,0]=data
+    data=newdata
+    for o in range(0,len(ovars)):
+      cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
+
+  elif(dvar=='rws5'):
+    #print(rws_string,file=fh_printfile)
+    #print(data_id,file=fh_printfile)
     for o in range(0,len(ovars)):
       #data_now=eval(rws_string[o])
       #data_now=rws_tuple[0,:,:,:]
       #data_now=rws_tuple[0]
-      print(len(rws_tuple))
+      print(len(rws_tuple),file=fh_printfile)
       #cmor.write(var_id=data_id[o], data=rws_tuple[0], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
       if(len(rws_tuple)==0):
-        print("abc")
+        print("abc",file=fh_printfile)
         cmor.write(var_id=data_id[o], data=rws_tuple, ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
       else:
         cmor.write(var_id=data_id[o], data=rws_tuple[0], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
     #raise SystemExit('Forced exit here.')
 
-#print('ovars=',ovars)
-#print('len(ovars)=',len(ovars))
+#print('ovars=',ovars,file=fh_printfile)
+#print('len(ovars)=',len(ovars),file=fh_printfile)
 
 file_name=[]
 for o in range(0,len(ovars)):
-  print(o)
+  print(o,file=fh_printfile)
   file_name.append(cmor.close(var_id=data_id[o], file_name=True))
 
 for o in range(0,len(ovars)):
-  finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season)
+  finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season,fh_printfile)
 
 raise SystemExit('Finished O.K.')
 
