@@ -56,8 +56,8 @@ declare -a ivars=("uas")
 declare -a ivars=("sfcWind")
 declare -a ivars=("tauu") #wind stress in atmos realm for daily.
 declare -a ivars=("tauv") #wind stress in atmos realm for daily.
-declare -a ivars=("pr")
 declare -a ivars=("nino34")
+declare -a ivars=("pr")
 
 for ivar in "${ivars[@]}";do
 

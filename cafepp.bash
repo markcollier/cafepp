@@ -77,8 +77,9 @@ declare -a ivars=("tauv")
 declare -a ivars=("tauu")
 declare -a ivars=("thetao")
 declare -a ivars=("isothetao20c")
-declare -a ivars=("tos")
 declare -a ivars=("nino34")
+declare -a ivars=("pr")
+declare -a ivars=("tos")
 
 #cbeg=451
 #cend=500

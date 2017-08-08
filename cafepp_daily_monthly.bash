@@ -53,7 +53,6 @@ declare -a ivars=("va5")
 declare -a ivars=("tas")
 declare -a ivars=("rws500")
 declare -a ivars=("psl")
-declare -a ivars=("pr")
 declare -a ivars=("ps")
 declare -a ivars=("ta")
 declare -a ivars=("ta5")
@@ -66,6 +65,7 @@ declare -a ivars=("uo100m")
 declare -a ivars=("vo")
 declare -a ivars=("uo")
 declare -a ivars=("so")
+declare -a ivars=("pr")
 
 season="ANN"
 season="JJA"
