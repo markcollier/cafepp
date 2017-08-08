@@ -1,5 +1,4 @@
-#!/apps/python/2.7.6/bin/python
-##!/short/p66/mac599/anaconda3/bin/ipython
+#!/usr/bin/env python
 # Filename : cafepp_daily.py
 
 """
@@ -14,7 +13,7 @@ import os
 from time import strftime
 import netCDF4
 from math import radians, cos, sin, asin, sqrt
-import seawater
+#import seawater
 import sys
 import getopt
 import string
@@ -28,7 +27,7 @@ from datetime import date
 import filecmp
 from shutil import copyfile
 import cdms2
-from regrid2 import Regridder
+#from regrid2 import Regridder
 
 def usage(script_name):
     """usage"""
@@ -461,7 +460,10 @@ tables.append(cmor.load_table('cmor/Tables/CMIP6_'+table+'.json'))
 tables.append(cmor.load_table('cmor/Tables/CMIP6_grids.json'))
 tables.append(cmor.load_table('cmor/Tables/CMIP6_coordinate.json'))
 
-xfh=netCDF4.Dataset('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+if os.path.exists('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
+  xfh=netCDF4.Dataset('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+else:
+  xfh=netCDF4.Dataset('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
 if(area_t):
    area_t=xfh.variables['area_T'] #check ok
 if(area_u):
