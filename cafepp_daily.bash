@@ -33,31 +33,31 @@ declare -a ivars=("huss")
 declare -a ivars=("zg")
 declare -a ivars=("hfss")
 declare -a ivars=("rlut")
-declare -a ivars=("sfcWind")
 declare -a ivars=("hfls")
 declare -a ivars=("hus")
 declare -a ivars=("ua")
 declare -a ivars=("va")
 declare -a ivars=("wap") #doesn't exist
-declare -a ivars=("uas")
 declare -a ivars=("ta")
 declare -a ivars=("vas")
 declare -a ivars=("zg700")
 declare -a ivars=("hus5")
 declare -a ivars=("tslsi")
-
-declare -a ivars=("pr")
 declare -a ivars=("zg5")
-declare -a ivars=("zg500")
-declare -a ivars=("tos")
-declare -a ivars=("psl")
-declare -a ivars=("rws5")
-
 declare -a ivars=("ta5")
 declare -a ivars=("ua5")
 declare -a ivars=("va5")
+declare -a ivars=("tos")
 declare -a ivars=("tas")
-
+declare -a ivars=("zg500")
+declare -a ivars=("rws5")
+declare -a ivars=("psl")
+declare -a ivars=("uas")
+declare -a ivars=("sfcWind")
+declare -a ivars=("tauu") #wind stress in atmos realm for daily.
+declare -a ivars=("tauv") #wind stress in atmos realm for daily.
+declare -a ivars=("pr")
+declare -a ivars=("nino34")
 
 for ivar in "${ivars[@]}";do
 
@@ -74,8 +74,8 @@ export CAFE_EXPERIMENT=$experiment
 julian=false #noleap
 julian=true
 
-breeding=false #process analysis forecast (data assimilation)
 breeding=true #process control/ensemble members of breeding forecast
+breeding=false #process analysis forecast (data assimilation)
 
 #realisation=0
 for realisation in "${realisations[@]}";do
@@ -92,8 +92,8 @@ m_final=6 #normally 6
 #y_final=2002
 #m_final=12
 
-let ybeg_initial=2002 #normally 2002
-let yend_initial=2002 #normally 2002
+let ybeg_initial=2004 #normally 2002
+let yend_initial=2004 #normally 2002
 
 if [ $((ybeg_initial % 4)) -eq 0 ];then
   days_in_month=(31 29 31 30 31 30 31 31 30 31 30 31)
@@ -141,10 +141,11 @@ let mval=$realisation+1
 
 else #breeding
 
-if [ $ivar = "tauu" ] || [ $ivar = "newtry" ];then
+if [ $ivar = "xxx" ] || [ $ivar = "newtry" ];then
   idir="/g/data1/v14/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon/"$end_directory
 else
   idir="/g/data1/v14/tok599/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon/"$end_directory
+  idir="/g/data1/v14/tok599/coupled_da/workdir2/OUTPUT-2step-nobreeding/"$end_directory #use this directory as other one has been moved...
 fi
 
 fi #breeding
@@ -154,11 +155,13 @@ fi #breeding
 #-x #noclobber
 #--vertical_interpolation_method='linear'
 
-echo ./cafepp_daily.py -i 5 --version v20170609 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --dbeg=$dbeg_now --dend=$dend_now --dbeg_min=$dbeg_now --dend_max=$dend_now --idir=$idir
+./cafepp_daily.py -i 5 --version v20170804 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --dbeg=$dbeg_now --dend=$dend_now --dbeg_min=$dbeg_now --dend_max=$dend_now --idir=$idir --cmorlogfile=cmor_log.txt -l stdout.txt
 
-#--new_ovars="rws,div,eta,uchi,vchi" --new_units="s-2,s-1,s-1,ms-1,ms-1"
+#--new_ovars="rws5,div5,eta5,uchi5,vchi5" --new_units="s-2,s-1,s-1,ms-1,ms-1"
 
-#exit
+# --new_ovars="rws5,div5,eta5,uchi5,vchi5" --new_units="s-2,s-1,s-1,ms-1,ms-1" #can be used with rws5
+
+exit
 
 #if [ $cnt -eq 2 ];then
 #  exit

@@ -1,34 +1,37 @@
 from __future__ import print_function #this is to allow print(,file=xxx) feature
 
-def finish(file_name,odir,ofil,ofil_modified,season,fh_logfile):
+def finish(file_name,odir,ofil,ofil_modified,season,fh_printfile):
   '''
   finish
   '''
   import os
 
-  print('Output: ',file_name,file=fh_logfile)
-  print('Will need to put in "importance flag", perhaps it can go in another standard metadata tag?',file=fh_logfile)
+  print('Output: ',file_name,file=fh_printfile)
+  print('Will need to put in "importance flag", perhaps it can go in another standard metadata tag?',file=fh_printfile)
   if(season!='ANN' or season!='MON'):
-    print('Will need to move this CMIP6 file to slightly different name to clearly specify that it is a special season where the time axis is not continguous.',file=fh_logfile)
+    print('Will need to move this CMIP6 file to slightly different name to clearly specify that it is a special season where the time axis is not continguous.',file=fh_printfile)
   #o.close()
   #if(tdir != odir):
   #  os.rename(tdir+'/'+ofil,odir+'/'+ofil)
-  #print('Output file: '+odir+'/'+ofil,file=fh_logfile)
+  #print('Output file: '+odir+'/'+ofil,file=fh_printfile)
 
   if(os.path.exists(odir+'/'+ofil) and season != 'MON'):
-    print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified,file=fh_logfile)
+    print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified,file=fh_printfile)
+    print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified) #print to screen too...
     os.rename(odir+'/'+ofil,odir+'/'+ofil_modified)
   elif(season=='MON'):
+    print('Output: ',file_name)
     pass
   else:
-    print('xxx',odir+'/'+ofil,file=fh_logfile)
+    print('xxx',odir+'/'+ofil,file=fh_printfile)
+    print('xxx',odir+'/'+ofil) #print to screen too...
     raise SystemExit('Something wrong, expected output file doesn\'t exist.')
 
   #raise SystemExit('Finished O.K.')
   return
 
 #begin
-def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
+def filemonth_index(season,ybeg,yend,mbeg,mend,fh_printfile):
   '''
   System for generating array of indices to select months used in temporal averaging from each input file.
   Current thinking is to have it dimensioned nyears,12 even if all months are not there for first and/or last year.
@@ -39,7 +42,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
   
   tindex_select_maxyears_by_nmy=np.zeros((yend-ybeg+1,12))
   
-  print(tindex_select_maxyears_by_nmy.shape,file=fh_logfile)
+  print(tindex_select_maxyears_by_nmy.shape,file=fh_printfile)
 
   ybeg_now=0
   yend_now=yend-ybeg
@@ -52,8 +55,8 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
   #season='MAM' #tempoarary
   #season='DJF' #tempoarary
 
-  print('ybeg_now=',ybeg_now,' yend_now=',yend_now,file=fh_logfile) 
-  print('mbeg=',mbeg,' mend=',mend,file=fh_logfile) 
+  print('ybeg_now=',ybeg_now,' yend_now=',yend_now,file=fh_printfile) 
+  print('mbeg=',mbeg,' mend=',mend,file=fh_printfile) 
   
   if ( season=='MON' ):
     sstr=''
@@ -70,7 +73,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
     #  tindex_select_maxyears_by_nmy[0,0:mbeg]=0
     #if(mend<12):
     #  tindex_select_maxyears_by_nmy[-1,-(nmy-mend)]=0
-    #print(tindex_select_maxyears_by_nmy,file=fh_logfile)
+    #print(tindex_select_maxyears_by_nmy,file=fh_printfile)
     #raise SystemExit('Forced exit.')
 
   elif ( season=='DJF' ):
@@ -81,7 +84,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
     #index_end=index_start+2
     #for y in range(ybeg_now,yend_now+1):
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y,file=fh_logfile)
+      print('y=',y,file=fh_printfile)
       if(y==ybeg_now):
         if(mbeg<=12): #check, in the least, the first year must have december defined, even if a short year. This may not be true for an odd season definition like NDJF.
           tindex_select_maxyears_by_nmy[y-ybeg_now,11]=1
@@ -96,14 +99,14 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
         tindex_select_maxyears_by_nmy[y-ybeg_now,0:0+times_in_season-1]=1
         tindex_select_maxyears_by_nmy[y-ybeg_now,11]=1
 
-    #print(tindex_select_maxyears_by_nmy,file=fh_logfile)
+    #print(tindex_select_maxyears_by_nmy,file=fh_printfile)
     #raise SystemExit('Forced exit.')
 
   elif ( season=='MAM' ):
     times_in_season=3
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y,file=fh_logfile)
+      print('y=',y,file=fh_printfile)
       if(y==ybeg_now):
         if(mbeg<=3): #check
           tindex_select_maxyears_by_nmy[y-ybeg_now,2:2+times_in_season]=1
@@ -119,14 +122,14 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
     #for y in range(ybeg_now-ybeg_now,yend_now+1-ybeg_now):
     #for y in range(ybeg_now,yend_now+1):
     #  tindex_select_maxyears_by_nmy[y-1,2:2+3]=1
-    #print(tindex_select_maxyears_by_nmy,file=fh_logfile)
+    #print(tindex_select_maxyears_by_nmy,file=fh_printfile)
     #raise SystemExit('Forced exit.')
 
   elif ( season=='JJA' ):
     times_in_season=3
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y,file=fh_logfile)
+      print('y=',y,file=fh_printfile)
       if(y==ybeg_now):
         if(mbeg<=6): #check
           tindex_select_maxyears_by_nmy[y-ybeg_now,5:5+times_in_season]=1
@@ -148,7 +151,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
     times_in_season=3
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y,file=fh_logfile)
+      print('y=',y,file=fh_printfile)
       if(y==ybeg_now):
         if(mbeg<=9): #check
           tindex_select_maxyears_by_nmy[y-ybeg_now,8:8+times_in_season]=1
@@ -187,7 +190,7 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_logfile):
     times_in_season=12
     sstr='_'+season
     for y in range(ybeg_now,yend_now+1):
-      print('y=',y,file=fh_logfile)
+      print('y=',y,file=fh_printfile)
       if(y==ybeg_now):
         tindex_select_maxyears_by_nmy[y-ybeg_now,mbeg-1:12]=1
         #if(mbeg<=1): #check
@@ -249,8 +252,8 @@ def time_avg(var,input_fhs,file_index,month_index,weights_values,ibeg,iend,seaso
   #raise SystemExit('Forced exit.')
   return(time)
 
-#def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season,Forecast,icnt,month_in_file,fh_logfile):
-def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,MonthlyWeights,month_index_ntims,fh_logfile):
+#def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season,Forecast,icnt,month_in_file,fh_printfile):
+def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,nlev,MonthlyWeights,month_index_ntims,fh_printfile,var_size):
   #from __future__ import print_function
   '''
   '''
@@ -260,46 +263,54 @@ def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_
   nmy=12
   days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31] #approx (ignoring leap years).
 
-  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s,file=fh_logfile)
+  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s,file=fh_printfile)
 
   locate_file_index_Ntimes_b1_flat_nominus1s=locate_file_index_Ntimes_b1_flat_nominus1s-1 #values are b1, need to subtract 1 to make b0
 
-  print('data_wavg: ivarSnow=',ivarSnow,file=fh_logfile)
-  #print('data_wavg: input_fhs=',input_fhs,file=fh_logfile)
-  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s,file=fh_logfile)
-  print('data_wavg: ind_beg,ind_end=',ind_beg,ind_end,file=fh_logfile)
-  print('data_wavg: month_in_file_total_months_beg_to_end=',month_in_file_total_months_beg_to_end,file=fh_logfile)
-  print('data wavg: month_in_file_total_months_beg_to_end.shape=',month_in_file_total_months_beg_to_end.shape,file=fh_logfile)
-  print('data_wavg: levels=',levels,file=fh_logfile)
-  print('data_wavg: MonthlyWeights=',MonthlyWeights,file=fh_logfile)
-  print('data_wavg: month_index_ntims=',month_index_ntims,file=fh_logfile)
-  print('data_wavg: month_index_ntims.shape=',month_index_ntims.shape,file=fh_logfile)
+  print('data_wavg: ivarSnow=',ivarSnow,file=fh_printfile)
+  #print('data_wavg: input_fhs=',input_fhs,file=fh_printfile)
+  print('data_wavg: locate_file_index_Ntimes_b1_flat_nominus1s=',locate_file_index_Ntimes_b1_flat_nominus1s,file=fh_printfile)
+  print('data_wavg: ind_beg,ind_end=',ind_beg,ind_end,file=fh_printfile)
+  print('data_wavg: month_in_file_total_months_beg_to_end=',month_in_file_total_months_beg_to_end,file=fh_printfile)
+  print('data wavg: month_in_file_total_months_beg_to_end.shape=',month_in_file_total_months_beg_to_end.shape,file=fh_printfile)
+  print('data_wavg: levels=',levels,file=fh_printfile)
+  print('data_wavg: nlev=',nlev,file=fh_printfile)
+  print('data_wavg: MonthlyWeights=',MonthlyWeights,file=fh_printfile)
+  print('data_wavg: month_index_ntims=',month_index_ntims,file=fh_printfile)
+  print('data_wavg: month_index_ntims.shape=',month_index_ntims.shape,file=fh_printfile)
+  print('data_wavg: var_size=',var_size,file=fh_printfile)
 
 #testing out on MONTHLY case. Some of this code needs to be taken up into makn routine as it doesn't need to be here.
 
   weights=[]
   for month in list(range(ind_beg,ind_end+1)):
-    print('month=',month,file=fh_logfile)
+    print('month=',month,file=fh_printfile)
 
-    print('month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]=',month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]],file=fh_logfile)
+    print('month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]=',month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]],file=fh_printfile)
     weights.append(days_in_month[month_index_ntims[month]]) 
 
     if(month==ind_beg):
-      data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]
+      if(len(var_size)==3 and var_size[0] ==1):
+        data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1]]
+      else:
+        data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]
     else:
-      data=np.vstack((data, input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]))
-    print('data.shape=',data.shape,file=fh_logfile)
+      if(len(var_size)==3 and var_size[0] ==1):
+        data=np.vstack((data, input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1]]))
+      else:
+        data=np.vstack((data, input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]))
+    print('data.shape=',data.shape,file=fh_printfile)
 
-  print('weights=',weights,file=fh_logfile)
+  print('weights=',weights,file=fh_printfile)
 
   if(MonthlyWeights):
     avgdata=np.average(data,axis=0,weights=weights) #note that np.average has weights option. Use None if equal.
   else:
     avgdata=np.average(data,axis=0) #note that np.average has weights option.
 
-  print('avgdata.shape=',avgdata.shape,file=fh_logfile)
+  print('avgdata.shape=',avgdata.shape,file=fh_printfile)
   tdata=np.expand_dims(avgdata,axis=0) #add time-dimension when averaging to form season.
-  print('tdata.shape=',tdata.shape,file=fh_logfile)
+  print('tdata.shape=',tdata.shape,file=fh_printfile)
   #raise SystemExit('Forced exit.')
   return(tdata)
 
@@ -765,7 +776,7 @@ def transPort(var,i_start,i_end,j_start,j_end):
   #print('trans=',trans)
   return trans
 
-def diag_rws500(u,v,lat,lon):
+def diag_rws500(u,v,lat,lon,fh_printfile):
   '''
   rws500
   '''
@@ -776,23 +787,33 @@ def diag_rws500(u,v,lat,lon):
 
   #print('lat=',lat)
 
-  u, u_info = prep_data(u, 'yx')
-  v, v_info = prep_data(v, 'yx')
+  print('u.shape=',u.shape,file=fh_printfile)
+  print('v.shape=',v.shape,file=fh_printfile)
+
+  u, u_info = prep_data(u, 'tyx')
+  v, v_info = prep_data(v, 'tyx')
   lat, u, v = order_latdim(lat, u, v)
 
   w = VectorWind(u, v)
   eta = w.absolutevorticity()
-  eta = recover_data(eta, u_info)
-  div = np.squeeze(w.divergence())
-  uchi, vchi = np.squeeze(w.irrotationalcomponent())
+  div = w.divergence()
+  uchi, vchi = w.irrotationalcomponent()
   etax, etay = w.gradient(eta)
+
+  #eta = recover_data(eta, u_info)
+  #div = np.squeeze(w.divergence())
+  #uchi, vchi = np.squeeze(w.irrotationalcomponent())
+
+  print('uchi.shape=',uchi.shape,file=fh_printfile)
+  print('vchi.shape=',vchi.shape,file=fh_printfile)
+  print('eta.shape=',eta.shape,file=fh_printfile)
 
   S1 = -eta * div
   S2 = -(uchi * etax + vchi * etay)
   S = S1 + S2
   S = recover_data(S,u_info)
 
-  #print('u.shape=',u.shape)
+  print('S.shape=',S.shape,file=fh_printfile)
   return S 
 
 def diag_mfo(tx_trans,ty_trans,nlines):
@@ -1063,6 +1084,8 @@ def diag_rws(data1,data2,lats,lons,rws_string):
   #S = S1 + S2
   #S = -eta * div - (uchi * etax + vchi * etay)
 
+  print('rws5.shape=',rws5.shape)
+
   if "rws5" in rws_string:
     rws5 = recover_data(rws5, uwnd_info)
   if "div5" in rws_string:
@@ -1074,7 +1097,7 @@ def diag_rws(data1,data2,lats,lons,rws_string):
   if "vchi5" in rws_string:
     vchi5 = recover_data(vchi5, uwnd_info)
 
-  #print('S.shape=',S.shape)
+  print('rws5.shape=',rws5.shape)
   #Sx=np.flip(S,1)
   #Sx=S[:,::-1,::]
   #Sx=np.rollaxis(S,2)
@@ -1093,7 +1116,7 @@ def diag_rws(data1,data2,lats,lons,rws_string):
   #  print("yes")
   #else:
   #  print("no")
-#  raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit.')
 
   #return(rws,div,eta,uchi,vchi)
   return(eval(return_what))
@@ -1175,7 +1198,7 @@ def diag_isothetaoNc(data,lev,value):
   #raise SystemExit('Forced exit.')
   return data
 
-def diag_nino34(data,area_t,lat,lon):
+def diag_nino34(data,area_t,lat,lon,fh_printfile):
   '''
   #5s-5n,170-120W
   Comput the Nino34 index from upper level (temporarly averaged in seasonal average case) SST.
@@ -1198,44 +1221,62 @@ def diag_nino34(data,area_t,lat,lon):
   lon=np.add(lon,360.0)
   lon=np.where(lon<360.,lon,lon-360.)
   lon=np.roll(lon,80)
+
+  #print('lat=',lat,file=fh_printfile)
+
   lat=np.squeeze(lat)
   area_t=np.roll(area_t,80,axis=-1)
   data=np.roll(data,80,axis=-1)
+
+  #print('lat=',lat,file=fh_printfile)
+  #print('lon=',lon,file=fh_printfile)
+
+  #print('lat.shape=',lat.shape,file=fh_printfile)
+  #print('lon.shape=',lon.shape,file=fh_printfile)
 
   nino34_lat_min=np.abs(lat - -5.).argmin()
   nino34_lat_max=np.abs(lat - 5.).argmin()
   nino34_lon_min=np.abs(lon - 190.).argmin()
   nino34_lon_max=np.abs(lon - 240.).argmin()
-  #print('data.shape=',data.shape)
-  #print('area_t.shape',area_t.shape)
+
+  #nino34_lat_min=50
+  #nino34_lat_max=55
+  #nino34_lon_min=50
+  #nino34_lon_max=55
+  #print('diag_nino34: nino34_lat,lon,(min,max)=',nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,file=fh_printfile)
+  #raise SystemExit('Forced exit.')
+  #print('data.shape=',data.shape,file=fh_printfile)
+  #print('area_t.shape',area_t.shape,file=fh_printfile)
   #j=np.vstack((area_t,area_t))
   #j=np.resize(area_t,data.shape)
   s=data.shape
-  #print('s=',s)
+  #print('s=',s,file=fh_printfile)
 
+#in future all data will have time dimension.
   if(len(s)==3):
     #has time dimension in it.
     newdata=np.zeros(s[0])
-    #print('newdata.shape=',newdata.shape)
-    #print('tmpdata.shape=',tmpdata.shape)
+    #print('newdata.shape=',newdata.shape,file=fh_printfile)
+    #print('tmpdata.shape=',tmpdata.shape,file=fh_printfile)
     for q in range(s[0]):
       tmpdata=data[q,]
-      #print('tmpdata.shape=',tmpdata.shape)
-      #print('q=',q)
-      newdata[q]=xtra_nino34(tmpdata,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t)
+      #print('q=',q,file=fh_printfile)
+      #print('tmpdata.shape=',tmpdata.shape,file=fh_printfile)
+      newdata[q]=xtra_nino34(tmpdata,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
     data=newdata 
-      #print('newdata=',newdata)
+      #print('newdata=',newdata,file=fh_printfile)
   else:
-    data=xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t)
-    #print('xxdata=',data)
+    data=xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
+    #print('xxdata=',data,file=fh_printfile)
     #raise SystemExit('Forced exit.')
   return data
 
-def xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t):
+def xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile):
   '''
   As diag_nino34 needs to cope with arrays with and without a time dimension, it is more compact to define a function that can work in both cases.
   '''
   import numpy as np
+  #print('xtra_nino34: nino34_lat,lon,(min,max)=',nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,file=fh_printfile)
   data=np.sum(np.sum(data[nino34_lat_min:nino34_lat_max,nino34_lon_min:nino34_lon_max]*area_t[nino34_lat_min:nino34_lat_max,nino34_lon_min:nino34_lon_max],axis=0),axis=0) / np.sum(np.sum(area_t[nino34_lat_min:nino34_lat_max,nino34_lon_min:nino34_lon_max],axis=0),axis=0)
   return data
 
@@ -1417,7 +1458,7 @@ def vertical_interpolate(data,zt,newlevs,ps,type):
   nzt=len(zt)
   nnewlevs=len(newlevs)
 
-  interpolated_data=np.zeros((nnewlevs,nlat,nlon),dtype=float)
+  interpolated_data=np.zeros((1,nnewlevs,nlat,nlon),dtype=float)
 
   index_hi=np.zeros(nnewlevs,float)
   index_lo=np.zeros(nnewlevs,float)
@@ -1450,13 +1491,13 @@ def vertical_interpolate(data,zt,newlevs,ps,type):
     for lll in range(0,nnewlevs):
       #print('level=',lll,' value=',newlevs[lll],' hi=',zt[index_hi[lll]],' lo=',zt[index_lo[lll]])
       dx = zt[index_hi[lll]] - zt[index_lo[lll]]
-      dy = data[index_hi[lll],:,:] - data[index_lo[lll],:,:]
+      dy = data[0,index_hi[lll],:,:] - data[0,index_lo[lll],:,:]
       dp = newlevs[lll] - zt[index_lo[lll]]
-      interpolated_data[lll,:,:] = data[index_lo[lll],:,:] + dp * dy/dx
-      #interpolated_data[lll,:,:] = data[index_lo[lll],:,:]
+      interpolated_data[0,lll,:,:] = data[0,index_lo[lll],:,:] + dp * dy/dx
+      #interpolated_data[0,lll,:,:] = data[0,index_lo[lll],:,:]
 
       #lon=np.where(lon<360.,lon,lon-360.)
-      interpolated_data[lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[lll,:,:],1e20)
+      interpolated_data[0,lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[0,lll,:,:],1e20)
       #print('j.shape=',j.shape)
       #print(j)
       #raise SystemExit('Forced exit.')
@@ -1471,30 +1512,30 @@ def vertical_interpolate(data,zt,newlevs,ps,type):
     for lll in range(0,nnewlevs):
       #print('level=',lll)
       dx = np.log(zt[index_hi[lll]]) - np.log(zt[index_lo[lll]])
-      dy = data[index_hi[lll],:,:] - data[index_lo[lll],:,:]
+      dy = data[0,index_hi[lll],:,:] - data[0,index_lo[lll],:,:]
       dp = np.log(newlevs[lll]) - np.log(zt[index_lo[lll]])
-      interpolated_data[lll,:,:] = data[index_lo[lll],:,:] + dp * dy/dx
-      interpolated_data[lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[lll,:,:],1e20)
+      interpolated_data[0,lll,:,:] = data[0,index_lo[lll],:,:] + dp * dy/dx
+      interpolated_data[0,lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[0,lll,:,:],1e20)
   elif(type=='log_log'):
     #print('log_log interpolation chosen (not ready).')
     #raise SystemExit('Forced exit.')
     for lll in range(0,nnewlevs):
       #print('level=',lll)
       dx = np.log(zt[index_hi[lll]]) - np.log(zt[index_lo[lll]])
-      dy = np.log(data[index_hi[lll],:,:]) - np.log(data[index_lo[lll],:,:])
+      dy = np.log(data[0,index_hi[lll],:,:]) - np.log(data[0,index_lo[lll],:,:])
       dp = np.log(newlevs[lll]) - np.log(zt[index_lo[lll]])
-      interpolated_data[lll,:,:] = np.exp( np.log(data[index_lo[lll],:,:]) + dp * dy/dx )
-      interpolated_data[lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[lll,:,:],1e20)
+      interpolated_data[0,lll,:,:] = np.exp( np.log(data[0,index_lo[lll],:,:]) + dp * dy/dx )
+      interpolated_data[0,lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[0,lll,:,:],1e20)
   elif(type=='pressure_cubed'):
     #print('pressure_cubed  interpolation chosen (not ready).')
     #raise SystemExit('Forced exit.')
     for lll in range(0,nnewlevs):
       #print('level=',lll)
       dx = np.power(zt[index_hi[lll]],3.) - np.power(zt[index_lo[lll]],3.)
-      dy = data[index_hi[lll],:,:] - data[index_lo[lll],:,:]
+      dy = data[0,index_hi[lll],:,:] - data[0,index_lo[lll],:,:]
       dp = np.power(newlevs[lll],3.) - np.power(zt[index_lo[lll]],3.)
-      interpolated_data[lll,:,:] = data[index_lo[lll],:,:] + dp * dy/dx
-      interpolated_data[lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[lll,:,:],1e20)
+      interpolated_data[0,lll,:,:] = data[0,index_lo[lll],:,:] + dp * dy/dx
+      interpolated_data[0,lll,:,:]=np.where(newlevs[lll]<ps,interpolated_data[0,lll,:,:],1e20)
   else:
     raise SystemExit('Other interpolation types not implemented yet.')
   return interpolated_data
@@ -1728,3 +1769,807 @@ iso    defined           not-defined       defined            not-defined
   #if(diag): print('ifound1,2,3,4,5=',ifound1,ifound2,ifound3,ifound4,ifound5)
   newdata=np.where(np.isnan(newdata),1e20,newdata) #for model output need this.
   return newdata
+
+def grab_var_meta(dvar,frequency):
+  '''
+  documentation
+  '''
+  area_t=False
+  area_u=False
+  #frequency='month'
+  grid_label='gn'
+  grid='native grid'
+  if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+
+  if(dvar=='thetao'):
+    #diag=True
+    realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    #inputs=dvar
+    table='Omon'
+    inputs=['temp']
+    units='degC'
+    ovars=[dvar]
+
+  elif(dvar=='thetao100m'):
+    #diag=True
+    realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    #inputs=dvar
+    table='Omon'
+    inputs=['temp']
+    units='degC'
+    ovars=[dvar]
+    grid_label='gn100m'
+    grid='Upper 100m of ocean only'
+
+  elif(dvar=='so100m'):
+    #diag=True
+    realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    #inputs=dvar
+    table='Omon'
+    inputs=['temp']
+    units='0.001'
+    ovars=[dvar]
+    grid_label='gn100m'
+    grid='Upper 100m of ocean only'
+
+  elif(dvar=='uo'):
+    #diag=True
+    realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    #inputs=dvar
+    table='Omon'
+    inputs=['u']
+    units='m s-1'
+    ovars=[dvar]
+    #grid_label='gn100m'
+    #grid='Upper 100m of ocean only'
+
+  elif(dvar=='uo100m'):
+    #diag=True
+    realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    #inputs=dvar
+    table='Omon'
+    inputs=['u']
+    units='m s-1'
+    ovars=[dvar]
+    grid_label='gn100m'
+    grid='Upper 100m of ocean only'
+
+  elif(dvar=='vo'):
+    #diag=True
+    realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    #inputs=dvar
+    table='Omon'
+    inputs=['v']
+    units='m s-1'
+    ovars=[dvar]
+    grid_label='gn100m'
+    grid='Upper 100m of ocean only'
+
+  elif(dvar=='vo100m'):
+    #diag=True
+    realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    #inputs=dvar
+    table='Omon'
+    inputs=['v']
+    units='m s-1'
+    ovars=[dvar]
+    grid_label='gn100m'
+    grid='Upper 100m of ocean only'
+
+  elif(dvar=='eta_t' or dvar=='tx_trans_int_z'):
+    #diag=True
+    realm='ocean'
+    inputs=dvar
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='pr'):
+    #diag=False
+    area_t=False
+    inputs=['precip']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='kg m-2 s-1'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='tas'):
+    #diag=False
+    area_t=False
+    inputs=['t_ref']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='K'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='hfls'):
+    #diag=False
+    area_t=False
+    inputs=['evap']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='W m-2'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='uas'):
+    #diag=False
+    area_t=False
+    inputs=['uas']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='m s-1'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='vas'):
+    #diag=False
+    area_t=False
+    inputs=['vas']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='m s-1'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='hfss'):
+    #diag=False
+    area_t=False
+    inputs=['shflx']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='W m-2'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='huss'):
+    #diag=False
+    area_t=False
+    inputs=['q_ref']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='1.0'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+  
+  elif(dvar=='rlut'):
+    #diag=False
+    area_t=False
+    inputs=['olr']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='W m-2'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='sfcWind'):
+    #diag=False
+    area_t=False
+    inputs=['wind']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='m s-1'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='tslsi'):
+    #diag=False
+    area_t=False
+    inputs=['t_ref']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='K'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+  
+  elif(dvar=='o2'):
+    #diag=False
+    realm='ocean_bgc'
+    ovars=[dvar]
+  
+  elif(dvar=='acc_drake' or dvar=='acc_africa'):
+    #diag=True
+    inputs=['tx_trans_int_z']
+    realm='ocean'
+    diag_dims=['time']
+    dvar='tx_trans_int_z'
+    levels=0
+    ovars=[dvar]
+  
+  elif(dvar=='mozmbq'):
+    #diag=True
+    inputs=['ty_trans_int_z']
+    realm='ocean'
+    diag_dims=['time']
+    ovars=[dvar]
+  
+  elif(dvar=='aabw'):
+    #diag=True
+    inputs=['ty_trans','ty_trans_gm']
+    realm='ocean'
+    diag_dims=['time']
+    ovars=[dvar]
+  
+  elif(dvar=='nadw'):
+    #diag=True
+    inputs=['ty_trans','ty_trans_gm']
+    realm='ocean'
+    diag_dims=['time']
+    ovars=[dvar]
+  
+  elif(dvar=='pp'):
+    #diag=True
+    area_t=True
+    inputs=['pprod_gross']
+    realm='ocean_bgc'
+    diag_dims=['time']
+    units='Pg(C)/yr'
+    table='Omon'
+    ovars=[dvar]
+    #frequency='month'
+  
+  elif(dvar=='nflux'):
+    #diag=True
+    area_t=True
+    inputs=['stf07']
+    realm='ocean_bgc'
+    diag_dims=['time']
+    units='Pg(C)/yr'
+    table='Omon'
+    ovars=[dvar]
+    #frequency='month'
+  
+  elif(dvar=='ep'):
+    #diag=True
+    area_t=True
+    inputs=['det']
+    realm='ocean_bgc'
+    diag_dims=['time']
+    units='Pg(C)/yr'
+    table='Omon'
+    ovars=[dvar]
+    #frequency='month'
+  
+  elif(dvar=='ssh'):
+    #diag=True
+    area_t=True
+    inputs=['temp','salt']
+    realm='ocean'
+    diag_dims=['time','yt_ocean','xt_ocean']
+    dvar='ssh'
+    ovars=[dvar]
+  
+  elif(dvar=='moc' or dvar=='moc_atlantic' or dvar=='moc_pacific' or dvar=='moc_indian'):
+    #diag=True
+    #inputs=['v']
+    inputs=['tx_trans','tx_trans_gm']
+    realm='ocean'
+    #diag_dims=['time','st_ocean','yu_ocean']
+    diag_dims=['time','st_ocean','yt_ocean']
+    area_t=True
+    area_u=True
+    dvar='tx_trans'
+    ovars=[dvar]
+  
+  elif(dvar=='shice_cover' or dvar=='nhice_cover'):
+    #diag=True
+    inputs=['CN']
+    realm='ice'
+    diag_dims=['time']
+    area_t=True
+    dvar='CN'
+    ovars=[dvar]
+  
+  elif(dvar=='nhbi'):
+    #diag=True
+    inputs=['h500']
+    realm='atmos'
+    diag_dims=['time','lon']
+    area_t=True
+    #dvar='h500'
+    levels=0
+    nlev=0
+    table='Amon'
+    units='1.0'
+    ovars=[dvar,'GHGS','GHGN']
+  
+  elif(dvar=='rws'):
+    #diag=True
+    inputs=['ucomp','vcomp']
+    realm='atmos'
+    diag_dims=['time','pfull','lat','lon']
+    #area_t=True
+    #dvar='ucomp'
+    units='s-2'
+    table='Amon'
+    #levels=8,9
+    #nlev=2
+    ovars=[dvar]
+  
+  elif(dvar=='tos'):
+    #diag=True
+    area_t=True
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['time','yt_ocean','xt_ocean']
+    units='degC'
+    if(frequency == 'month'): table='Omon'
+    else: table='Oday'
+    ovars=[dvar]
+  
+  elif(dvar=='sos'):
+    #diag=True
+    area_t=True
+    inputs=['salt']
+    realm='ocean'
+    diag_dims=['time','yt_ocean','xt_ocean']
+    units='psu'
+    units='0.001'
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='zg500'):
+    #diag=True
+    area_t=False
+    inputs=['h500']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='m'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='zg5'):
+    #diag=True
+    area_t=False
+    inputs=['hght','ps']
+    realm='atmos'
+    diag_dims=['time','phalf','lat','lon']
+    units='m'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+
+  elif(dvar=='zg700'):
+    #diag=True
+    area_t=False
+    inputs=['h500','ps']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='m'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='ps'):
+    #diag=True
+    area_t=False
+    inputs=['ps']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='Pa'
+    table='Amon'
+    ovars=[dvar]
+  
+  elif(dvar=='psl'):
+    #diag=True
+    area_t=False
+    inputs=['slp']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='Pa'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+  
+  elif(dvar=='zg'):
+    #diag=True
+    area_t=False
+    inputs=['hght']
+    realm='atmos'
+    diag_dims=['time','phalf','lat','lon']
+    units='m'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+  
+  elif(dvar=='temptotal'):
+    #diag=True
+    area_t=False
+    inputs=['temp_total']
+    realm='ocean'
+    #frequency='scalar'
+    diag_dims=['time']
+    units='Joule/1e25'
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='salttotal'):
+    #diag=True
+    area_t=False
+    inputs=['salt_total']
+    realm='ocean'
+    #frequency='scalar'
+    diag_dims=['time']
+    units='kg/1e18'
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='nino34'):
+    #diag=True
+    area_t=True
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['time']
+    units='degC'
+    if(frequency == 'month'): table='Omon'
+    else: table='Oday'
+    ovars=[dvar]
+    levels=0
+    nlev=0
+  
+  elif(dvar=='iod'):
+    #diag=True
+    area_t=True
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['time']
+    units='degC'
+    table='Omon'
+    ovars=[dvar]
+    #frequency='month'
+    levels=0
+    nlev=0
+    #print('len(ovars)=',len(ovars),file=fh_printfile)
+    #raise SystemExit('Forced exit.')
+  
+  elif(dvar=='ua' or dvar=='ua5' or dvar=='ua10' or dvar=='ua17'):
+    #diag=True
+    area_t=False
+    if(dvar=='ua'):
+      inputs=['ucomp']
+    else:
+      inputs=['ucomp','ps']
+    realm='atmos'
+    diag_dims=['time','pfull','lat','lon']
+    units='m/sec'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    #frequency='month'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='va' or dvar=='va5' or dvar=='va10' or dvar=='va17'):
+    #diag=True
+    area_t=False
+    if(dvar=='va'):
+      inputs=['vcomp']
+    else:
+      inputs=['vcomp','ps']
+    realm='atmos'
+    diag_dims=['time','pfull','lat','lon']
+    units='m/sec'
+    table='Amon'
+    #frequency='month'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='pv' or dvar=='pv5' or dvar=='pv10' or dvar=='pv17'):
+    #diag=True
+    area_t=False
+    if(dvar=='pv'):
+      inputs=['pv']
+    else:
+      inputs=['pv','ps']
+    realm='atmos'
+    diag_dims=['time','phalf','lat','lon']
+    units='1/s'
+    table='Amon'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='divg' or dvar=='divg5' or dvar=='divg10' or dvar=='divg17'):
+    #diag=True
+    area_t=False
+    if(dvar=='divg'):
+      inputs=['divg']
+    else:
+      inputs=['divg','ps']
+    realm='atmos'
+    diag_dims=['time','phalf','lat','lon']
+    units='1/s'
+    table='Amon'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='vort' or dvar=='vort5' or dvar=='vort10' or dvar=='vort17'):
+    #diag=True
+    area_t=False
+    if(dvar=='vort'):
+      inputs=['vort']
+    else:
+      inputs=['vort','ps']
+    realm='atmos'
+    diag_dims=['time','phalf','lat','lon']
+    units='1/s'
+    table='Amon'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='mlotst'):
+    #diag=True
+    area_t=True
+    inputs=['mld']
+    realm='ocean'
+    diag_dims=['time','yt_ocean','xt_ocean']
+    units='m'
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='mlotstsq'):
+    #diag=True
+    area_t=True
+    inputs=['mld_sq']
+    realm='ocean'
+    diag_dims=['time','yt_ocean','xt_ocean']
+    units='m'
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='umo'):
+    #diag=True
+    area_t=False
+    inputs=['tx_trans']
+    realm='ocean'
+    diag_dims=['time','yt_ocean','xu_ocean']
+    units='kg s-1'
+    table='Omon'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='vmo'):
+    #diag=True
+    area_t=False
+    inputs=['tx_trans']
+    realm='ocean'
+    diag_dims=['time','yu_ocean','xt_ocean']
+    units='kg s-1'
+    table='Omon'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='volcello'):
+    #diag=True
+    area_t=False
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['time','yu_ocean','xt_ocean']
+    units='m3'
+    table='fx'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='areacello'):
+    area_t=False
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['time','yu_ocean','xt_ocean']
+    units='m2'
+    table='Ofx'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='cl'):
+    #diag=True
+    area_t=False
+    inputs=['cld_amt']
+    realm='atmos'
+    diag_dims=['time','phalf','lat','lon']
+    units='%'
+    table='Amon'
+    ovars=[dvar]
+  
+  elif(dvar=='sftof'):
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['yu_ocean','xt_ocean']
+    units='%'
+    table='fx'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='thkcello'):
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['st_ocean','yu_ocean','xt_ocean']
+    units='m'
+    table='fx'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='deptho'):
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['st_ocean','yu_ocean','xt_ocean']
+    units='m'
+    table='Ofx'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='msftyyz'):
+    inputs=['ty_trans','ty_trans_gm']
+    diag_dims=['time', 'basin', 'st_ocean','yu_ocean']
+    realm='ocean'
+    units='10^-9 kg s-1'
+    units='kg s-1'
+    table='Omon'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='mfo'):
+    inputs=['tx_trans','ty_trans']
+    realm='ocean'
+    diag_dims=['time', 'oline']
+    units='kg s-1'
+    table='Omon'
+    #frequency='month'
+    ovars=[dvar]
+  
+  elif(dvar=='so'):
+    #diag=True
+    realm='ocean'
+    #inputs=dvar
+    table='Omon'
+    #area_t=True
+    inputs=['salt']
+    #realm='ocean'
+    diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
+    units='psu'
+    units='0.001'
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='rws500'):
+    #diag=True
+    area_t=False
+    inputs=['ucomp','vcomp']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='s-2'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+
+  elif(dvar=='rws5'):
+    area_t=False
+    inputs=['ucomp','vcomp','ps']
+    realm='atmos'
+    diag_dims=['time','pfull','lat','lon']
+    units=['s-2','s-1','s-1','ms-1','ms-1']
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    #ovars=[dvar]
+    ovars=['rws5','div5','eta5','uchi5','vchi5']
+    grid_label='gn5'
+    grid='3D vars use plev5, 300, 500, 700 and 850hPa'
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='linear'
+  
+  elif(dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='ta17'):
+    #diag=True
+    area_t=False
+    if(dvar=='ta'):
+      inputs=['temp']
+    else:
+      inputs=['temp','ps']
+    realm='atmos'
+    diag_dims=['time','pfull','lat','lon']
+    units='K'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    #frequency='month'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='zg' or dvar=='zg5' or dvar=='zg10' or dvar=='zg17'):
+    #diag=True
+    area_t=False
+    if(dvar=='zg'):
+      inputs=['hght']
+    else:
+      inputs=['hght','ps']
+    realm='atmos'
+    diag_dims=['time','phalf','lat','lon']
+    units='m'
+    table='Amon'
+    #frequency='month'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='hur' or dvar=='hur5' or dvar=='hur10' or dvar=='hur17'):
+    #diag=True
+    area_t=False
+    if(dvar=='hur'):
+      inputs=['rhum']
+    else:
+      inputs=['rhum','ps']
+    realm='atmos'
+    diag_dims=['time','pfull','lat','lon']
+    units='%'
+    table='Amon'
+    #frequency='month'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='hus' or dvar=='hus5' or dvar=='hus10' or dvar=='hus17'):
+    #diag=True
+    area_t=False
+    if(dvar=='hus'):
+      inputs=['sphum']
+    else:
+      inputs=['sphum','ps']
+    realm='atmos'
+    diag_dims=['time','pfull','lat','lon']
+    units='1.0'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+    if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
+  
+  elif(dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
+    #diag=True
+    area_t=True
+    inputs=['temp']
+    realm='ocean'
+    diag_dims=['time','yt_ocean','xt_ocean']
+    units='m'
+    table='Omon'
+    ovars=[dvar]
+  
+  elif(dvar=='tauu'):
+    #diag=True
+    area_t=False
+    inputs=['tau_x']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='Pa'
+    if(frequency == 'month'): table='Amon'
+    else: table='day'
+    ovars=[dvar]
+  
+  elif(dvar=='tauv'):
+    #diag=True
+    area_t=False
+    inputs=['tau_y']
+    realm='atmos'
+    diag_dims=['time','lat','lon']
+    units='Pa'
+    table='Amon'
+    ovars=[dvar]
+  
+  else:
+    #diag=False
+    inputs=['']
+    #inputs=dvar
+    dvarnow=[dvar]
+    #exit
+  return realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method

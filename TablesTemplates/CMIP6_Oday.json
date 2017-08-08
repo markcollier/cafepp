@@ -115,6 +115,23 @@
             "valid_max": "", 
             "ok_min_mean_abs": "", 
             "ok_max_mean_abs": ""
+        },
+        "nino34": {
+            "modeling_realm": "ocean",
+            "standard_name": "nino34",
+            "units": "degC",
+            "cell_methods": "area: mean where sea time: mean",
+            "cell_measures": "",
+            "long_name": "Nino34 index",
+            "comment": "None.",
+            "dimensions": "time",
+            "out_name": "nino34",
+            "type": "real",
+            "positive": "",
+            "valid_min": "",
+            "valid_max": "",
+            "ok_min_mean_abs": "",
+            "ok_max_mean_abs": ""
         }
     }
 }
