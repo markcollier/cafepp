@@ -1774,11 +1774,13 @@ def grab_var_meta(dvar,frequency):
   '''
   documentation
   '''
+  #defaults:
   area_t=False
   area_u=False
   #frequency='month'
   grid_label='gn'
   grid='native grid'
+  varStructure='time_lat_lon'
   if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
 
   if(dvar=='thetao'):
@@ -1790,8 +1792,10 @@ def grab_var_meta(dvar,frequency):
     inputs=['temp']
     units='degC'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
 
   elif(dvar=='thetao100m'):
+    #not sure if I need this, as could have just specified levels=0...10 and it would do the rest, as olevel is arbitrary. Would need to specify a different grid/grid_label
     #diag=True
     realm='ocean'
     diag_dims=['time','st_ocean','yt_ocean','xt_ocean']
@@ -1802,6 +1806,7 @@ def grab_var_meta(dvar,frequency):
     ovars=[dvar]
     grid_label='gn100m'
     grid='Upper 100m of ocean only'
+    varStructure='time_depth_lat_lon'
 
   elif(dvar=='so100m'):
     #diag=True
@@ -1814,6 +1819,7 @@ def grab_var_meta(dvar,frequency):
     ovars=[dvar]
     grid_label='gn100m'
     grid='Upper 100m of ocean only'
+    varStructure='time_depth_lat_lon'
 
   elif(dvar=='uo'):
     #diag=True
@@ -1826,6 +1832,7 @@ def grab_var_meta(dvar,frequency):
     ovars=[dvar]
     #grid_label='gn100m'
     #grid='Upper 100m of ocean only'
+    varStructure='time_depth_lat_lon'
 
   elif(dvar=='uo100m'):
     #diag=True
@@ -1838,6 +1845,7 @@ def grab_var_meta(dvar,frequency):
     ovars=[dvar]
     grid_label='gn100m'
     grid='Upper 100m of ocean only'
+    varStructure='time_depth_lat_lon'
 
   elif(dvar=='vo'):
     #diag=True
@@ -1850,6 +1858,7 @@ def grab_var_meta(dvar,frequency):
     ovars=[dvar]
     grid_label='gn100m'
     grid='Upper 100m of ocean only'
+    varStructure='time_depth_lat_lon'
 
   elif(dvar=='vo100m'):
     #diag=True
@@ -1862,6 +1871,7 @@ def grab_var_meta(dvar,frequency):
     ovars=[dvar]
     grid_label='gn100m'
     grid='Upper 100m of ocean only'
+    varStructure='time_depth_lat_lon'
 
   elif(dvar=='eta_t' or dvar=='tx_trans_int_z'):
     #diag=True
@@ -1880,6 +1890,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='tas'):
     #diag=False
@@ -1891,6 +1902,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='hfls'):
     #diag=False
@@ -1902,6 +1914,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='uas'):
     #diag=False
@@ -1913,6 +1926,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='vas'):
     #diag=False
@@ -1924,6 +1938,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='hfss'):
     #diag=False
@@ -1935,6 +1950,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='huss'):
     #diag=False
@@ -1946,6 +1962,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='rlut'):
     #diag=False
@@ -1957,6 +1974,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='sfcWind'):
     #diag=False
@@ -1968,6 +1986,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='tslsi'):
     #diag=False
@@ -1979,6 +1998,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='o2'):
     #diag=False
@@ -2056,6 +2076,7 @@ def grab_var_meta(dvar,frequency):
     diag_dims=['time','yt_ocean','xt_ocean']
     dvar='ssh'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='moc' or dvar=='moc_atlantic' or dvar=='moc_pacific' or dvar=='moc_indian'):
     #diag=True
@@ -2103,8 +2124,10 @@ def grab_var_meta(dvar,frequency):
     #levels=8,9
     #nlev=2
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
   
   elif(dvar=='tos'):
+    varStructure='lat_lon'
     #diag=True
     area_t=True
     inputs=['temp']
@@ -2114,6 +2137,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Omon'
     else: table='Oday'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='sos'):
     #diag=True
@@ -2125,6 +2149,7 @@ def grab_var_meta(dvar,frequency):
     units='0.001'
     table='Omon'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='zg500'):
     #diag=True
@@ -2136,6 +2161,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='zg5'):
     #diag=True
@@ -2147,6 +2173,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
 
   elif(dvar=='zg700'):
@@ -2159,6 +2186,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='ps'):
@@ -2170,6 +2198,7 @@ def grab_var_meta(dvar,frequency):
     units='Pa'
     table='Amon'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='psl'):
     #diag=True
@@ -2181,6 +2210,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='zg'):
     #diag=True
@@ -2192,6 +2222,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
   
   elif(dvar=='temptotal'):
     #diag=True
@@ -2203,6 +2234,7 @@ def grab_var_meta(dvar,frequency):
     units='Joule/1e25'
     table='Omon'
     ovars=[dvar]
+    varStructure='time'
   
   elif(dvar=='salttotal'):
     #diag=True
@@ -2214,6 +2246,7 @@ def grab_var_meta(dvar,frequency):
     units='kg/1e18'
     table='Omon'
     ovars=[dvar]
+    varStructure='time'
   
   elif(dvar=='nino34'):
     #diag=True
@@ -2227,6 +2260,7 @@ def grab_var_meta(dvar,frequency):
     ovars=[dvar]
     levels=0
     nlev=0
+    varStructure='time'
   
   elif(dvar=='iod'):
     #diag=True
@@ -2242,6 +2276,7 @@ def grab_var_meta(dvar,frequency):
     nlev=0
     #print('len(ovars)=',len(ovars),file=fh_printfile)
     #raise SystemExit('Forced exit.')
+    varStructure='time'
   
   elif(dvar=='ua' or dvar=='ua5' or dvar=='ua10' or dvar=='ua17'):
     #diag=True
@@ -2257,6 +2292,7 @@ def grab_var_meta(dvar,frequency):
     else: table='day'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='va' or dvar=='va5' or dvar=='va10' or dvar=='va17'):
@@ -2272,6 +2308,7 @@ def grab_var_meta(dvar,frequency):
     table='Amon'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='pv' or dvar=='pv5' or dvar=='pv10' or dvar=='pv17'):
@@ -2286,6 +2323,7 @@ def grab_var_meta(dvar,frequency):
     units='1/s'
     table='Amon'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='divg' or dvar=='divg5' or dvar=='divg10' or dvar=='divg17'):
@@ -2300,6 +2338,7 @@ def grab_var_meta(dvar,frequency):
     units='1/s'
     table='Amon'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='vort' or dvar=='vort5' or dvar=='vort10' or dvar=='vort17'):
@@ -2314,6 +2353,7 @@ def grab_var_meta(dvar,frequency):
     units='1/s'
     table='Amon'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='mlotst'):
@@ -2325,6 +2365,7 @@ def grab_var_meta(dvar,frequency):
     units='m'
     table='Omon'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='mlotstsq'):
     #diag=True
@@ -2335,6 +2376,7 @@ def grab_var_meta(dvar,frequency):
     units='m'
     table='Omon'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='umo'):
     #diag=True
@@ -2346,6 +2388,7 @@ def grab_var_meta(dvar,frequency):
     table='Omon'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
   
   elif(dvar=='vmo'):
     #diag=True
@@ -2357,6 +2400,7 @@ def grab_var_meta(dvar,frequency):
     table='Omon'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
   
   elif(dvar=='volcello'):
     #diag=True
@@ -2368,6 +2412,7 @@ def grab_var_meta(dvar,frequency):
     table='fx'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
   
   elif(dvar=='areacello'):
     area_t=False
@@ -2378,6 +2423,7 @@ def grab_var_meta(dvar,frequency):
     table='Ofx'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
   
   elif(dvar=='cl'):
     #diag=True
@@ -2388,6 +2434,7 @@ def grab_var_meta(dvar,frequency):
     units='%'
     table='Amon'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
   
   elif(dvar=='sftof'):
     inputs=['temp']
@@ -2397,6 +2444,7 @@ def grab_var_meta(dvar,frequency):
     table='fx'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='thkcello'):
     inputs=['temp']
@@ -2406,6 +2454,7 @@ def grab_var_meta(dvar,frequency):
     table='fx'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
   
   elif(dvar=='deptho'):
     inputs=['temp']
@@ -2415,6 +2464,7 @@ def grab_var_meta(dvar,frequency):
     table='Ofx'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
   
   elif(dvar=='msftyyz'):
     inputs=['ty_trans','ty_trans_gm']
@@ -2425,6 +2475,7 @@ def grab_var_meta(dvar,frequency):
     table='Omon'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_basin_depth_lat'
   
   elif(dvar=='mfo'):
     inputs=['tx_trans','ty_trans']
@@ -2434,6 +2485,7 @@ def grab_var_meta(dvar,frequency):
     table='Omon'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_oline'
   
   elif(dvar=='so'):
     #diag=True
@@ -2448,6 +2500,7 @@ def grab_var_meta(dvar,frequency):
     units='0.001'
     table='Omon'
     ovars=[dvar]
+    varStructure='time_depth_lat_lon'
   
   elif(dvar=='rws500'):
     #diag=True
@@ -2459,6 +2512,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
 
   elif(dvar=='rws5'):
     area_t=False
@@ -2472,6 +2526,7 @@ def grab_var_meta(dvar,frequency):
     ovars=['rws5','div5','eta5','uchi5','vchi5']
     grid_label='gn5'
     grid='3D vars use plev5, 300, 500, 700 and 850hPa'
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='linear'
   
   elif(dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='ta17'):
@@ -2488,6 +2543,7 @@ def grab_var_meta(dvar,frequency):
     else: table='day'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='zg' or dvar=='zg5' or dvar=='zg10' or dvar=='zg17'):
@@ -2503,6 +2559,7 @@ def grab_var_meta(dvar,frequency):
     table='Amon'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='hur' or dvar=='hur5' or dvar=='hur10' or dvar=='hur17'):
@@ -2518,6 +2575,7 @@ def grab_var_meta(dvar,frequency):
     table='Amon'
     #frequency='month'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='hus' or dvar=='hus5' or dvar=='hus10' or dvar=='hus17'):
@@ -2533,6 +2591,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_height_lat_lon'
     if not 'vertical_interpolation_method' in locals(): vertical_interpolation_method='log_linear'
   
   elif(dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
@@ -2543,6 +2602,7 @@ def grab_var_meta(dvar,frequency):
     diag_dims=['time','yt_ocean','xt_ocean']
     units='m'
     table='Omon'
+    varStructure='time_lat_lon'
     ovars=[dvar]
   
   elif(dvar=='tauu'):
@@ -2555,6 +2615,7 @@ def grab_var_meta(dvar,frequency):
     if(frequency == 'month'): table='Amon'
     else: table='day'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   elif(dvar=='tauv'):
     #diag=True
@@ -2565,6 +2626,7 @@ def grab_var_meta(dvar,frequency):
     units='Pa'
     table='Amon'
     ovars=[dvar]
+    varStructure='time_lat_lon'
   
   else:
     #diag=False
@@ -2572,4 +2634,4 @@ def grab_var_meta(dvar,frequency):
     #inputs=dvar
     dvarnow=[dvar]
     #exit
-  return realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method
+  return realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure
