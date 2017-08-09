@@ -238,7 +238,7 @@ print(sys.argv,file=fh_printfile)
 #area_u=False
 
 frequency='month'
-realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method=grab_var_meta(dvar,frequency)
+realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure=grab_var_meta(dvar,frequency)
 
 #if(dvar=='thetao'):
 #  inputs=['temp']
@@ -366,8 +366,8 @@ if(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or d
 dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='pv10' or dvar=='divg10' or dvar=='vort10' or \
 dvar=='ta17' or dvar=='zg17' or dvar=='ua17' or dvar=='va17' or dvar=='hus17' or dvar=='hur17' or dvar=='p17' or dvar=='div17' or dvar=='vor17' \
 ):
-  nlev2=1
-  levels2=0
+  nlev2=1 #ps needed
+  levels2=0 #ps needed
 
 if(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or dvar=='hur5' or dvar=='pv5' or dvar=='divg5' or dvar=='vort5'):
   grid_label='gn5'
@@ -423,10 +423,11 @@ cmor.set_cur_dataset_attribute('realization_index',realisation)
 cmor.set_cur_dataset_attribute('version',version)
 
 if(Forecast):
-  cmor.set_cur_dataset_attribute('calendar','julian')
+  calendar='julian'
 else:
-  cmor.set_cur_dataset_attribute('calendar','noleap')
+  calendar='noleap'
 
+cmor.set_cur_dataset_attribute('calendar',calendar)
 cmor.set_cur_dataset_attribute('importance',importance)
 cmor.set_cur_dataset_attribute('season',season)
 
@@ -479,6 +480,8 @@ tables.append(cmor.load_table('cmor/Tables/CMIP6_coordinate.json'))
 
 if os.path.exists('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
   xfh=netCDF4.Dataset('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+elif os.path.exists('/home/col414/decadal/cafepp/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
+  xfh=netCDF4.Dataset('/home/col414/decadal/cafepp/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
 else:
   xfh=netCDF4.Dataset('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
 if(area_t):
@@ -649,10 +652,13 @@ elif(dvar=='rws'):
   ivar=f.variables['ucomp']
   var_dims=f.variables['ucomp'].dimensions
   var_size=f.variables['ucomp'].shape
-elif(dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='volcello' or dvar=='areacello' or dvar=='thkcello' or dvar=='sftof' or dvar=='deptho' or dvar=='isothetao16c' or dvar==dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
-  ivar=f.variables['temp']
-  var_dims=f.variables['temp'].dimensions
-  var_size=f.variables['temp'].shape
+elif(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='volcello' or dvar=='areacello' or dvar=='thkcello' or dvar=='sftof' or dvar=='deptho' or dvar=='isothetao16c' or dvar==dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  #ivar=f.variables['temp']
+  #var_dims=f.variables['temp'].dimensions
+  #var_size=f.variables['temp'].shape
+  ivar=f.variables[inputs[0]]
+  var_dims=f.variables[inputs[0]].dimensions
+  var_size=f.variables[inputs[0]].shape
 elif(dvar=='zg500'):
   ivar=f.variables['h500']
   var_dims=f.variables['h500'].dimensions
@@ -796,7 +802,7 @@ else:
   levels=np.array(range(0,var_size[1]-0))
   nlev=len(levels)
 
-if(dvar=='tos' or dvar=='sos' or dvar=='sftof' or dvar=='nino34' or dvar=='iod'):
+if(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='sftof' or dvar=='nino34' or dvar=='iod'):
   levels=0
   nlev=1
 elif(dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='rws500' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
@@ -1051,7 +1057,16 @@ else:
 
   #raise SystemExit('Forced exit.')
 
-  print('tbeg,tend,tavg=',tbeg,tend,tavg,file=fh_printfile)
+  #print('tbeg,tend,tavg=',tbeg,tend,tavg)
+  timestamp_avg=netCDF4.num2date(tavg,units=refString,calendar=calendar)
+  timestamp_beg=netCDF4.num2date(tbeg,units=refString,calendar=calendar)
+  timestamp_end=netCDF4.num2date(tend,units=refString,calendar=calendar)
+
+  print('timestamp_avg,beg,end:',file=fh_printfile)
+  for n in range(0,ttt):
+    print(timestamp_avg[n],timestamp_beg[n],timestamp_end[n],file=fh_printfile)
+
+  #print('timestamp_avg=',timestamp_avg,timestamp_beg)
 
   #raise SystemExit('Forced exit.')
 
@@ -1069,7 +1084,7 @@ else:
 
 cmor.set_table(tables[1])
 
-if(dvar=='tos' or dvar=='thetao' or dvar=='sos' or dvar=='uo' or dvar=='vo' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
+if(varStructure=='time_lat_lon' or varStructure=='time_depth_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='sos' or dvar=='uo' or dvar=='vo' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
   cmor.set_table(tables[0])
 
   zt=xfh.variables['zt']
@@ -1296,7 +1311,7 @@ elif(dvar=='msftyyz'):
 
   #raise SystemExit('Forced exit.')
 
-elif(dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+elif(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
 
   if(dvar=='umo'):
     lat_vals=xfh.variables['y_T']
@@ -1343,7 +1358,7 @@ elif(dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='umo' or 
 
   grid_id=cmor.grid(axis_ids=axis_ids, latitude=lat_vals[:], longitude=lon_vals_360[:], latitude_vertices=lat_vertices[:], longitude_vertices=lon_vertices[:])
 
-elif(dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='isothetao16c'or dvar=='isothetao20c'or dvar=='isothetao22c'):
+elif(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='isothetao16c'or dvar=='isothetao20c'or dvar=='isothetao22c'):
   if(dvar=='umo'):
     lat_vals=xfh.variables['y_T']
     lon_vals=xfh.variables['x_C']
@@ -1382,7 +1397,7 @@ elif(dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='
 cmor.set_table(tables[0]) #working
 
 data_id=[]
-if(dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
+if(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
   axis_ids=[i_axis_id,j_axis_id,time_axis_id]
   axis_ids=[time_axis_id]
   axis_ids=[0]
@@ -1393,7 +1408,7 @@ if(dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='is
   axis_ids=[grid_id]
   axis_ids=[time_axis_id,grid_id] #working
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
-elif(dvar=='thetao' or dvar=='umo' or dvar=='vmo' or dvar=='so' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m' or dvar=='uo' or dvar=='vo'):
+elif(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='umo' or dvar=='vmo' or dvar=='so' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m' or dvar=='uo' or dvar=='vo'):
   axis_ids=[time_axis_id,grid_id]
   axis_ids=[0,1,2,3]
   axis_ids=[time_axis_id,z_axis_id,grid_id]
@@ -1617,7 +1632,7 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
     data,var0,var1=diag_nhblocking_index(data,lat_vals,lon_vals)
   elif(dvar=='rws'):
     data=diag_rws(data1,data2,lat_vals[:],lon_vals[:])
-  elif(dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  elif(varStructure=='time_depth_lat_lon' or varStructure=='time_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
     pass
   elif(dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
     pass
@@ -1654,12 +1669,12 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
   else:
     ntimes_passed=1
 
-  if(dvar=='thetao' or dvar=='so' or dvar=='vo' or dvar=='uo' or dvar=='isothetao20c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  if(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='so' or dvar=='vo' or dvar=='uo' or dvar=='isothetao20c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
     print('levels=',levels,file=fh_printfile)
     print('data.shape=',data.shape,file=fh_printfile)
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:,:,:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
-  elif(dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='temptotal' or dvar=='salttotal' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  elif(varStructure=='time_depth_lat_lon' or varStructure=='time_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='temptotal' or dvar=='salttotal' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
 
