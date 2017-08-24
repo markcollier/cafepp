@@ -10,6 +10,8 @@ from __future__ import print_function #this is to allow print(,file=xxx) feature
 CAFE Post-Processor for monthly inputs
 --------------------------
 
+needs more comments
+
 Compute extended time-series of monthly/seasonal data from breeding ACCESS coupled experiments.
 
 Inputs can start from a month other than January and end in a month other than December. Outputs will be over available months. For monthly outputs this is trivial, however, for seasonal outputs this is non-trivial.
