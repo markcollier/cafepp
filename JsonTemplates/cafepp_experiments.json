@@ -1,0 +1,129 @@
+#BOF
+{ 
+    "v0":{ #unique experiment identifier, this may change with time to be more descriptive.
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"Original version of the coupled model using the ACCESS ocean grid with the GFDL namelist options from the CM2p1 set-up of their coupled model.  The simulation ran for 700 years with the ocean BGC simulated for the last 300 years.  The model run was stable but it was later discovered the land topography was not properly activated.", #this info. comes straight from DFP confluence page.
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au", #machine experiment first run on.
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+    "storage_machine_no1":"tube-hba.nexus.csiro.au", #principal storage machine.
+    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da", #principal disk top directory.
+    "active_disk_no1":"yes", #is the disk/data active?
+    "storage_machine_no2":"raijin.nci.org.au", #backup.
+    "top_directory_no2":"/g/data1/v14/coupled_model/v0/OUTPUT",
+    "active_disk_no2":"no",
+    "main_science_contact":"tok599", #contact(s) for coordinating science projects with experiment output.
+    "main_technical_contact":"tok599,lxs599", #contact(s) who maintain data or can answer technial related questions.
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599", #nexus id's that can write/modify the data.
+    "ybeg_min":295, #absolute minimum year.
+    "yend_max":625, #absolute maximum year.
+    "mbeg_min":1, #normally 1 for a climate/forward integration experiment.
+    "mend_max":12, #normally 1 for a climate/forward integration experiment.
+    "realisation":1, #follow CMIP6 guidelines.
+    "initialisation":1, #follow CMIP6 guidelines.
+    "physics":1, #follow CMIP6 guidelines.
+    "forcing":1, #follow CMIP6 guidelines.
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO"
+    },
+    "v1":{
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"500-year run with properly activated land topography (oct16e) but bit too much mass (~ 18 hPa) in the atmosphere. Namelist modified: vertical coordinate is switched to zstar, cm2_bugs are removed from the ice model.",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+    "storage_machine_no1":"raijin.nci.org.au",
+    "top_directory_no1":"/g/data1/v14/coupled_model/v1/OUTPUT",
+    "storage_machine_no2":"tube-hba.nexus.csiro.au",
+    "top_directory_no2":"None",
+    "active_disk_no1":"yes",
+    "active_disk_no2":"no",
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":1,
+    "yend_max":500,
+    "mbeg_min":1,
+    "mend_max":12,
+    "realisation":1,
+    "initialisation":1,
+    "physics":1,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO"
+    },
+    "v2":{
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"500-year simulation with restoration of ocean fields below ~2000m.",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+    "storage_machine_no1":"raijin.nci.org.au",
+    "top_directory_no1":"/short/v14/lxs599/coupled_model/feb17a/OUTPUT",
+    "active_disk_no1":"yes",
+#    "storage_machine_no2":"tube-hba.nexus.csiro.au",
+    "storage_machine_no2":"raijin.nci.org.au",
+    "top_directory_no2":"/short/v14/lxs599/coupled_model/feb17a/OUTPUT",
+    "active_disk_no1":"yes",
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":1,
+    "yend_max":500,
+    "mbeg_min":1,
+    "mend_max":12,
+    "realisation":1,
+    "initialisation":1,
+    "physics":1,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO"
+    },
+    "v0_forecast":{
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"2yr or 5yr forecasts of months from Feb 2002 to May 2016 using Terry's and Didier's bred_vectors as IC",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+    "storage_machine_no1":"tube-hba.nexus.csiro.au",
+    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da",
+    "active_disk_no1":"yes",
+    "storage_machine_no2":"raijin.nci.org.au",
+    "top_directory_no2":"/g/data1/v14/coupled_model/v0/OUTPUT",
+    "active_disk_no2":"no",
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":1,
+    "yend_max":500,
+    "mbeg_min":1,
+    "mend_max":12,
+    "realisation":1,
+    "initialisation":1,
+    "physics":1,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO"
+    }
+}
+#EOF

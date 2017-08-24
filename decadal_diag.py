@@ -280,7 +280,7 @@ def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_
   print('data_wavg: month_index_ntims.shape=',month_index_ntims.shape,file=fh_printfile)
   print('data_wavg: var_size=',var_size,file=fh_printfile)
 
-#testing out on MONTHLY case. Some of this code needs to be taken up into makn routine as it doesn't need to be here.
+#testing out on MONTHLY case. Some of this code needs to be taken up into main routine as it doesn't need to be here.
 
   weights=[]
   for month in list(range(ind_beg,ind_end+1)):
@@ -290,12 +290,15 @@ def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_
     weights.append(days_in_month[month_index_ntims[month]]) 
 
     if(month==ind_beg):
-      if(len(var_size)==3 and var_size[0] ==1):
+      print('month==ind_beg')
+      if(len(var_size)==3 and ( var_size[0]==1 or var_size[0]==12 )):
         data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1]]
       else:
+        print('here xxx')
         data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]
     else:
-      if(len(var_size)==3 and var_size[0] ==1):
+      print('month!=ind_beg')
+      if(len(var_size)==3 and ( var_size[0]==1 or var_size[0]==12 )):
         data=np.vstack((data, input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1]]))
       else:
         data=np.vstack((data, input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]))

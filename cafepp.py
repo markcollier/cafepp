@@ -47,6 +47,8 @@ import filecmp
 from shutil import copyfile
 import cdms2
 from regrid2 import Regridder
+import inspect  
+
 #https://infohost.nmt.edu/tcc/help/pubs/python/web/print-as-function.html
 #
 #
@@ -65,15 +67,16 @@ from regrid2 import Regridder
 
 def usage(script_name):
     """usage"""
-    print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --levs=one of pre-defined set --idir=input directory --season="MON"')
+    print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --levs=one of pre-defined set --idir=input directory --season="MON" --json_input_instructions=json input command file')
 
 try:
-    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rFl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","levs=","realisation=","initialisation=","physics=","forcings=","season=","idir=","vertical_interpolation_method=","version=","cmorlogfile="])
+    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rFl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","levs=","realisation=","initialisation=","physics=","forcings=","season=","idir=","vertical_interpolation_method=","version=","cmorlogfile=","json_input_instructions=",])
 except getopt.GetoptError as err:
     print(err)
     usage(os.path.realpath(__file__))
     sys.exit(2)
 
+printDefinedDiagnostics=False
 Forecast=False#the input directory will vary depending on year/month, I am calling these Forecast runs for now. These have one month of data per file - future model configurations may have different inputs. "Non-Forecast" runs are the traditional control runs, which have normally had 12 months per file.
 ReGrid=False
 NoClobber=False
@@ -88,8 +91,15 @@ levs_test=None
 MonthlyWeights=False
 #CMIP6=False
 #StdLev=False #write out on standard levels, at this stage focusing on 3D atmosphere pressure level data.
+area_u=False
+area_t=False
+dfp_defs='dfp_csiro-gfdl.json'
+cafepp_experiments='cafepp_experiments.json'
+json_input_var_meta='cafepp_vars_mon.json'
+json_input_instructions='cafepp.json'
+cafepp_machine='raijin.nci.org.au'
 
-fh_printfile=sys.stdout
+#fh_printfile=sys.stdout
 #fh_printfile=sys.stderr
 
 cmorlogfile='log'
@@ -191,6 +201,8 @@ for o, a in opts:
 #        StdLev=True
     elif o == '-F':
         Forecast=True
+    elif o == '--json_input_instructions':
+        json_input_instructions=a #this will be a file with info. to drive cafepp. All other options will be null and void. Will need to test for this.
     else:
         assert False, 'unhandled option'
 
@@ -201,13 +213,202 @@ for o, a in opts:
     else:
         pass
 
+if 'json_input_instructions' in locals():
+  os.system('awk -f uncomment_json.awk JsonTemplates/'+json_input_instructions+' > '+json_input_instructions)
+  print('Running cafepp from JSON instructions: '+json_input_instructions)
+  json_input_instructions_fh=open(json_input_instructions).read()
+  json_input_instructions_data=json.loads(json_input_instructions_fh)
+  print('json_input_instructions_data=',json_input_instructions_data)
+else:
+  print('Running cafepp from command line input:')
+
+if 'json_input_instructions' in locals():
+  print("Summary of JSON instructions: ",json.dumps(json_input_instructions_data,indent=4,sort_keys=True))
+
+  #print(type(json_input_instructions_data))
+
+  top_level_keys=json_input_instructions_data.keys()
+
+  print('Top level JSON instructions keys=',top_level_keys)
+#  print(json_input_instructions_data)
+  for key_now in json_input_instructions_data.iteritems():
+    print('processing key_now[0]=',key_now[0])
+    key_now0=key_now[0]
+    if(key_now0=="options_with_arguments"):
+      list_new=(json_input_instructions_data[key_now0])
+      #print('list_new=',list_new)
+      #list_new2=list(list_new)
+      #print('list_new2=',list_new2)
+      for l in list_new: #used to be list_new2
+        #print('l=',l,list_new[l])
+        #eval(l)=1.0
+        #eval(l)=list_new[l]
+        if(l=='cafe_experiment'): cafe_experiment=str(list_new[l])
+        elif(l=='info'): info=str(list_new[l])
+        elif(l=='name'): name=str(list_new[l])
+        elif(l=='importance'): importance=str(list_new[l])
+        elif(l=='version'): version=str(list_new[l])
+#        elif(l=='initialisation'): initialisation=str(list_new[l])
+#        elif(l=='realisation'): realisation=str(list_new[l])
+#        elif(l=='physics'): physics=str(list_new[l])
+#        elif(l=='forcings'): forcings=str(list_new[l])
+        elif(l=='dvar'): dvar=str(list_new[l])
+        elif(l=='ybeg'): ybeg=int(list_new[l])
+        elif(l=='yend'): yend=int(list_new[l])
+#        elif(l=='ybeg_min'): ybeg_min=list_new[l]
+#        elif(l=='yend_max'): yend_max=list_new[l]
+        elif(l=='mbeg'): mbeg=int(list_new[l])
+        elif(l=='mend'): mend=int(list_new[l])
+#        elif(l=='mbeg_min'): mbeg_min=list_new[l]
+#        elif(l=='mend_max'): mend_max=list_new[l]
+#        elif(l=='idir'): idir=str(list_new[l])
+        elif(l=='season'): season=str(list_new[l])
+        elif(l=='levs'): levs=str(list_new[l])
+        elif(l=='cmorlogfile'): cmorlogfile=str(list_new[l])
+        elif(l=='printfile'): printfile=str(list_new[l])
+        elif(l=='xxxprintfile'): None
+        elif(l=='printDefinedDiagnostics'):
+          if(list_new[l]=='True'): printDefinedDiagnostics=True
+        elif(l==''): grid_label=str(list_new[l])
+        elif(l=='cafepp_machine'): cafepp_machine=str(list_new[l])
+        else: raise SystemExit('Unknown option_with_argument,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    elif(key_now0=="options_no_arguments"):
+      list_new=(json_input_instructions_data[key_now0])
+      for l in list_new: #used to be list_new2
+        if(l=='name'): name=str(list_new[l])
+        elif(l=='info'): info=str(list_new[l])
+        elif(l=='Forecast'): 
+          if(list_new[l]=='True'): Forecast=list_new[l]
+        elif(l=='Regrid'):
+          if(list_new[l]=='True'): Regrid=True
+        elif(l=='MonthlyWeights'): 
+          if(list_new[l]=='True'): MonthlyWeights=True
+        elif(l=='NoClobber'): 
+          if(list_new[l]=='True'): NoClobber=list_new[l]
+        else: raise SystemExit('Unknown option_no_argument,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    elif(key_now0=="defaults"):
+      list_new=(json_input_instructions_data[key_now0])
+      for l in list_new: #used to be list_new2
+        if(l=='name'): name=str(list_new[l])
+        elif(l=='info'): info=str(list_new[l])
+        elif(l=='area_t'): 
+          if(list_new[l]=='True'): area_t=list_new[l]
+        elif(l=='area_u'): 
+          if(list_new[l]=='True'): area_u=list_new[l]
+        elif(l=='grid'): grid=str(list_new[l])
+        elif(l=='grid_label'): grid_label=str(list_new[l])
+        elif(l=='vertical_interpolation_method'): vertical_interpolation_method=str(list_new[l])
+        elif(l=='frequency'): frequency=str(list_new[l])
+        elif(l=='cafepp_experiments_meta'): cafepp_experiments_meta=str(list_new[l])
+        elif(l=='dfp_defs'): dfp_defs=str(list_new[l])
+        elif(l=='json_input_var_meta'): json_input_var_meta=str(list_new[l])
+
+        else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if 'printfile' in locals():
+    fh_printfile=open(printfile,"w")
+  else:
+    fh_printfile=sys.stdout
+  print('fh_printfile=',fh_printfile)
+
+#cafepp_experiments_meta='cafepp_experiments.json'
+os.system('awk -f uncomment_json.awk JsonTemplates/'+cafepp_experiments_meta+' > '+cafepp_experiments_meta)
+cafepp_experiments_fh=open(cafepp_experiments_meta).read()
+print('cafepp_experiments_fh=',cafepp_experiments_fh,file=fh_printfile)
+cafepp_experiments_data=json.loads(cafepp_experiments_fh)
+print('cafepp_experiments_data=',cafepp_experiments_data)
+
+print("Summary of JSON experiments input: ",json.dumps(cafepp_experiments_data,indent=4,sort_keys=True))
+
+top_level_keys=cafepp_experiments_data.keys()
+print('Top level JSON experiments keys=',top_level_keys)
+
+cafepp_experiment_found=False
+for key_now in cafepp_experiments_data.iteritems():
+  print('processing key_now[0]=',key_now[0])
+  key_now0=key_now[0]
+  if(key_now0==cafe_experiment):
+    cafepp_experiment_found=True
+    print("Found required output experiment :",cafe_experiment)
+    list_new=(cafepp_experiments_data[key_now0])
+    #print('list_new=',list_new)
+    for l in list_new:
+      print('l=',l)
+      if(l=='experiment'): experiment=str(list_new[l])
+      elif(l=='experiment_id'): experiment_id=str(list_new[l])
+      elif(l=='parent_experiment_id'): parent_experiment_id=str(list_new[l])
+      elif(l=='history'): history=str(list_new[l])
+      elif(l=='confluence_notes'): confluence_notes=str(list_new[l])
+      elif(l=='reference'): reference=str(list_new[l])
+      elif(l=='integration_machine'): integration_machine=str(list_new[l])
+      elif(l=='integration_machine_info'): integration_machine_info=str(list_new[l])
+      elif(l=='storage_machine_no1'): storage_machine_no1=str(list_new[l])
+      elif(l=='top_directory_no1'):
+        top_directory_no1=str(list_new[l])
+        idir=top_directory_no1
+      elif(l=='active_disk_no1'): active_disk_no1=str(list_new[l])
+      elif(l=='storage_machine_no2'): storage_machine_no2=str(list_new[l])
+      elif(l=='top_directory_no2'):
+        top_directory_no2=str(list_new[l])
+        idir=top_directory_no2 #temporary until disks sorted out...
+      elif(l=='active_disk_no2'): active_disk_no2=str(list_new[l])
+      elif(l=='main_science_contact'): main_science_contact=str(list_new[l])
+      elif(l=='main_technical_contact'): main_technical_contact=str(list_new[l])
+      elif(l=='readable_nexus_ids_no1'): readable_nexus_ids_no1=str(list_new[l])
+      elif(l=='readable_nexus_ids_no2'): readable_nexus_ids_no2=str(list_new[l])
+      elif(l=='writable_nexus_ids'): writable_nexus_ids=str(list_new[l])
+      elif(l=='ybeg_min'): ybeg_min=int(list_new[l])
+      elif(l=='yend_max'): yend_max=int(list_new[l])
+      elif(l=='mbeg_min'): mbeg_min=int(list_new[l])
+      elif(l=='mend_max'): mend_max=int(list_new[l])
+      elif(l=='realisation'): realisation=int(list_new[l])
+      elif(l=='initialisation'): initialisation=int(list_new[l])
+      elif(l=='physics'): physics=int(list_new[l])
+      elif(l=='forcing'): forcing=int(list_new[l])
+      elif(l=='institution'): institution=str(list_new[l])
+      elif(l=='institution_id'): institution_id=str(list_new[l])
+      else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  else:
+    pass
+
+if(not cafepp_experiment_found):
+  raise SystemExit('Could not find CAFEPP experiment',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    #c=json_input_instructions_data['options_no_arguments']
+    #print('c',c)
+    #print('c',c['info'])
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#    for l in k:
+#      print(l['info'])
+#    #for l,m in k.iteritems():
+#    #  print(l,m)
+#
+#print(len(json_input_instructions_data))
+#print(len(k))
+
+#https://codingnetworker.com/2015/10/python-dictionaries-json-crash-course/
+#https://pythonspot.com/en/json-encoding-and-decoding-with-python/
+#http://www.compciv.org/guides/python/fundamentals/dictionaries-overview/
+#https://www.tutorialspoint.com/python/python_dictionary.htm
+
+#print("xxx" % json_input_instructions_data["options_with_arguments"])
+#print("yyy" % json_input_instructions_data["idir"])
+
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
 netcdf='NETCDF4_CLASSIC'
 netcdf='NETCDF3_64BIT'
 netcdf='NETCDF3_CLASSIC'
 netcdf='NETCDF4'
 
-print(sys.argv,file=fh_printfile)
-#raise SystemExit('Forced exit.')
+print('sys.argv=',sys.argv,file=fh_printfile)
+
+#file_name = __file__
+#current_line_no = inspect.stack()[0][2]
+#current_function_name = inspect.stack()[0][3]
+
 
 #if(delClim and not Anom):
 #  raise SystemExit('If choose -d then must chose -A.')
@@ -237,8 +438,84 @@ print(sys.argv,file=fh_printfile)
 #area_t=False
 #area_u=False
 
-frequency='month'
-realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure=grab_var_meta(dvar,frequency)
+#https://jsonlint.com/
+
+#json_input_var_meta='cafepp_vars_mon.json'
+os.system('awk -f uncomment_json.awk JsonTemplates/'+json_input_var_meta+' > '+json_input_var_meta)
+json_input_var_fh=open(json_input_var_meta).read()
+print('json_input_var_fh=',json_input_var_fh,file=fh_printfile)
+json_input_var_data=json.loads(json_input_var_fh)
+print('json_input_var_data=',json_input_var_data)
+
+print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True))
+
+top_level_keys=json_input_var_data.keys()
+print('Top level JSON variable keys=',top_level_keys)
+
+for key_now in json_input_var_data.iteritems():
+  print('processing key_now[0]=',key_now[0])
+  key_now0=key_now[0]
+  if(key_now0=="defaults"):
+    list_new=(json_input_var_data[key_now0])
+    for l in list_new:
+      if(l=='info'): info=str(list_new[l])
+      elif(l=='area_t'): area_t=list_new[l]
+      elif(l=='area_u'): area_u=list_new[l]
+      #elif(l=='grid'): grid=str(list_new[l])
+      #elif(l=='grid_label'): grid_label=str(list_new[l])
+      #elif(l=='vertical_interpolation_method'): vertical_interpolation_method=str(list_new[l])
+      else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  elif(key_now0==dvar):
+    print("Found required output variable:",dvar)
+    list_new=(json_input_var_data[key_now0])
+    for l in list_new:
+      #print(l)
+      if(l=='info'): info=str(list_new[l])
+      elif(l=='area_t'): 
+          if(list_new[l]=='True'): area_t=True
+      elif(l=='area_u'): 
+          if(list_new[l]=='True'): area_u=True
+      elif(l=='inputs'): inputs=string.split(str(list_new[l]))
+        #newinputs=string.split(inputs)
+        #print('inputs=',inputs)
+        #print('newinputs=',newinputs)
+        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      elif(l=='realm'): realm=str(list_new[l])
+#      elif(l=='diag_dims'): diag_dims=string.split(str(list_new[l]))
+      elif(l=='units'): units=str(list_new[l])
+      elif(l=='table'): table=str(list_new[l])
+      elif(l=='ovars'): ovars=string.split(str(list_new[l]))
+      elif(l=='varStructure'): varStructure=list_new[l]
+      elif(l=='positive'): positive=list_new[l]
+      elif(l=='output_type'): output_type=list_new[l]
+      elif(l=='grid'): grid=str(list_new[l])
+      elif(l=='grid_label'): grid_label=str(list_new[l])
+      else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  else:
+    print("hello")
+print('units=',units)
+
+print('printDefinedDiagnostics=',printDefinedDiagnostics)
+if(printDefinedDiagnostics):
+  print("Alphabetically ordered List of currently loaded diagnostis (varable/unit):")
+  for key_now in sorted(json_input_var_data.iteritems(),reverse=False):
+    if(key_now[0]!="defaults"):
+      #print(key_now)
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      list_new=(json_input_var_data[key_now[0]])
+      #print(list_new)
+      for l in list_new:
+        if(l=='units'):
+          print(key_now[0],list_new[l])
+  raise SystemExit('Finished writing current set.')
+
+#print(frequency)
+
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#frequency='month'
+#realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure=grab_var_meta(dvar,frequency)
 
 #if(dvar=='thetao'):
 #  inputs=['temp']
@@ -261,7 +538,8 @@ cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=cmorlo
 
 #print(inputs,file=fh_printfile)
 #raise SystemExit('Forced exit.')
-dfp_defs='dfp_csiro-gfdl.json'
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#dfp_defs='dfp_csiro-gfdl.json'
 cmor.dataset_json(dfp_defs)
 json_data=open(dfp_defs).read()
 #pprint.pprint(json_data,width=1)
@@ -270,24 +548,23 @@ institution_id=dfp_data['institution_id']
 source_id=dfp_data['source_id']
 experiment_id=dfp_data['experiment_id']
 
-cafe_experiment=os.environ.get('CAFE_EXPERIMENT')
+#cafe_experiment=os.environ.get('CAFE_EXPERIMENT')
 
-if not cafe_experiment:
-  raise SystemExit('Must set ENVIRONMENT VARIABLE CAFE_EXPERIMENT.')
+#if not cafe_experiment:
+#  raise SystemExit('Must set ENVIRONMENT VARIABLE CAFE_EXPERIMENT.')
 
-if not 'realisation' in locals():
-  if(cafe_experiment == 'v0'):
-    realisation='1'
-  elif(cafe_experiment == 'v1'):
-    realisation='2'
-  elif(cafe_experiment == 'v2'):
-    realisation='3'
-  elif(cafe_experiment == 'p0'):
-    pass
-    #realisation=ens
-  else:
-    raise SystemExit('cafe_experiment not known.')
-
+#if not 'realisation' in locals():
+#  if(cafe_experiment == 'v0'):
+#    realisation='1'
+#  elif(cafe_experiment == 'v1'):
+#    realisation='2'
+#  elif(cafe_experiment == 'v2'):
+#    realisation='3'
+#  elif(cafe_experiment == 'p0'):
+#    pass
+#    #realisation=ens
+#  else:
+#    raise SystemExit('cafe_experiment not known.')
 
 #if(cafe_experiment == 'p0'):
 #  pass
@@ -295,6 +572,7 @@ if not 'realisation' in locals():
 #  initialisation='1'
 #  realisation='1'
 
+#defaults
 if not 'realisation' in locals(): realisation=1
 if not 'initialisation' in locals(): initialisation=1
 if not 'physics' in locals(): physics=1
@@ -319,6 +597,7 @@ if(ReGrid):
   ingrid=data.getGrid()
   #print('ingrid=',file=fh_printfile)
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   #print('ingrid=',ingrid,file=fh_printfile)
 
   #print(data,file=fh_printfile)
@@ -339,6 +618,7 @@ if(ReGrid):
   newdata=regridfunc(data)
   print('newdata.shape=',newdata.shape,file=fh_printfile)
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 elif(levs=='gn1'):
   grid_label='gn1'
@@ -362,10 +642,11 @@ elif(levs=='gn17'):
 #  grid_label='gn'
 #  grid='native grid'
 
-if(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or dvar=='hur5' or dvar=='pv5' or dvar=='divg5' or dvar=='vort5' or \
-dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='pv10' or dvar=='divg10' or dvar=='vort10' or \
-dvar=='ta17' or dvar=='zg17' or dvar=='ua17' or dvar=='va17' or dvar=='hus17' or dvar=='hur17' or dvar=='p17' or dvar=='div17' or dvar=='vor17' \
-):
+if(realm=='atmos' and (varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+#dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or dvar=='hur5' or dvar=='pv5' or dvar=='divg5' or dvar=='vort5' or \
+#dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='pv10' or dvar=='divg10' or dvar=='vort10' or \
+#dvar=='ta17' or dvar=='zg17' or dvar=='ua17' or dvar=='va17' or dvar=='hus17' or dvar=='hur17' or dvar=='p17' or dvar=='div17' or dvar=='vor17' \
+#):
   nlev2=1 #ps needed
   levels2=0 #ps needed
 
@@ -394,6 +675,7 @@ odir=create_odirs(ovars,institution_id,source_id,experiment_id,ripf,table,grid_l
 
 #print('odir=',odir,file=fh_printfile)
 #raise SystemExit('Forced exit.')
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 #odir='CMIP6/CMIP/'+institution_id+'/'+source_id+'/'+experiment_id+'/'+ripf+'/'+table+'/'+dvar+'/'+grid_label+'/'+version
 
@@ -417,9 +699,10 @@ odir=create_odirs(ovars,institution_id,source_id,experiment_id,ripf,table,grid_l
 
 cmor.set_cur_dataset_attribute('grid_label',grid_label)
 cmor.set_cur_dataset_attribute('grid',grid)
-cmor.set_cur_dataset_attribute('realization',realisation)
-cmor.set_cur_dataset_attribute('initialization_index',initialisation)
-cmor.set_cur_dataset_attribute('realization_index',realisation)
+cmor.set_cur_dataset_attribute('realization',str(realisation))
+cmor.set_cur_dataset_attribute('physics',str(physics))
+cmor.set_cur_dataset_attribute('initialization_index',str(initialisation))
+cmor.set_cur_dataset_attribute('realization_index',str(realisation))
 cmor.set_cur_dataset_attribute('version',version)
 
 if(Forecast):
@@ -448,12 +731,12 @@ if(table=='fx' or table=='Ofx'):
     copyfile(fileA,fileB)
 else:
   if(season=='MON'):
-    os.system('awk -v number=35.00000 -f process.awk TablesTemplates/CMIP6_'+table+'.json > cmor/Tables/CMIP6_'+table+'.json')
-    #awk -v number=35.00000 -f process.awk TablesTemplates/CMIP6_Amon.json
+    os.system('awk -v number=35.00000 -f process_CMIP6.awk TablesTemplates/CMIP6_'+table+'.json > cmor/Tables/CMIP6_'+table+'.json')
+    #awk -v number=35.00000 -f process_CMIP6.awk TablesTemplates/CMIP6_Amon.json
   else:
-    os.system('awk -v number=400.00000 -f process.awk TablesTemplates/CMIP6_'+table+'.json > cmor/Tables/CMIP6_'+table+'.json')
-    #call(['awk','-v number=400.00000 -f process.awk TablesTemplates/CMIP6_Amon.json'])
-    #awk -v number=400.00000 -f process.awk TablesTemplates/CMIP6_Amon.json
+    os.system('awk -v number=400.00000 -f process_CMIP6.awk TablesTemplates/CMIP6_'+table+'.json > cmor/Tables/CMIP6_'+table+'.json')
+    #call(['awk','-v number=400.00000 -f process_CMIP6.awk TablesTemplates/CMIP6_Amon.json'])
+    #awk -v number=400.00000 -f process_CMIP6.awk TablesTemplates/CMIP6_Amon.json
 
 fileA='TablesTemplates/CMIP6_coordinate.json'
 fileB='cmor/Tables/CMIP6_coordinate.json'
@@ -469,12 +752,16 @@ if filecmp.cmp(fileA,fileB):
 else:
   copyfile(fileA,fileB)
 
-#raise SystemExit('Forced exit.')
-
 tables=[]
 #tables.append(cmor.load_table('cmor/Tables/CMIP6_Omon.json'))
 #tables.append(cmor.load_table('cmor/Tables/CMIP6_Amon.json'))
 tables.append(cmor.load_table('cmor/Tables/CMIP6_'+table+'.json'))
+
+#print(inputs)
+#print(type(inputs))
+
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
 tables.append(cmor.load_table('cmor/Tables/CMIP6_grids.json'))
 tables.append(cmor.load_table('cmor/Tables/CMIP6_coordinate.json'))
 
@@ -507,9 +794,16 @@ if(area_u):
 #eend=erange[-1]
 
 #raise SystemExit('Forced exit.')
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+print(ybeg)
+print(yend)
+
+print(ybeg_min)
+print(yend_max)
 
 if(ybeg<ybeg_min or ybeg>yend_max or yend<ybeg_min or yend>yend_max):
-  raise SystemExit('Problem with ybeg/yend ybeg_min/yend_max.')
+  raise SystemExit('Problem with ybeg/yend ybeg_min/yend_max',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 #if(cbeg<ybeg_min or cbeg>yend_max or cend<ybeg_min or cend>yend_max):
 #  raise SystemExit('Problem with ybeg/yend cbeg/cend.')
@@ -564,6 +858,7 @@ print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1,f
 print('total_months_beg_to_end,total_months_beg_to_end,index_start,end=',total_months_beg_to_end,total_months_beg_to_end,file=fh_printfile)
 #,index_start,index_end)
 #raise SystemExit('Forced exit.')
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 month_in_file_total_months_beg_to_end=np.ones(total_months_beg_to_end,dtype=np.int) #132, this will have to change depending on the layout of the input files...
 
@@ -581,12 +876,22 @@ else:
 
 print(y,' ',idir+idir_extra+'/'+ifil,file=fh_printfile)
 #raise SystemExit('Forced exit.')
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 f=netCDF4.Dataset(idir+idir_extra+'/'+ifil)
 time=f.variables['time']
 
 #here var_dims is just dummy as complete requirements depend on the output variable definition.
-if(dvar=='acc_drake' or dvar=='acc_africa'):
+if(realm=='ocean' and ( varStructure=='time_lat_lon' or varStructure=='time_depth_lat_lon' or varStructure=='time_reduceddepth_lat_lon')):
+  ivar=f.variables[inputs[0]]
+  var_dims=f.variables[inputs[0]].dimensions
+  var_size=f.variables[inputs[0]].shape
+elif(realm=='atmos' and ( varStructure=='time_lat_lon' or varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+  ivar=f.variables[inputs[0]]
+  var_dims=f.variables[inputs[0]].dimensions
+  var_size=f.variables[inputs[0]].shape
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+elif(dvar=='acc_drake' or dvar=='acc_africa'):
   ivar=f.variables['tx_trans_int_z']
   var_dims=f.variables['tx_trans_int_z'].dimensions
   var_size=f.variables['tx_trans_int_z'].shape
@@ -652,13 +957,21 @@ elif(dvar=='rws'):
   ivar=f.variables['ucomp']
   var_dims=f.variables['ucomp'].dimensions
   var_size=f.variables['ucomp'].shape
-elif(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='volcello' or dvar=='areacello' or dvar=='thkcello' or dvar=='sftof' or dvar=='deptho' or dvar=='isothetao16c' or dvar==dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  # (dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='volcello' or dvar=='areacello' or dvar=='thkcello' or dvar=='sftof' or dvar=='deptho' or dvar=='isothetao16c' or dvar==dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m')):
   #ivar=f.variables['temp']
   #var_dims=f.variables['temp'].dimensions
   #var_size=f.variables['temp'].shape
-  ivar=f.variables[inputs[0]]
-  var_dims=f.variables[inputs[0]].dimensions
-  var_size=f.variables[inputs[0]].shape
+
+  #inputs=['temp','salt']
+  #print(inputs)
+  #print(len(inputs))
+  #print(type(inputs))
+  #print(inputs[0])
+  #print(inputs[1])
+  #s=""
+  #j=s.join(inputs[:])
+  #print(j)
+
 elif(dvar=='zg500'):
   ivar=f.variables['h500']
   var_dims=f.variables['h500'].dimensions
@@ -765,6 +1078,7 @@ print(var_dims,file=fh_printfile)
 print(nvar_dims,file=fh_printfile)
 print('dvar=',dvar,file=fh_printfile)
 #raise SystemExit('Forced exit.')
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 if(nvar_dims == 4):
     nlev=var_size[1]
@@ -802,10 +1116,12 @@ else:
   levels=np.array(range(0,var_size[1]-0))
   nlev=len(levels)
 
-if(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='sftof' or dvar=='nino34' or dvar=='iod'):
+if(realm == 'ocean' and ( varStructure=='time_lat_lon' or varStructure=='time')):
+  #or dvar=='tos' or dvar=='sos' or dvar=='sftof' or dvar=='nino34' or dvar=='iod'):
   levels=0
   nlev=1
-elif(dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='rws500' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
+elif(realm=='atmos' and varStructure=='time_lat_lon'):
+  #dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='rws500' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
   levels=0
   nlev=0
 
@@ -816,6 +1132,7 @@ ibeg=0
 refString='days since 0001-01-01'
 
 #raise SystemExit('Forced exit.')
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 if(table=='fx' or table=='Ofx'):
   print('As this is a table fx parameter, all time information will be ignored.',file=fh_printfile)
@@ -842,6 +1159,7 @@ else:
       mend_now=12 #12 files per year of 1 months each.
     #print(mbeg_now,mend_now,file=fh_printfile)
     #raise SystemExit('Forced exit.')
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
     if(not Forecast):
       mbeg_now=1 #always 1 for 12 months per file.
@@ -868,6 +1186,7 @@ else:
   #print(tindex_select_maxyears_by_nmy_0or1.shape,file=fh_printfile)
 
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   findex_select_maxyears_by_nmy_b1_withminus1s=np.copy(tindex_select_maxyears_by_nmy_0or1)
 
@@ -916,10 +1235,12 @@ else:
   print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
 
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   tindex_select_maxyears_by_nmy_0or1_flat=tindex_select_maxyears_by_nmy_0or1.reshape((yend_now-ybeg_now+1)*12)
   print('tindex_select_maxyears_by_nmy_0or1_flat=',tindex_select_maxyears_by_nmy_0or1_flat,file=fh_printfile)
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   numtims=int(np.sum(tindex_select_maxyears_by_nmy_0or1_flat))
 
@@ -948,6 +1269,7 @@ else:
   print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size,file=fh_printfile)
 
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   print('month_index_ntims=',month_index_ntims,file=fh_printfile)
   print('month_index_ntims.size=',month_index_ntims.size,file=fh_printfile)
@@ -970,6 +1292,7 @@ else:
   cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=len(locate_file_index_Ntimes_b1_nominus1s_flat)
   print('cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=',cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat,file=fh_printfile)
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   tbeg=[]
   tend=[]
@@ -1044,6 +1367,7 @@ else:
     #print('tbeg,tend=',tbeg,tend,file=fh_printfile)
 
     #raise SystemExit('Forced exit.')
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     ind_beg=ind_end+1
     if(season=='MON'):
       ind_beg=ind_end+1
@@ -1056,6 +1380,7 @@ else:
   tval_bounds=np.column_stack((tbeg,tend))
 
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   #print('tbeg,tend,tavg=',tbeg,tend,tavg)
   timestamp_avg=netCDF4.num2date(tavg,units=refString,calendar=calendar)
@@ -1069,6 +1394,7 @@ else:
   #print('timestamp_avg=',timestamp_avg,timestamp_beg)
 
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   #tables[0]=cmor.load_table('cmor/Tables/CMIP6_Amon.json')
   cmor.set_table(tables[0])
@@ -1081,10 +1407,12 @@ else:
 
   time_axis_id=cmor.axis('time', units=refString, coord_vals=tavg, cell_bounds=tval_bounds)
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 cmor.set_table(tables[1])
 
-if(varStructure=='time_lat_lon' or varStructure=='time_depth_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='sos' or dvar=='uo' or dvar=='vo' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
+if(realm=='ocean' and ( varStructure=='time_lat_lon' or varStructure=='time_depth_lat_lon')):
+  # or dvar=='tos' or dvar=='thetao' or dvar=='sos' or dvar=='uo' or dvar=='vo' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
   cmor.set_table(tables[0])
 
   zt=xfh.variables['zt']
@@ -1099,7 +1427,8 @@ if(varStructure=='time_lat_lon' or varStructure=='time_depth_lat_lon' or dvar=='
   ztX=zt[[0,10,20]]
   zboundsX=zbounds[[0,10,20],:]
 
-elif(dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+elif(realm=='ocean' and ( varStructure=='time_reduceddepth_lat_lon')):
+  #dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
   cmor.set_table(tables[0])
 
   zt=xfh.variables['zt']
@@ -1138,14 +1467,17 @@ elif(dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
   print('zbounds=',zbounds[:])
 
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
-elif(dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='divg' or dvar=='vort' or dvar=='cl' or dvar=='rws500' or dvar=='rws' or dvar=='nhbi' or dvar=='nino34' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
+elif(realm=='atmos' or realm=='ocean'):
+  #dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='divg' or dvar=='vort' or dvar=='cl' or dvar=='rws500' or dvar=='rws' or dvar=='nhbi' or dvar=='nino34' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
 
   if(ReGrid):
     lat_vals = outgrid.getLatitude() 
     lon_vals = outgrid.getLongitude()
   else:
-    if(dvar=='nino34' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep'):
+    if(realm=='ocean' and varStructure=='time'):
+    #dvar=='nino34' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep'):
       lat_vals=f.variables['yt_ocean']
       lon_vals=f.variables['xt_ocean']
     else:
@@ -1160,7 +1492,8 @@ elif(dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or d
   max_vals=np.append((lon_vals[0:-1] + lon_vals[1:])/2, 1.5*lon_vals[-1] - 0.5*lon_vals[-2])
   lon_vals_bounds=np.column_stack((min_vals, max_vals))
 
-if(dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='divg' or dvar=='vort' or dvar=='cl' or dvar=='rws' or dvar=='ta' or dvar=='hus' or dvar=='hur'):
+if(realm=='atmos' and varStructure=='time_plev_lat_lon'):
+#dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='divg' or dvar=='vort' or dvar=='cl' or dvar=='rws' or dvar=='ta' or dvar=='hus' or dvar=='hur'):
   if(dvar=='zg'):
     zt=f.variables['phalf'][:]*100.0
   else:
@@ -1190,6 +1523,7 @@ if(dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='divg' or dvar=
     z_axis_id=cmor.axis('plev24','Pa',coord_vals=zt[:])
   #z_axis_id=cmor.axis('plev8','Pa',coord_vals=zt[:])
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 if(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or dvar=='hur5'):
   if(dvar=='zg5'):
@@ -1221,10 +1555,12 @@ elif(dvar=='ta19' or dvar=='zg19' or dvar=='ua19' or dvar=='va19' or dvar=='hus1
   newlevs=np.array([100., 500., 1000., 2000., 3000., 5000., 7000., 10000., 15000., 20000., 25000., 30000., 40000., 50000., 60000., 70000., 85000., 92500., 100000.])
   #print('newlevs=',newlevs,file=fh_printfile)
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   cmor.set_table(tables[0])
   z_axis_id=cmor.axis('plev19','Pa',coord_vals=newlevs[:])
 
-if(dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dvar=='divg' or dvar=='cl' or dvar=='rws500' or dvar=='rws' or dvar=='nhbi' or dvar=='nino34' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
+if(realm=='atmos' and (varStructure=='time' or varStructure=='time_lat_lon' or varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+#dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dvar=='divg' or dvar=='cl' or dvar=='rws500' or dvar=='rws' or dvar=='nhbi' or dvar=='nino34' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
 #  lat_axis=f.variables['lat']
 #  lon_axis=f.variables['lon']
 
@@ -1257,6 +1593,7 @@ if(dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dva
 #  #axis_ids=np.array([time_axis_id, z_axis_id, lat_axis_id, lon_axis_id])
 #  #grid_id=cmor.grid(axis_ids=axis_ids, latitude=lat_vals[:], longitude=lon_vals[:])
 #  #raise SystemExit('Forced exit.')
+   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 if(dvar=='mfo'):
   lines=['barents_opening','bering_strait','canadian_archipelago','denmark_strait',\
@@ -1310,8 +1647,10 @@ elif(dvar=='msftyyz'):
   print('lat_axis_id=', lat_axis_id,file=fh_printfile)
 
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
-elif(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+elif(realm=='ocean' and (varStructure=='time_depth_lat_lon' or varStructure=='time_reduceddepth_lat_lon')):
+# or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
 
   if(dvar=='umo'):
     lat_vals=xfh.variables['y_T']
@@ -1339,6 +1678,7 @@ elif(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='so' or dvar=
   #print('zt=',zt[[0,3,5]],file=fh_printfile)
   #z_axis_id=cmor.axis('depth_coord','m',coord_vals=zt[[0,3,5]])
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   cmor.set_table(tables[1])
 
@@ -1358,7 +1698,8 @@ elif(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='so' or dvar=
 
   grid_id=cmor.grid(axis_ids=axis_ids, latitude=lat_vals[:], longitude=lon_vals_360[:], latitude_vertices=lat_vertices[:], longitude_vertices=lon_vertices[:])
 
-elif(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='isothetao16c'or dvar=='isothetao20c'or dvar=='isothetao22c'):
+elif(realm=='ocean' and varStructure=='time_lat_lon'):
+  # or dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='volcello' or dvar=='areacello' or dvar=='sftof' or dvar=='thkcello' or dvar=='deptho' or dvar=='isothetao16c'or dvar=='isothetao20c'or dvar=='isothetao22c'):
   if(dvar=='umo'):
     lat_vals=xfh.variables['y_T']
     lon_vals=xfh.variables['x_C']
@@ -1397,7 +1738,8 @@ elif(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='mlotst
 cmor.set_table(tables[0]) #working
 
 data_id=[]
-if(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
+if(realm=='ocean' and varStructure=='time_lat_lon'):
+  #or dvar=='tos' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c'):
   axis_ids=[i_axis_id,j_axis_id,time_axis_id]
   axis_ids=[time_axis_id]
   axis_ids=[0]
@@ -1408,7 +1750,8 @@ if(varStructure=='time_lat_lon' or dvar=='tos' or dvar=='sos' or dvar=='mlotst' 
   axis_ids=[grid_id]
   axis_ids=[time_axis_id,grid_id] #working
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
-elif(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='umo' or dvar=='vmo' or dvar=='so' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m' or dvar=='uo' or dvar=='vo'):
+elif(realm=='ocean' and ( varStructure=='time_depth_lat_lon' or varStructure=='time_reduceddepth_lat_lon')):
+  # or dvar=='thetao' or dvar=='umo' or dvar=='vmo' or dvar=='so' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m' or dvar=='uo' or dvar=='vo'):
   axis_ids=[time_axis_id,grid_id]
   axis_ids=[0,1,2,3]
   axis_ids=[time_axis_id,z_axis_id,grid_id]
@@ -1416,17 +1759,26 @@ elif(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='umo' or dvar
   axis_ids=[0,2,-100] #works but prob.
   axis_ids=[0,1,-100]
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
-elif(dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='rws500' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
+elif(realm=='atmos' and varStructure=='time_lat_lon'):
+  #dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='rws500' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
   axis_ids=np.array([time_axis_id,lat_axis_id,lon_axis_id])
   axis_ids=np.array([lat_axis_id,lon_axis_id])
   axis_ids=[time_axis_id,lat_axis_id,lon_axis_id] #working zg500
   print('axis_ids=',axis_ids,file=fh_printfile)
-  if(dvar=='tauu' or dvar=='tauv'):
-    positive="up"
+
+  if 'positive' in locals():
+    pass
   else:
     positive=None
+
+#  if(dvar=='tauu' or dvar=='tauv'):
+#    positive="up"
+#  else:
+#    positive=None
+
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20,positive=positive))
-elif(dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dvar=='divg' or dvar=='cl' or dvar=='rws' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19'):
+elif(realm=='atmos' and ( varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+  #,dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dvar=='divg' or dvar=='cl' or dvar=='rws' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19'):
   #cmor.set_table(tables[2])
   #cmor.set_table(tables[1])
   #cmor.set_table(tables[0])
@@ -1436,7 +1788,8 @@ elif(dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dva
   print('dvar=',dvar,' units=',units,file=fh_printfile)
   data_id.append(cmor.variable(dvar, units, axis_ids=axis_ids, missing_value=-1e20))
 
-elif(dvar=='nino34' or dvar=='temptotal' or dvar=='salttotal' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep'):
+elif( (realm=='ocean' or realm=='atmos') and varStructure=='time'):
+  #dvar=='nino34' or dvar=='temptotal' or dvar=='salttotal' or dvar=='iod' or dvar=='pp' or dvar=='nflux' or dvar=='ep'):
   #axis_ids=[time_axis_id,grid_id]
   #axis_ids=[grid_id]
   axis_ids=[]
@@ -1482,6 +1835,7 @@ for o in range(0,len(ovars)):
 
 #print(NoClobber,file=fh_printfile)
 #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 for o in range(0,len(ovars)):
   if(os.path.exists(odir[o]+'/'+ofil_modified[o]) and NoClobber):
@@ -1570,7 +1924,8 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
   if(len(inputs)==2):
     print('levels=',levels,file=fh_printfile)
     print('nlev=',nlev,file=fh_printfile)
-    if(dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or dvar=='hur5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='ta19' or dvar=='zg19' or dvar=='ua19' or dvar=='va19' or dvar=='hus19' or dvar=='hur19'):
+    if(realm=='atmos' and (varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+    #dvar=='ta5' or dvar=='zg5' or dvar=='ua5' or dvar=='va5' or dvar=='hus5' or dvar=='hur5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='ta19' or dvar=='zg19' or dvar=='ua19' or dvar=='va19' or dvar=='hus19' or dvar=='hur19'):
       #nlev=0
       pass
     elif(dvar=='rws500'):
@@ -1593,6 +1948,7 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
 
     print('data.shape=',data.shape,file=fh_printfile)
   #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   if(dvar=='acc_drake'):
     data=diag_acc_drake(data,area_t,lat,lon)
@@ -1632,7 +1988,8 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
     data,var0,var1=diag_nhblocking_index(data,lat_vals,lon_vals)
   elif(dvar=='rws'):
     data=diag_rws(data1,data2,lat_vals[:],lon_vals[:])
-  elif(varStructure=='time_depth_lat_lon' or varStructure=='time_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  elif(realm=='ocean' and (varStructure=='time_depth_lat_lon' or varStructure=='time_lat_lon' or varStructure=='time_reduceddepth_lat_lon')):
+  # or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
     pass
   elif(dvar=='zg500' or dvar=='psl' or dvar=='ps' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
     pass
@@ -1660,7 +2017,8 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
   elif(dvar=='isothetao22c'):
     data=diag_isothetaoNc(data,zt[:],22.0)
 
-  elif(dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='ta19'):
+  elif(realm=='atmos' and (varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+  #dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='ta19'):
 
    data=vertical_interpolate(data1,zt,newlevs,data2,vertical_interpolation_method)
 
@@ -1669,20 +2027,25 @@ for n in range(0,ttt): #this code is copy from one above (need to add in icnt,in
   else:
     ntimes_passed=1
 
-  if(varStructure=='time_depth_lat_lon' or dvar=='thetao' or dvar=='so' or dvar=='vo' or dvar=='uo' or dvar=='isothetao20c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  if(realm=='ocean' and (varStructure=='time_depth_lat_lon' or varStructure=='time_lat_lon' or varStructure=='time_reduceddepth_lat_lon')):
+  #dvar=='thetao' or dvar=='so' or dvar=='vo' or dvar=='uo' or dvar=='isothetao20c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
     print('levels=',levels,file=fh_printfile)
     print('data.shape=',data.shape,file=fh_printfile)
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:,:,:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
-  elif(varStructure=='time_depth_lat_lon' or varStructure=='time_lat_lon' or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='temptotal' or dvar=='salttotal' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
+  elif(realm=='ocean' and (varStructure=='time_depth_lat_lon' or varStructure=='time_lat_lon')):
+  # or dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='temptotal' or dvar=='salttotal' or dvar=='sos' or dvar=='mlotst' or dvar=='mlotstsq' or dvar=='umo' or dvar=='vmo' or dvar=='msftyyz' or dvar=='mfo' or dvar=='so' or dvar=='isothetao16c' or dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m'):
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
 
       #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
-  elif(dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dvar=='divg' or dvar=='cl' or dvar=='rws500' or dvar=='rws' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
+  elif(realm=='atmos' and (varStructure=='time_plev_lat_lon' or varStructure=='time_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+  #dvar=='zg500' or dvar=='zg' or dvar=='psl' or dvar=='ps' or dvar=='ua' or dvar=='va' or dvar=='pv' or dvar=='vort' or dvar=='divg' or dvar=='cl' or dvar=='rws500' or dvar=='rws' or dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='zg10' or dvar=='ua10' or dvar=='va10' or dvar=='hus10' or dvar=='hur10' or dvar=='hus' or dvar=='hur' or dvar=='ta19' or dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
     #print('data.shape=',data.shape,file=fh_printfile)
     #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     for o in range(0,len(ovars)):
       cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
   elif(dvar=='nhbi'):
