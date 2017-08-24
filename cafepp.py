@@ -799,11 +799,11 @@ if(area_u):
 #raise SystemExit('Forced exit.')
 #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
-print(ybeg)
-print(yend)
+#print(ybeg)
+#print(yend)
 
-print(ybeg_min)
-print(yend_max)
+#print(ybeg_min)
+#print(yend_max)
 
 if(ybeg<ybeg_min or ybeg>yend_max or yend<ybeg_min or yend>yend_max):
   raise SystemExit('Problem with ybeg/yend ybeg_min/yend_max',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))

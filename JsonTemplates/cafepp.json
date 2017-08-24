@@ -48,7 +48,7 @@
     "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     "levs":"", #set of levels to extract, comma seperated, base 0 (e.g. 1,3,5,7).
     "cmorlogfile":"cmor_log.txt", #name of file for CMOR output.
-    "xxxprintfile":"stdout.txt",
+    "printfile":"stdout.txt",
     "printDefinedDiagnostics":"False", #will print out curretly defined variables/diagnostics.
     "cafepp_machine":"raijin.nci.org.au" #name of machine running CAFEPP on.
           }
