@@ -31,6 +31,7 @@
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
     "institution_id":"CSIRO"
     },
+#
     "v1":{
     "experiment":"present-day control",
     "experiment_id":"pdControl",
@@ -62,6 +63,7 @@
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
     "institution_id":"CSIRO"
     },
+#
     "v2":{
     "experiment":"present-day control",
     "experiment_id":"pdControl",
@@ -94,6 +96,7 @@
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
     "institution_id":"CSIRO"
     },
+#
     "v0_forecast":{
     "experiment":"present-day control",
     "experiment_id":"pdControl",
@@ -118,6 +121,70 @@
     "yend_max":500,
     "mbeg_min":1,
     "mend_max":12,
+    "realisation":1,
+    "initialisation":1,
+    "physics":1,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO"
+    },
+#
+    "coupled_da/OUTPUT-2step-nobreeding-carbon":{
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"None",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+    "storage_machine_no1":"tube-hba.nexus.csiro.au",
+    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/coupled_da/OUTPUT-2step-nobreeding-carbon",
+    "active_disk_no1":"yes",
+    "storage_machine_no2":"raijin.nci.org.au",
+    "top_directory_no2":"None",
+    "active_disk_no2":"no",
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":2002,
+    "yend_max":2016,
+    "mbeg_min":1,
+    "mend_max":6,
+    "realisation":1,
+    "initialisation":1,
+    "physics":1,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO"
+    },
+#
+    "breed_da_twostep_carbon/MEMBERS/m.1/OUTPUT":{
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"None",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+    "storage_machine_no1":"tube-hba.nexus.csiro.au",
+    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da/twostep_carbon/MEMBERS/m.1/OUTPUT/",
+    "active_disk_no1":"yes",
+    "storage_machine_no2":"raijin.nci.org.au",
+    "top_directory_no2":"None",
+    "active_disk_no2":"no",
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":2002,
+    "yend_max":2016,
+    "mbeg_min":2,
+    "mend_max":6,
     "realisation":1,
     "initialisation":1,
     "physics":1,
