@@ -327,7 +327,7 @@ print('Top level JSON experiments keys=',top_level_keys,file=fh_printfile)
 
 cafepp_experiment_found=False
 for key_now in cafepp_experiments_data.iteritems():
-  print('processing key_now[0]=',key_now[0],file=fh_printfile)
+  #print('processing key_now[0]=',key_now[0],file=fh_printfile)
   key_now0=key_now[0]
   if(key_now0==cafe_experiment):
     cafepp_experiment_found=True
@@ -455,7 +455,7 @@ top_level_keys=json_input_var_data.keys()
 print('Top level JSON variable keys=',top_level_keys,file=fh_printfile)
 
 for key_now in json_input_var_data.iteritems():
-  print('processing key_now[0]=',key_now[0],file=fh_printfile)
+  #print('processing key_now[0]=',key_now[0],file=fh_printfile)
   key_now0=key_now[0]
   if(key_now0=="defaults"):
     list_new=(json_input_var_data[key_now0])
@@ -495,8 +495,9 @@ for key_now in json_input_var_data.iteritems():
       else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   else:
-    print("hello",file=fh_printfile)
-print('units=',units,file=fh_printfile)
+    pass
+    #print("hello",file=fh_printfile)
+#print('units=',units,file=fh_printfile)
 
 print('printDefinedDiagnostics=',printDefinedDiagnostics,file=fh_printfile)
 if(printDefinedDiagnostics):
