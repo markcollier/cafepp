@@ -290,11 +290,11 @@ def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_
     weights.append(days_in_month[month_index_ntims[month]]) 
 
     if(month==ind_beg):
-      print('month==ind_beg')
+      print('month==ind_beg',file=fh_printfile)
       if(len(var_size)==3 and ( var_size[0]==1 or var_size[0]==12 )):
         data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1]]
       else:
-        print('here xxx')
+        print('here xxx',file=fh_printfile)
         data=input_fhs[locate_file_index_Ntimes_b1_flat_nominus1s[month]].variables[ivarSnow][[month_in_file_total_months_beg_to_end[locate_file_index_Ntimes_b1_flat_nominus1s[month]]-1],levels,]
     else:
       print('month!=ind_beg')
