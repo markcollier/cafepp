@@ -67,16 +67,22 @@ import inspect
 #from eofs.standard import Eof
 #from eofs.examples import example_data_path
 
-def usage(script_name):
-    """usage"""
-    print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --levs=one of pre-defined set --idir=input directory --season="MON" --json_input_instructions=json input command file')
+#def usage(script_name):
+#    """usage"""
+#    print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --levs=one of pre-defined set --idir=input directory --season="MON" --json_input_instructions=json input command file')
+#
+#try:
+#    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rFl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","levs=","realisation=","initialisation=","physics=","forcings=","season=","idir=","vertical_interpolation_method=","version=","cmorlogfile=","json_input_instructions=",])
+#except getopt.GetoptError as err:
+#    print(err)
+#    usage(os.path.realpath(__file__))
+#    sys.exit(2)
 
-try:
-    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rFl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","levs=","realisation=","initialisation=","physics=","forcings=","season=","idir=","vertical_interpolation_method=","version=","cmorlogfile=","json_input_instructions=",])
-except getopt.GetoptError as err:
-    print(err)
-    usage(os.path.realpath(__file__))
-    sys.exit(2)
+#print(sys.argv[1])
+#print(len(sys.argv))
+
+if(len(sys.argv)!=2):
+  raise SystemExit('CAFEPP only takes one argument, the JSON instruction file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 printDefinedDiagnostics=False
 Forecast=False#the input directory will vary depending on year/month, I am calling these Forecast runs for now. These have one month of data per file - future model configurations may have different inputs. "Non-Forecast" runs are the traditional control runs, which have normally had 12 months per file.
@@ -95,7 +101,7 @@ MonthlyWeights=False
 #StdLev=False #write out on standard levels, at this stage focusing on 3D atmosphere pressure level data.
 area_u=False
 area_t=False
-dfp_defs='dfp_csiro-gfdl.json'
+cafepp_defs='cafepp_csiro-gfdl.json'
 cafepp_experiments='cafepp_experiments.json'
 json_input_var_meta='cafepp_vars_mon.json'
 json_input_instructions='cafepp.json'
@@ -107,113 +113,116 @@ cafepp_machine='raijin.nci.org.au'
 cmorlogfile='log'
 mbeg=1
 mend=12
-for o, a in opts:
-    #print(o)
-    if o in ('-h', '--help'):
-        usage(os.path.realpath(__file__)) 
-        sys.exit()
-    elif o == '-w':
-        MonthlyWeights=True
-        #weights=np.array([31,28,31,30,31,30,31,31,30,31,30,31])
-#    elif o == '-X':
-#        NoClobberTfil=True
-    elif o == '-x':
-        NoClobber=True
-#    elif o == '-d':
-#        delClim=True
-    elif o == '-i':
-        importance=int(a) 
-#    elif o == '-A':
-#        Anom=True
-#    elif o == '-C':
-#        Clim=True
-    elif o == '-l':
-         printfile=a
-         fh_printfile=open(printfile,"w")
-    elif o == '-v':
-         dvar=a
-         #ivarS=[str(x) for x in a.split(',')]
-         #print('ivarS=',ivarS,file=fh_logfile)
-    elif o == '--ybeg':
-        ybeg=int(a) 
-    elif o == '--yend':
-        yend=int(a) 
 
-    elif o == '--mbeg':
-        mbeg=int(a) 
-    elif o == '--mend':
-        mend=int(a) 
+#for o, a in opts:
+#    #print(o)
+#    if o in ('-h', '--help'):
+#        usage(os.path.realpath(__file__)) 
+#        sys.exit()
+#    elif o == '-w':
+#        MonthlyWeights=True
+#        #weights=np.array([31,28,31,30,31,30,31,31,30,31,30,31])
+##    elif o == '-X':
+##        NoClobberTfil=True
+#    elif o == '-x':
+#        NoClobber=True
+##    elif o == '-d':
+##        delClim=True
+#    elif o == '-i':
+#        importance=int(a) 
+##    elif o == '-A':
+##        Anom=True
+##    elif o == '-C':
+##        Clim=True
+#    elif o == '-l':
+#         printfile=a
+#         fh_printfile=open(printfile,"w")
+#    elif o == '-v':
+#         dvar=a
+#         #ivarS=[str(x) for x in a.split(',')]
+#         #print('ivarS=',ivarS,file=fh_logfile)
+#    elif o == '--ybeg':
+#        ybeg=int(a) 
+#    elif o == '--yend':
+#        yend=int(a) 
+#
+#    elif o == '--mbeg':
+#        mbeg=int(a) 
+#    elif o == '--mend':
+#        mend=int(a) 
+#
+#    elif o == '--dbeg':
+#        dbeg=int(a) 
+#    elif o == '--dend':
+#        dend=int(a) 
+#
+#    elif o == '--ybeg_min':
+#        ybeg_min=int(a) 
+#    elif o == '--yend_max':
+#        yend_max=int(a) 
+#
+#    elif o == '--mbeg_min':
+#        mbeg_min=int(a) 
+#    elif o == '--mend_max':
+#        mend_max=int(a) 
+#
+#    elif o == '--dbeg_min':
+#        mbeg_min=int(a) 
+#    elif o == '--dend_max':
+#        mend_max=int(a) 
+#
+#    elif o == '--cbeg':
+#        cbeg=int(a) 
+#    elif o == '--cend':
+#        cend=int(a) 
+#    elif o == '--levs':
+#      levs=a
+#    elif o == '--realisation':
+#        #erange=[str(x) for x in a.split(',')]
+#        realisation=int(a)
+#    elif o == '--initialisation':
+#        initialisation=int(a)
+#    elif o == '--physics':
+#        physics=int(a)
+#    elif o == '--forcings':
+#        forcings=int(a)
+#    elif o == '--idir':
+#        idir=a
+#    elif o == '--vertical_interpolation_method':
+#        vertical_interpolation_method=a
+##    elif o == '--idirc':
+##        idirc=a
+##    elif o == '--odir':
+##        odir=a
+##    elif o == '--tdir':
+##        tdir=a
+#    elif o == '--season':
+#        season=a
+##    elif o == '--cmip6':
+##      CMIP6=True
+#    elif o == '-r':
+#        ReGrid=True
+#    elif o == '--version':
+#        version=a
+#    elif o == '--cmorlogfile':
+#        cmorlogfile=a
+##    elif o == '--stdlev':
+##        StdLev=True
+#    elif o == '-F':
+#        Forecast=True
+#    elif o == '--json_input_instructions':
+#        json_input_instructions=a #this will be a file with info. to drive cafepp. All other options will be null and void. Will need to test for this.
+#    else:
+#        assert False, 'unhandled option'
+#
+#    try:
+#        erange
+#    except NameError:
+#        erange=('1','2','3','4','5')
+#    else:
+#        pass
 
-    elif o == '--dbeg':
-        dbeg=int(a) 
-    elif o == '--dend':
-        dend=int(a) 
-
-    elif o == '--ybeg_min':
-        ybeg_min=int(a) 
-    elif o == '--yend_max':
-        yend_max=int(a) 
-
-    elif o == '--mbeg_min':
-        mbeg_min=int(a) 
-    elif o == '--mend_max':
-        mend_max=int(a) 
-
-    elif o == '--dbeg_min':
-        mbeg_min=int(a) 
-    elif o == '--dend_max':
-        mend_max=int(a) 
-
-    elif o == '--cbeg':
-        cbeg=int(a) 
-    elif o == '--cend':
-        cend=int(a) 
-    elif o == '--levs':
-      levs=a
-    elif o == '--realisation':
-        #erange=[str(x) for x in a.split(',')]
-        realisation=int(a)
-    elif o == '--initialisation':
-        initialisation=int(a)
-    elif o == '--physics':
-        physics=int(a)
-    elif o == '--forcings':
-        forcings=int(a)
-    elif o == '--idir':
-        idir=a
-    elif o == '--vertical_interpolation_method':
-        vertical_interpolation_method=a
-#    elif o == '--idirc':
-#        idirc=a
-#    elif o == '--odir':
-#        odir=a
-#    elif o == '--tdir':
-#        tdir=a
-    elif o == '--season':
-        season=a
-#    elif o == '--cmip6':
-#      CMIP6=True
-    elif o == '-r':
-        ReGrid=True
-    elif o == '--version':
-        version=a
-    elif o == '--cmorlogfile':
-        cmorlogfile=a
-#    elif o == '--stdlev':
-#        StdLev=True
-    elif o == '-F':
-        Forecast=True
-    elif o == '--json_input_instructions':
-        json_input_instructions=a #this will be a file with info. to drive cafepp. All other options will be null and void. Will need to test for this.
-    else:
-        assert False, 'unhandled option'
-
-    try:
-        erange
-    except NameError:
-        erange=('1','2','3','4','5')
-    else:
-        pass
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 if 'json_input_instructions' in locals():
   os.system('awk -f uncomment_json.awk JsonTemplates/'+json_input_instructions+' > '+json_input_instructions)
@@ -268,7 +277,7 @@ if 'json_input_instructions' in locals():
         elif(l=='levs'): levs=str(list_new[l])
         elif(l=='cmorlogfile'): cmorlogfile=str(list_new[l])
         elif(l=='printfile'): printfile=str(list_new[l])
-        elif(l=='xxxprintfile'): None
+#        elif(l=='xxxprintfile'): None
         elif(l=='printDefinedDiagnostics'):
           if(list_new[l]=='True'): printDefinedDiagnostics=True
         elif(l==''): grid_label=str(list_new[l])
@@ -302,7 +311,7 @@ if 'json_input_instructions' in locals():
         elif(l=='vertical_interpolation_method'): vertical_interpolation_method=str(list_new[l])
         elif(l=='frequency'): frequency=str(list_new[l])
         elif(l=='cafepp_experiments_meta'): cafepp_experiments_meta=str(list_new[l])
-        elif(l=='dfp_defs'): dfp_defs=str(list_new[l])
+        elif(l=='cafepp_defs'): cafepp_defs=str(list_new[l])
         elif(l=='json_input_var_meta'): json_input_var_meta=str(list_new[l])
 
         else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -405,7 +414,7 @@ netcdf='NETCDF3_64BIT'
 netcdf='NETCDF3_CLASSIC'
 netcdf='NETCDF4'
 
-print('sys.argv=',sys.argv,file=fh_printfile)
+#print('sys.argv=',sys.argv,file=fh_printfile)
 
 #file_name = __file__
 #current_line_no = inspect.stack()[0][2]
@@ -542,14 +551,14 @@ cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=cmorlo
 #print(inputs,file=fh_printfile)
 #raise SystemExit('Forced exit.')
 #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-#dfp_defs='dfp_csiro-gfdl.json'
-cmor.dataset_json(dfp_defs)
-json_data=open(dfp_defs).read()
+#cafepp_defs='cafepp_csiro-gfdl.json'
+cmor.dataset_json(cafepp_defs)
+json_data=open(cafepp_defs).read()
 #pprint.pprint(json_data,width=1)
-dfp_data=json.loads(json_data)
-institution_id=dfp_data['institution_id']
-source_id=dfp_data['source_id']
-experiment_id=dfp_data['experiment_id']
+cafepp_data=json.loads(json_data)
+institution_id=cafepp_data['institution_id']
+source_id=cafepp_data['source_id']
+experiment_id=cafepp_data['experiment_id']
 
 #cafe_experiment=os.environ.get('CAFE_EXPERIMENT')
 
@@ -894,185 +903,185 @@ elif(realm=='atmos' and ( varStructure=='time_lat_lon' or varStructure=='time_pl
   var_dims=f.variables[inputs[0]].dimensions
   var_size=f.variables[inputs[0]].shape
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-elif(dvar=='acc_drake' or dvar=='acc_africa'):
-  ivar=f.variables['tx_trans_int_z']
-  var_dims=f.variables['tx_trans_int_z'].dimensions
-  var_size=f.variables['tx_trans_int_z'].shape
-  #MustHaveAllLevs(LevXtrct)
-elif(dvar=='mozmbq'):
-  ivar=f.variables['ty_trans_int_z']
-  var_dims=f.variables['ty_trans_int_z'].dimensions
-  var_size=f.variables['ty_trans_int_z'].shape
-  #MustHaveAllLevs(LevXtrct)
-elif(dvar=='aabw'):
-  ivar=f.variables['ty_trans']
-  var_dims=f.variables['ty_trans'].dimensions
-  var_size=f.variables['ty_trans'].shape
-  #MustHaveAllLevs(LevXtrct)
-elif(dvar=='nadw'):
-  ivar=f.variables['ty_trans']
-  var_dims=f.variables['ty_trans'].dimensions
-  var_size=f.variables['ty_trans'].shape
-  #MustHaveAllLevs(LevXtrct)
-elif(dvar=='pp'):
-  ivar=f.variables['pprod_gross']
-  var_dims=f.variables['pprod_gross'].dimensions
-  var_size=f.variables['pprod_gross'].shape
-  depth_edges=f.variables['st_edges_ocean']
-elif(dvar=='nflux'):
-  ivar=f.variables['stf07']
-  var_dims=f.variables['stf07'].dimensions
-  var_size=f.variables['stf07'].shape
-  depth_edges=f.variables['st_edges_ocean']
-elif(dvar=='ep'):
-  ivar=f.variables['det']
-  var_dims=f.variables['det'].dimensions
-  var_size=f.variables['det'].shape
-  depth_edges=f.variables['st_edges_ocean']
-elif(dvar=='nino34' or dvar=='iod'):
-  #print('hello',file=fh_printfile)
-  ivar=f.variables['temp']
-  var_dims=f.variables['temp'].dimensions
-  var_size=f.variables['temp'].shape
-elif(dvar=='ssh'):
-  ivar=f.variables['temp']
-  var_dims=f.variables['temp'].dimensions
-  var_size=f.variables['temp'].shape
-  depth_edges=f.variables['st_edges_ocean']
-elif(dvar=='moc' or dvar=='moc_atlantic' or dvar=='moc_pacific' or dvar=='moc_indian'):
-  #ivar=f.variables['v']
-  #var_dims=f.variables['v'].dimensions
-  #var_size=f.variables['v'].shape
-  ivar=f.variables['tx_trans']
-  var_dims=f.variables['tx_trans'].dimensions
-  var_size=f.variables['tx_trans'].shape
-  #MustHaveAllLevs(LevXtrct)
-  depth_edges=f.variables['st_edges_ocean']
-elif(dvar=='shice_cover' or dvar=='nhice_cover'):
-  ivar=f.variables['CN']
-  var_dims=f.variables['CN'].dimensions
-  var_size=f.variables['CN'].shape
-elif(dvar=='nhbi'):
-  ivar=f.variables['h500']
-  var_dims=f.variables['h500'].dimensions
-  var_size=f.variables['h500'].shape
-elif(dvar=='rws'):
-  ivar=f.variables['ucomp']
-  var_dims=f.variables['ucomp'].dimensions
-  var_size=f.variables['ucomp'].shape
-  # (dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='volcello' or dvar=='areacello' or dvar=='thkcello' or dvar=='sftof' or dvar=='deptho' or dvar=='isothetao16c' or dvar==dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m')):
-  #ivar=f.variables['temp']
-  #var_dims=f.variables['temp'].dimensions
-  #var_size=f.variables['temp'].shape
-
-  #inputs=['temp','salt']
-  #print(inputs)
-  #print(len(inputs))
-  #print(type(inputs))
-  #print(inputs[0])
-  #print(inputs[1])
-  #s=""
-  #j=s.join(inputs[:])
-  #print(j)
-
-elif(dvar=='zg500'):
-  ivar=f.variables['h500']
-  var_dims=f.variables['h500'].dimensions
-  var_size=f.variables['h500'].shape
-elif(dvar=='psl'):
-  ivar=f.variables['slp']
-  var_dims=f.variables['slp'].dimensions
-  var_size=f.variables['slp'].shape
-elif(dvar=='ps'):
-  ivar=f.variables['ps']
-  var_dims=f.variables['ps'].dimensions
-  var_size=f.variables['ps'].shape
-#elif(dvar=='zg'):
-#  ivar=f.variables['hght']
-#  var_dims=f.variables['hght'].dimensions
-#  var_size=f.variables['hght'].shape
-elif(dvar=='temptotal'):
-  ivar=f.variables['temp_total']
-  var_dims=f.variables['temp_total'].dimensions
-  var_size=f.variables['temp_total'].shape
-elif(dvar=='salttotal'):
-  ivar=f.variables['salt_total']
-  var_dims=f.variables['salt_total'].dimensions
-  var_size=f.variables['salt_total'].shape
-elif(dvar=='ua' or dvar=='ua5' or dvar=='ua10' or dvar=='ua17' or \
-  dvar=='va' or dvar=='va5' or dvar=='va10' or dvar=='va17' or \
-  dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='ta17' or \
-  dvar=='hur' or dvar=='hur5' or dvar=='hur10' or dvar=='hur17' or \
-  dvar=='hus' or dvar=='hus5' or dvar=='hus10' or dvar=='hus17' or \
-  dvar=='zg' or dvar=='zg5' or dvar=='zg10' or dvar=='zg17'):
-  ivar=f.variables[inputs[0]]
-  var_dims=f.variables[inputs[0]].dimensions
-  var_size=f.variables[inputs[0]].shape
-  var_size2=f.variables[inputs[1]].shape
-elif(dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
-  ivar=f.variables[inputs[0]]
-  var_dims=f.variables[inputs[0]].dimensions
-  var_size=f.variables[inputs[0]].shape
-elif(dvar=='pv'):
-  ivar=f.variables['pv']
-  var_dims=f.variables['pv'].dimensions
-  var_size=f.variables['pv'].shape
-elif(dvar=='divg'):
-  ivar=f.variables['divg']
-  var_dims=f.variables['divg'].dimensions
-  var_size=f.variables['divg'].shape
-elif(dvar=='vort'):
-  ivar=f.variables['vort']
-  var_dims=f.variables['vort'].dimensions
-  var_size=f.variables['vort'].shape
-elif(dvar=='mlotst'):
-  ivar=f.variables['mld']
-  var_dims=f.variables['mld'].dimensions
-  var_size=f.variables['mld'].shape
-elif(dvar=='mlotstsq'):
-  ivar=f.variables['mld_sq']
-  var_dims=f.variables['mld_sq'].dimensions
-  var_size=f.variables['mld_sq'].shape
-elif(dvar=='umo'):
-  ivar=f.variables['tx_trans']
-  var_dims=f.variables['tx_trans'].dimensions
-  var_size=f.variables['tx_trans'].shape
-elif(dvar=='vmo'):
-  ivar=f.variables['ty_trans']
-  var_dims=f.variables['ty_trans'].dimensions
-  var_size=f.variables['ty_trans'].shape
-elif(dvar=='cl'):
-  ivar=f.variables['cld_amt']
-  var_dims=f.variables['cld_amt'].dimensions
-  var_size=f.variables['cld_amt'].shape
-elif(dvar=='msftyyz'):
-  ivar=f.variables['ty_trans']
-  var_dims=f.variables['ty_trans'].dimensions
-  var_size=f.variables['ty_trans'].shape
-elif(dvar=='mfo'):
-  ivar=f.variables['tx_trans']
-  var_dims=f.variables['tx_trans'].dimensions
-  var_size=f.variables['tx_trans'].shape
-elif(dvar=='so' or dvar=='sos'):
-  ivar=f.variables['salt']
-  var_dims=f.variables['salt'].dimensions
-  var_size=np.array(f.variables['salt'].shape)
-elif(dvar=='rws500'):
-  ivar=f.variables['ucomp']
-  var_dims=f.variables['ucomp'].dimensions
-  var_size=f.variables['ucomp'].shape
-elif(dvar=='nhbi'):
-  ivar=f.variables['h500']
-  var_dims=f.variables['h500'].dimensions
-  var_size=f.variables['h500'].shape
-#elif(dvar=='ta10'):
+#elif(dvar=='acc_drake' or dvar=='acc_africa'):
+#  ivar=f.variables['tx_trans_int_z']
+#  var_dims=f.variables['tx_trans_int_z'].dimensions
+#  var_size=f.variables['tx_trans_int_z'].shape
+#  #MustHaveAllLevs(LevXtrct)
+#elif(dvar=='mozmbq'):
+#  ivar=f.variables['ty_trans_int_z']
+#  var_dims=f.variables['ty_trans_int_z'].dimensions
+#  var_size=f.variables['ty_trans_int_z'].shape
+#  #MustHaveAllLevs(LevXtrct)
+#elif(dvar=='aabw'):
+#  ivar=f.variables['ty_trans']
+#  var_dims=f.variables['ty_trans'].dimensions
+#  var_size=f.variables['ty_trans'].shape
+#  #MustHaveAllLevs(LevXtrct)
+#elif(dvar=='nadw'):
+#  ivar=f.variables['ty_trans']
+#  var_dims=f.variables['ty_trans'].dimensions
+#  var_size=f.variables['ty_trans'].shape
+#  #MustHaveAllLevs(LevXtrct)
+#elif(dvar=='pp'):
+#  ivar=f.variables['pprod_gross']
+#  var_dims=f.variables['pprod_gross'].dimensions
+#  var_size=f.variables['pprod_gross'].shape
+#  depth_edges=f.variables['st_edges_ocean']
+#elif(dvar=='nflux'):
+#  ivar=f.variables['stf07']
+#  var_dims=f.variables['stf07'].dimensions
+#  var_size=f.variables['stf07'].shape
+#  depth_edges=f.variables['st_edges_ocean']
+#elif(dvar=='ep'):
+#  ivar=f.variables['det']
+#  var_dims=f.variables['det'].dimensions
+#  var_size=f.variables['det'].shape
+#  depth_edges=f.variables['st_edges_ocean']
+#elif(dvar=='nino34' or dvar=='iod'):
+#  #print('hello',file=fh_printfile)
 #  ivar=f.variables['temp']
 #  var_dims=f.variables['temp'].dimensions
 #  var_size=f.variables['temp'].shape
-else:
-  ivar=f.variables[dvar]
-  var_dims=f.variables[dvar].dimensions
-  var_size=f.variables[dvar].shape
+#elif(dvar=='ssh'):
+#  ivar=f.variables['temp']
+#  var_dims=f.variables['temp'].dimensions
+#  var_size=f.variables['temp'].shape
+#  depth_edges=f.variables['st_edges_ocean']
+#elif(dvar=='moc' or dvar=='moc_atlantic' or dvar=='moc_pacific' or dvar=='moc_indian'):
+#  #ivar=f.variables['v']
+#  #var_dims=f.variables['v'].dimensions
+#  #var_size=f.variables['v'].shape
+#  ivar=f.variables['tx_trans']
+#  var_dims=f.variables['tx_trans'].dimensions
+#  var_size=f.variables['tx_trans'].shape
+#  #MustHaveAllLevs(LevXtrct)
+#  depth_edges=f.variables['st_edges_ocean']
+#elif(dvar=='shice_cover' or dvar=='nhice_cover'):
+#  ivar=f.variables['CN']
+#  var_dims=f.variables['CN'].dimensions
+#  var_size=f.variables['CN'].shape
+#elif(dvar=='nhbi'):
+#  ivar=f.variables['h500']
+#  var_dims=f.variables['h500'].dimensions
+#  var_size=f.variables['h500'].shape
+#elif(dvar=='rws'):
+#  ivar=f.variables['ucomp']
+#  var_dims=f.variables['ucomp'].dimensions
+#  var_size=f.variables['ucomp'].shape
+#  # (dvar=='tos' or dvar=='thetao' or dvar=='so' or dvar=='uo' or dvar=='vo' or dvar=='volcello' or dvar=='areacello' or dvar=='thkcello' or dvar=='sftof' or dvar=='deptho' or dvar=='isothetao16c' or dvar==dvar=='isothetao20c' or dvar=='isothetao22c' or dvar=='thetao100m' or dvar=='so100m' or dvar=='uo100m' or dvar=='vo100m')):
+#  #ivar=f.variables['temp']
+#  #var_dims=f.variables['temp'].dimensions
+#  #var_size=f.variables['temp'].shape
+#
+#  #inputs=['temp','salt']
+#  #print(inputs)
+#  #print(len(inputs))
+#  #print(type(inputs))
+#  #print(inputs[0])
+#  #print(inputs[1])
+#  #s=""
+#  #j=s.join(inputs[:])
+#  #print(j)
+#
+#elif(dvar=='zg500'):
+#  ivar=f.variables['h500']
+#  var_dims=f.variables['h500'].dimensions
+#  var_size=f.variables['h500'].shape
+#elif(dvar=='psl'):
+#  ivar=f.variables['slp']
+#  var_dims=f.variables['slp'].dimensions
+#  var_size=f.variables['slp'].shape
+#elif(dvar=='ps'):
+#  ivar=f.variables['ps']
+#  var_dims=f.variables['ps'].dimensions
+#  var_size=f.variables['ps'].shape
+##elif(dvar=='zg'):
+##  ivar=f.variables['hght']
+##  var_dims=f.variables['hght'].dimensions
+##  var_size=f.variables['hght'].shape
+#elif(dvar=='temptotal'):
+#  ivar=f.variables['temp_total']
+#  var_dims=f.variables['temp_total'].dimensions
+#  var_size=f.variables['temp_total'].shape
+#elif(dvar=='salttotal'):
+#  ivar=f.variables['salt_total']
+#  var_dims=f.variables['salt_total'].dimensions
+#  var_size=f.variables['salt_total'].shape
+#elif(dvar=='ua' or dvar=='ua5' or dvar=='ua10' or dvar=='ua17' or \
+#  dvar=='va' or dvar=='va5' or dvar=='va10' or dvar=='va17' or \
+#  dvar=='ta' or dvar=='ta5' or dvar=='ta10' or dvar=='ta17' or \
+#  dvar=='hur' or dvar=='hur5' or dvar=='hur10' or dvar=='hur17' or \
+#  dvar=='hus' or dvar=='hus5' or dvar=='hus10' or dvar=='hus17' or \
+#  dvar=='zg' or dvar=='zg5' or dvar=='zg10' or dvar=='zg17'):
+#  ivar=f.variables[inputs[0]]
+#  var_dims=f.variables[inputs[0]].dimensions
+#  var_size=f.variables[inputs[0]].shape
+#  var_size2=f.variables[inputs[1]].shape
+#elif(dvar=='tauu' or dvar=='tauv' or dvar=='pr'):
+#  ivar=f.variables[inputs[0]]
+#  var_dims=f.variables[inputs[0]].dimensions
+#  var_size=f.variables[inputs[0]].shape
+#elif(dvar=='pv'):
+#  ivar=f.variables['pv']
+#  var_dims=f.variables['pv'].dimensions
+#  var_size=f.variables['pv'].shape
+#elif(dvar=='divg'):
+#  ivar=f.variables['divg']
+#  var_dims=f.variables['divg'].dimensions
+#  var_size=f.variables['divg'].shape
+#elif(dvar=='vort'):
+#  ivar=f.variables['vort']
+#  var_dims=f.variables['vort'].dimensions
+#  var_size=f.variables['vort'].shape
+#elif(dvar=='mlotst'):
+#  ivar=f.variables['mld']
+#  var_dims=f.variables['mld'].dimensions
+#  var_size=f.variables['mld'].shape
+#elif(dvar=='mlotstsq'):
+#  ivar=f.variables['mld_sq']
+#  var_dims=f.variables['mld_sq'].dimensions
+#  var_size=f.variables['mld_sq'].shape
+#elif(dvar=='umo'):
+#  ivar=f.variables['tx_trans']
+#  var_dims=f.variables['tx_trans'].dimensions
+#  var_size=f.variables['tx_trans'].shape
+#elif(dvar=='vmo'):
+#  ivar=f.variables['ty_trans']
+#  var_dims=f.variables['ty_trans'].dimensions
+#  var_size=f.variables['ty_trans'].shape
+#elif(dvar=='cl'):
+#  ivar=f.variables['cld_amt']
+#  var_dims=f.variables['cld_amt'].dimensions
+#  var_size=f.variables['cld_amt'].shape
+#elif(dvar=='msftyyz'):
+#  ivar=f.variables['ty_trans']
+#  var_dims=f.variables['ty_trans'].dimensions
+#  var_size=f.variables['ty_trans'].shape
+#elif(dvar=='mfo'):
+#  ivar=f.variables['tx_trans']
+#  var_dims=f.variables['tx_trans'].dimensions
+#  var_size=f.variables['tx_trans'].shape
+#elif(dvar=='so' or dvar=='sos'):
+#  ivar=f.variables['salt']
+#  var_dims=f.variables['salt'].dimensions
+#  var_size=np.array(f.variables['salt'].shape)
+#elif(dvar=='rws500'):
+#  ivar=f.variables['ucomp']
+#  var_dims=f.variables['ucomp'].dimensions
+#  var_size=f.variables['ucomp'].shape
+#elif(dvar=='nhbi'):
+#  ivar=f.variables['h500']
+#  var_dims=f.variables['h500'].dimensions
+#  var_size=f.variables['h500'].shape
+##elif(dvar=='ta10'):
+##  ivar=f.variables['temp']
+##  var_dims=f.variables['temp'].dimensions
+##  var_size=f.variables['temp'].shape
+#else:
+#  ivar=f.variables[dvar]
+#  var_dims=f.variables[dvar].dimensions
+#  var_size=f.variables[dvar].shape
 
 nvar_dims=len(var_dims)
 

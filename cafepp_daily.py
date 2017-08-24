@@ -150,14 +150,14 @@ if 'new_units' in locals():
 cdtime.DefaultCalendar=cdtime.JulianCalendar
 cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=cmorlogfile)
 
-dfp_defs='dfp_csiro-gfdl.json'
-cmor.dataset_json(dfp_defs)
-json_data=open(dfp_defs).read()
+cafepp_defs='cafepp_csiro-gfdl.json'
+cmor.dataset_json(cafepp_defs)
+json_data=open(cafepp_defs).read()
 #pprint.pprint(json_data,width=1)
-dfp_data=json.loads(json_data)
-institution_id=dfp_data['institution_id']
-source_id=dfp_data['source_id']
-experiment_id=dfp_data['experiment_id']
+cafepp_data=json.loads(json_data)
+institution_id=cafepp_data['institution_id']
+source_id=cafepp_data['source_id']
+experiment_id=cafepp_data['experiment_id']
 
 cafe_experiment=os.environ.get('CAFE_EXPERIMENT')
 
