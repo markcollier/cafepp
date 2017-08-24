@@ -234,7 +234,7 @@ if 'json_input_instructions' in locals():
   print('Top level JSON instructions keys=',top_level_keys)
 #  print(json_input_instructions_data)
   for key_now in json_input_instructions_data.iteritems():
-    print('processing key_now[0]=',key_now[0])
+    #print('processing key_now[0]=',key_now[0])
     key_now0=key_now[0]
     if(key_now0=="options_with_arguments"):
       list_new=(json_input_instructions_data[key_now0])
@@ -318,24 +318,24 @@ os.system('awk -f uncomment_json.awk JsonTemplates/'+cafepp_experiments_meta+' >
 cafepp_experiments_fh=open(cafepp_experiments_meta).read()
 print('cafepp_experiments_fh=',cafepp_experiments_fh,file=fh_printfile)
 cafepp_experiments_data=json.loads(cafepp_experiments_fh)
-print('cafepp_experiments_data=',cafepp_experiments_data)
+print('cafepp_experiments_data=',cafepp_experiments_data,file=fh_printfile)
 
-print("Summary of JSON experiments input: ",json.dumps(cafepp_experiments_data,indent=4,sort_keys=True))
+print("Summary of JSON experiments input: ",json.dumps(cafepp_experiments_data,indent=4,sort_keys=True),file=fh_printfile)
 
 top_level_keys=cafepp_experiments_data.keys()
-print('Top level JSON experiments keys=',top_level_keys)
+print('Top level JSON experiments keys=',top_level_keys,file=fh_printfile)
 
 cafepp_experiment_found=False
 for key_now in cafepp_experiments_data.iteritems():
-  print('processing key_now[0]=',key_now[0])
+  print('processing key_now[0]=',key_now[0],file=fh_printfile)
   key_now0=key_now[0]
   if(key_now0==cafe_experiment):
     cafepp_experiment_found=True
-    print("Found required output experiment :",cafe_experiment)
+    print("Found required output experiment :",cafe_experiment,file=fh_printfile)
     list_new=(cafepp_experiments_data[key_now0])
-    #print('list_new=',list_new)
+    #print('list_new=',list_new,file=fh_printfile)
     for l in list_new:
-      print('l=',l)
+      print('l=',l,file=fh_printfile)
       if(l=='experiment'): experiment=str(list_new[l])
       elif(l=='experiment_id'): experiment_id=str(list_new[l])
       elif(l=='parent_experiment_id'): parent_experiment_id=str(list_new[l])
@@ -447,15 +447,15 @@ os.system('awk -f uncomment_json.awk JsonTemplates/'+json_input_var_meta+' > '+j
 json_input_var_fh=open(json_input_var_meta).read()
 print('json_input_var_fh=',json_input_var_fh,file=fh_printfile)
 json_input_var_data=json.loads(json_input_var_fh)
-print('json_input_var_data=',json_input_var_data)
+print('json_input_var_data=',json_input_var_data,file=fh_printfile)
 
 print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True))
 
 top_level_keys=json_input_var_data.keys()
-print('Top level JSON variable keys=',top_level_keys)
+print('Top level JSON variable keys=',top_level_keys,file=fh_printfile)
 
 for key_now in json_input_var_data.iteritems():
-  print('processing key_now[0]=',key_now[0])
+  print('processing key_now[0]=',key_now[0],file=fh_printfile)
   key_now0=key_now[0]
   if(key_now0=="defaults"):
     list_new=(json_input_var_data[key_now0])
@@ -468,10 +468,10 @@ for key_now in json_input_var_data.iteritems():
       #elif(l=='vertical_interpolation_method'): vertical_interpolation_method=str(list_new[l])
       else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   elif(key_now0==dvar):
-    print("Found required output variable:",dvar)
+    print("Found required output variable:",dvar,file=fh_printfile)
     list_new=(json_input_var_data[key_now0])
     for l in list_new:
-      #print(l)
+      #print(l,file=fh_printfile)
       if(l=='info'): info=str(list_new[l])
       elif(l=='area_t'): 
           if(list_new[l]=='True'): area_t=True
@@ -495,12 +495,12 @@ for key_now in json_input_var_data.iteritems():
       else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   else:
-    print("hello")
-print('units=',units)
+    print("hello",file=fh_printfile)
+print('units=',units,file=fh_printfile)
 
-print('printDefinedDiagnostics=',printDefinedDiagnostics)
+print('printDefinedDiagnostics=',printDefinedDiagnostics,file=fh_printfile)
 if(printDefinedDiagnostics):
-  print("Alphabetically ordered List of currently loaded diagnostis (varable/unit):")
+  print("Alphabetically ordered List of currently loaded diagnostis (varable/unit):",file=fh_printfile)
   for key_now in sorted(json_input_var_data.iteritems(),reverse=False):
     if(key_now[0]!="defaults"):
       #print(key_now)
@@ -509,7 +509,7 @@ if(printDefinedDiagnostics):
       #print(list_new)
       for l in list_new:
         if(l=='units'):
-          print(key_now[0],list_new[l])
+          print(key_now[0],list_new[l],file=fh_printfile)
   raise SystemExit('Finished writing current set.')
 
 #print(frequency)
