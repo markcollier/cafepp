@@ -59,13 +59,13 @@ declare -a ivars=("ta5")
 declare -a ivars=("ta10")
 declare -a ivars=("sos")
 declare -a ivars=("thetao")
-declare -a ivars=("tos")
 declare -a ivars=("thetao100m")
 declare -a ivars=("uo100m")
 declare -a ivars=("vo")
 declare -a ivars=("uo")
 declare -a ivars=("so")
 declare -a ivars=("pr")
+declare -a ivars=("tos")
 
 season="ANN"
 season="JJA"

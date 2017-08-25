@@ -22,6 +22,8 @@
     "writable_nexus_ids":"tok599,dpm599", #nexus id's that can write/modify the data.
     "ybeg_min":295, #absolute minimum year.
     "yend_max":625, #absolute maximum year.
+    "dbeg_min":1, #absolute minimum day (only used with cafepp_daily.py)
+    "dend_max":31, #absolute maximum day (only used with cafepp_daily.py)
     "mbeg_min":1, #normally 1 for a climate/forward integration experiment.
     "mend_max":12, #normally 1 for a climate/forward integration experiment.
     "realisation":1, #follow CMIP6 guidelines.
@@ -56,6 +58,8 @@
     "yend_max":500,
     "mbeg_min":1,
     "mend_max":12,
+    "dbeg_min":1,
+    "dend_max":31,
     "realisation":1,
     "initialisation":1,
     "physics":1,
@@ -89,6 +93,8 @@
     "yend_max":500,
     "mbeg_min":1,
     "mend_max":12,
+    "dbeg_min":1,
+    "dend_max":31,
     "realisation":1,
     "initialisation":1,
     "physics":1,
@@ -121,6 +127,8 @@
     "yend_max":500,
     "mbeg_min":1,
     "mend_max":12,
+    "dbeg_min":1,
+    "dend_max":31,
     "realisation":1,
     "initialisation":1,
     "physics":1,
@@ -153,6 +161,8 @@
     "yend_max":2016,
     "mbeg_min":1,
     "mend_max":6,
+    "dbeg_min":1,
+    "dend_max":31,
     "realisation":1,
     "initialisation":1,
     "physics":1,
@@ -185,6 +195,49 @@
     "yend_max":2016,
     "mbeg_min":2,
     "mend_max":6,
+    "dbeg_min":1,
+    "dend_max":31,
+    "realisation":1,
+    "initialisation":1,
+    "physics":1,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO"
+    },
+#
+    "test_case":{
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"None",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+#
+    "storage_machine_no1":"tube-hba",
+    "top_directory_no1":"/tube1/col414/coupled_model/feb17a/OUTPUT",
+    "active_disk_no1":"yes",
+#
+    "storage_machine_no2":"raijin",
+    "top_directory_no2":"/short/v14/mac599/coupled_model/feb17a/OUTPUT",
+    "active_disk_no2":"yes",
+#
+    "storage_machine_no3":"Snapper-as",
+    "top_directory_no3":"/Volumes/LaCieNo1/coupled_model/feb17a/OUTPUT",
+    "active_disk_no3":"yes",
+#
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":390,
+    "yend_max":400,
+    "mbeg_min":1,
+    "mend_max":12,
+    "dbeg_min":1,
+    "dend_max":31,
     "realisation":1,
     "initialisation":1,
     "physics":1,

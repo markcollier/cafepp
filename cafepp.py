@@ -50,6 +50,7 @@ from shutil import copyfile
 import cdms2
 from regrid2 import Regridder
 import inspect  
+import socket
 
 #https://infohost.nmt.edu/tcc/help/pubs/python/web/print-as-function.html
 #
@@ -83,6 +84,8 @@ import inspect
 
 if(len(sys.argv)!=2):
   raise SystemExit('CAFEPP only takes one argument, the JSON instruction file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+hostname=socket.gethostname()
 
 printDefinedDiagnostics=False
 Forecast=False#the input directory will vary depending on year/month, I am calling these Forecast runs for now. These have one month of data per file - future model configurations may have different inputs. "Non-Forecast" runs are the traditional control runs, which have normally had 12 months per file.
@@ -344,7 +347,7 @@ for key_now in cafepp_experiments_data.iteritems():
     list_new=(cafepp_experiments_data[key_now0])
     #print('list_new=',list_new,file=fh_printfile)
     for l in list_new:
-      print('l=',l,file=fh_printfile)
+      #print('l=',l,file=fh_printfile)
       if(l=='experiment'): experiment=str(list_new[l])
       elif(l=='experiment_id'): experiment_id=str(list_new[l])
       elif(l=='parent_experiment_id'): parent_experiment_id=str(list_new[l])
@@ -353,16 +356,30 @@ for key_now in cafepp_experiments_data.iteritems():
       elif(l=='reference'): reference=str(list_new[l])
       elif(l=='integration_machine'): integration_machine=str(list_new[l])
       elif(l=='integration_machine_info'): integration_machine_info=str(list_new[l])
+
       elif(l=='storage_machine_no1'): storage_machine_no1=str(list_new[l])
+
       elif(l=='top_directory_no1'):
         top_directory_no1=str(list_new[l])
-        idir=top_directory_no1
+        #idir=top_directory_no1
       elif(l=='active_disk_no1'): active_disk_no1=str(list_new[l])
+
       elif(l=='storage_machine_no2'): storage_machine_no2=str(list_new[l])
       elif(l=='top_directory_no2'):
         top_directory_no2=str(list_new[l])
-        idir=top_directory_no2 #temporary until disks sorted out...
+        #idir=top_directory_no2 #temporary until disks sorted out...
       elif(l=='active_disk_no2'): active_disk_no2=str(list_new[l])
+
+      elif(l=='storage_machine_no3'): storage_machine_no3=str(list_new[l])
+      elif(l=='top_directory_no3'):
+        top_directory_no3=str(list_new[l])
+        #idir=top_directory_no3 #temporary until disks sorted out...
+      elif(l=='active_disk_no3'): active_disk_no3=str(list_new[l])
+
+#tube-hba
+#raijin*
+#Snapper-as
+
       elif(l=='main_science_contact'): main_science_contact=str(list_new[l])
       elif(l=='main_technical_contact'): main_technical_contact=str(list_new[l])
       elif(l=='readable_nexus_ids_no1'): readable_nexus_ids_no1=str(list_new[l])
@@ -372,6 +389,8 @@ for key_now in cafepp_experiments_data.iteritems():
       elif(l=='yend_max'): yend_max=int(list_new[l])
       elif(l=='mbeg_min'): mbeg_min=int(list_new[l])
       elif(l=='mend_max'): mend_max=int(list_new[l])
+      elif(l=='dbeg_min'): pass #ignore for cafepp.py only relevant for cafepp_daily.py
+      elif(l=='dend_max'): pass #ignore for cafepp.py only relevant for cafepp_daily.py
       elif(l=='realisation'): realisation=int(list_new[l])
       elif(l=='initialisation'): initialisation=int(list_new[l])
       elif(l=='physics'): physics=int(list_new[l])
@@ -381,6 +400,23 @@ for key_now in cafepp_experiments_data.iteritems():
       else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   else:
     pass
+
+if 'storage_machine_no1' in locals():
+  if re.match(storage_machine_no1,hostname):
+    idir=top_directory_no1
+
+if 'storage_machine_no2' in locals():
+  if re.match(storage_machine_no2,hostname):
+    idir=top_directory_no2
+
+if 'storage_machine_no3' in locals():
+  if re.match(storage_machine_no3,hostname):
+    idir=top_directory_no3
+
+if not 'idir' in locals():
+  raise SystemExit('Could not determine input dir, idir ',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+ 
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 if(not cafepp_experiment_found):
   raise SystemExit('Could not find CAFEPP experiment',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -552,6 +588,9 @@ cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=cmorlo
 #raise SystemExit('Forced exit.')
 #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 #cafepp_defs='cafepp_csiro-gfdl.json'
+
+os.system('awk -f uncomment_json.awk JsonTemplates/'+cafepp_defs+' > '+cafepp_defs)
+
 cmor.dataset_json(cafepp_defs)
 json_data=open(cafepp_defs).read()
 #pprint.pprint(json_data,width=1)

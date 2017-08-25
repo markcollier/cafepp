@@ -199,7 +199,9 @@ let mend_now=12
 #done
 #exit
 
-./cafepp.py --json_input_instructions=cafepp.json
+#./cafepp.py --json_input_instructions=cafepp.json
+
+./cafepp.py cafepp.json
 
 exit
 

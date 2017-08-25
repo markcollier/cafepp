@@ -29,37 +29,37 @@ set -x
 
 let cnt_max=200 #some large number to cope with all input directories.
 
-declare -a ivars=("huss")
-declare -a ivars=("zg")
-declare -a ivars=("hfss")
-declare -a ivars=("rlut")
-declare -a ivars=("hfls")
-declare -a ivars=("hus")
-declare -a ivars=("ua")
-declare -a ivars=("va")
-declare -a ivars=("wap") #doesn't exist
-declare -a ivars=("ta")
-declare -a ivars=("vas")
-declare -a ivars=("zg700")
-declare -a ivars=("hus5")
-declare -a ivars=("tslsi")
-declare -a ivars=("zg5")
-declare -a ivars=("ta5")
-declare -a ivars=("ua5")
-declare -a ivars=("va5")
-declare -a ivars=("tos")
-declare -a ivars=("tas")
-declare -a ivars=("zg500")
-declare -a ivars=("rws5")
-declare -a ivars=("psl")
-declare -a ivars=("uas")
-declare -a ivars=("sfcWind")
-declare -a ivars=("tauu") #wind stress in atmos realm for daily.
-declare -a ivars=("tauv") #wind stress in atmos realm for daily.
-declare -a ivars=("nino34")
-declare -a ivars=("pr")
+#declare -a ivars=("huss")
+#declare -a ivars=("zg")
+#declare -a ivars=("hfss")
+#declare -a ivars=("rlut")
+#declare -a ivars=("hfls")
+#declare -a ivars=("hus")
+#declare -a ivars=("ua")
+#declare -a ivars=("va")
+#declare -a ivars=("wap") #doesn't exist
+#declare -a ivars=("ta")
+#declare -a ivars=("vas")
+#declare -a ivars=("zg700")
+#declare -a ivars=("hus5")
+#declare -a ivars=("tslsi")
+#declare -a ivars=("zg5")
+#declare -a ivars=("ta5")
+#declare -a ivars=("ua5")
+#declare -a ivars=("va5")
+#declare -a ivars=("tos")
+#declare -a ivars=("tas")
+#declare -a ivars=("zg500")
+#declare -a ivars=("psl")
+#declare -a ivars=("uas")
+#declare -a ivars=("sfcWind")
+#declare -a ivars=("tauu") #wind stress in atmos realm for daily.
+#declare -a ivars=("tauv") #wind stress in atmos realm for daily.
+#declare -a ivars=("nino34")
+#declare -a ivars=("pr")
+#declare -a ivars=("rws5")
 
-for ivar in "${ivars[@]}";do
+#for ivar in "${ivars[@]}";do
 
 declare -a realisations=(0 1 2 3 4 5 6 7 8 9 10)
 
@@ -155,9 +155,9 @@ fi #breeding
 #-x #noclobber
 #--vertical_interpolation_method='linear'
 
-./cafepp_daily.py -i 5 --version v20170804 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --dbeg=$dbeg_now --dend=$dend_now --dbeg_min=$dbeg_now --dend_max=$dend_now --idir=$idir --cmorlogfile=cmor_log.txt -l stdout.txt
+#./cafepp_daily.py -i 5 --version v20170804 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --dbeg=$dbeg_now --dend=$dend_now --dbeg_min=$dbeg_now --dend_max=$dend_now --idir=$idir --cmorlogfile=cmor_log.txt -l stdout.txt --new_ovars="rws5,div5,eta5,uchi5,vchi5" --new_units="s-2,s-1,s-1,ms-1,ms-1"
 
-#--new_ovars="rws5,div5,eta5,uchi5,vchi5" --new_units="s-2,s-1,s-1,ms-1,ms-1"
+./cafepp_daily.py cafepp_daily.json
 
 # --new_ovars="rws5,div5,eta5,uchi5,vchi5" --new_units="s-2,s-1,s-1,ms-1,ms-1" #can be used with rws5
 
@@ -208,7 +208,7 @@ fi
 let cnt=$cnt+1
 done #cnt
 done #realisation
-done #ivar
+#done #ivar
 
 set +x
 

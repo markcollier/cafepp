@@ -34,91 +34,266 @@ from shutil import copyfile
 import cdms2
 from regrid2 import Regridder
 
-def usage(script_name):
-    """usage"""
-    print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --idir=input directory')
+if(len(sys.argv)!=2):
+  raise SystemExit('CAFEPP_DAILY only takes one argument, the JSON instruction file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
-try:
-    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","realisation=","initialisation=","physics=","forcings=","idir=","vertical_interpolation_method=","version=","cmorlogfile=","new_ovars=","new_units="])
-except getopt.GetoptError as err:
-    print(err,file=fh_printfile)
-    usage(os.path.realpath(__file__))
-    sys.exit(2)
 
-fh_printfile=sys.stdout
-#fh_printfile=sys.stderr
-
+#def usage(script_name):
+#    """usage"""
+#    print('Usage: ',script_name,' -h,help -v input_var -i importance (1-5) --ybeg=process begin year --yend=process end year --ybeg_min=min. year available --yend_max=max. year available --idir=input directory')
+#
+#try:
+#    opts, args=getopt.getopt(sys.argv[1:], "wxdCAhv:i:rl:",["help","ybeg=","yend=","ybeg_min=","yend_max=","mbeg=","mend=","mbeg_min=","mend_max=","dbeg=","dend=","dbeg_min=","dend_max=","realisation=","initialisation=","physics=","forcings=","idir=","vertical_interpolation_method=","version=","cmorlogfile=","new_ovars=","new_units="])
+#except getopt.GetoptError as err:
+#    print(err,file=fh_printfile)
+#    usage(os.path.realpath(__file__))
+#    sys.exit(2)
+#
+#fh_printfile=sys.stdout
+##fh_printfile=sys.stderr
+#
 ReGrid=False
 NoClobber=False
 importance=5
+
+cafepp_defs='cafepp_csiro-gfdl.json'
+cafepp_experiments='cafepp_experiments.json'
+json_input_var_meta='cafepp_vars_day.json'
+json_input_instructions='cafepp.json'
+cafepp_machine='raijin.nci.org.au'
+
 cmorlogfile='log'
-for o, a in opts:
-    #print(o,file=fh_printfile)
-    if o in ('-h', '--help'):
-        usage(os.path.realpath(__file__))
-        sys.exit()
-    elif o == '-x':
-        NoClobber=True
-    elif o == '-i':
-        importance=int(a)
-    elif o == '-l':
-         printfile=a
-         fh_printfile=open(printfile,"w")
-    elif o == '-v':
-         dvar=a
-    elif o == '--ybeg':
-        ybeg=int(a)
-    elif o == '--yend':
-        yend=int(a)
-    elif o == '--mbeg':
-        mbeg=int(a)
-    elif o == '--mend':
-        mend=int(a)
-    elif o == '--dbeg':
-        dbeg=int(a)
-    elif o == '--dend':
-        dend=int(a)
-    elif o == '--ybeg_min':
-        ybeg_min=int(a)
-    elif o == '--yend_max':
-        yend_max=int(a)
-    elif o == '--mbeg_min':
-        mbeg_min=int(a)
-    elif o == '--mend_max':
-        mend_max=int(a)
-    elif o == '--dbeg_min':
-        dbeg_min=int(a)
-    elif o == '--dend_max':
-        dend_max=int(a)
-    elif o == '--cbeg':
-        cbeg=int(a)
-    elif o == '--cend':
-        cend=int(a)
-    elif o == '--realisation':
-        #erange=[str(x) for x in a.split(',')]
-        realisation=int(a)
-    elif o == '--initialisation':
-        initialisation=int(a)
-    elif o == '--physics':
-        physics=int(a)
-    elif o == '--forcings':
-        forcings=int(a)
-    elif o == '--idir':
-        idir=a
-    elif o == '--vertical_interpolation_method':
-        vertical_interpolation_method=a
-    elif o == '-r':
-        ReGrid=True
-    elif o == '--version':
-        version=a
-    elif o == '--cmorlogfile':
-        cmorlogfile=a
-    elif o == '--new_ovars':
-        new_ovars=[str(x) for x in a.split(',')]
-    elif o == '--new_units':
-        new_units=[str(x) for x in a.split(',')]
-    else:
-        assert False, 'unhandled option'
+
+#for o, a in opts:
+#    #print(o,file=fh_printfile)
+#    if o in ('-h', '--help'):
+#        usage(os.path.realpath(__file__))
+#        sys.exit()
+#    elif o == '-x':
+#        NoClobber=True
+#    elif o == '-i':
+#        importance=int(a)
+#    elif o == '-l':
+#         printfile=a
+#         fh_printfile=open(printfile,"w")
+#    elif o == '-v':
+#         dvar=a
+#    elif o == '--ybeg':
+#        ybeg=int(a)
+#    elif o == '--yend':
+#        yend=int(a)
+#    elif o == '--mbeg':
+#        mbeg=int(a)
+#    elif o == '--mend':
+#        mend=int(a)
+#    elif o == '--dbeg':
+#        dbeg=int(a)
+#    elif o == '--dend':
+#        dend=int(a)
+#    elif o == '--ybeg_min':
+#        ybeg_min=int(a)
+#    elif o == '--yend_max':
+#        yend_max=int(a)
+#    elif o == '--mbeg_min':
+#        mbeg_min=int(a)
+#    elif o == '--mend_max':
+#        mend_max=int(a)
+#    elif o == '--dbeg_min':
+#        dbeg_min=int(a)
+#    elif o == '--dend_max':
+#        dend_max=int(a)
+#    elif o == '--cbeg':
+#        cbeg=int(a)
+#    elif o == '--cend':
+#        cend=int(a)
+#    elif o == '--realisation':
+#        #erange=[str(x) for x in a.split(',')]
+#        realisation=int(a)
+#    elif o == '--initialisation':
+#        initialisation=int(a)
+#    elif o == '--physics':
+#        physics=int(a)
+#    elif o == '--forcings':
+#        forcings=int(a)
+#    elif o == '--idir':
+#        idir=a
+#    elif o == '--vertical_interpolation_method':
+#        vertical_interpolation_method=a
+#    elif o == '-r':
+#        ReGrid=True
+#    elif o == '--version':
+#        version=a
+#    elif o == '--cmorlogfile':
+#        cmorlogfile=a
+#    elif o == '--new_ovars':
+#        new_ovars=[str(x) for x in a.split(',')]
+#    elif o == '--new_units':
+#        new_units=[str(x) for x in a.split(',')]
+#    else:
+#        assert False, 'unhandled option'
+
+if 'json_input_instructions' in locals():
+  os.system('awk -f uncomment_json.awk JsonTemplates/'+json_input_instructions+' > '+json_input_instructions)
+  print('Running cafepp from JSON instructions: '+json_input_instructions)
+  json_input_instructions_fh=open(json_input_instructions).read()
+  json_input_instructions_data=json.loads(json_input_instructions_fh)
+  print('json_input_instructions_data=',json_input_instructions_data)
+else:
+  print('Running cafepp from command line input:')
+
+if 'json_input_instructions' in locals():
+  print("Summary of JSON instructions: ",json.dumps(json_input_instructions_data,indent=4,sort_keys=True))
+
+  #print(type(json_input_instructions_data))
+
+  top_level_keys=json_input_instructions_data.keys()
+
+  print('Top level JSON instructions keys=',top_level_keys)
+#  print(json_input_instructions_data)
+  for key_now in json_input_instructions_data.iteritems():
+    #print('processing key_now[0]=',key_now[0])
+    key_now0=key_now[0]
+    if(key_now0=="options_with_arguments"):
+      list_new=(json_input_instructions_data[key_now0])
+      #print('list_new=',list_new)
+      #list_new2=list(list_new)
+      #print('list_new2=',list_new2)
+      for l in list_new: #used to be list_new2
+        #print('l=',l,list_new[l])
+        #eval(l)=1.0
+        #eval(l)=list_new[l]
+        if(l=='cafe_experiment'): cafe_experiment=str(list_new[l])
+        elif(l=='info'): info=str(list_new[l])
+        elif(l=='name'): name=str(list_new[l])
+        elif(l=='importance'): importance=str(list_new[l])
+        elif(l=='version'): version=str(list_new[l])
+#        elif(l=='initialisation'): initialisation=str(list_new[l])
+#        elif(l=='realisation'): realisation=str(list_new[l])
+#        elif(l=='physics'): physics=str(list_new[l])
+#        elif(l=='forcings'): forcings=str(list_new[l])
+        elif(l=='dvar'): dvar=str(list_new[l])
+        elif(l=='ybeg'): ybeg=int(list_new[l])
+        elif(l=='yend'): yend=int(list_new[l])
+#        elif(l=='ybeg_min'): ybeg_min=list_new[l]
+#        elif(l=='yend_max'): yend_max=list_new[l]
+        elif(l=='mbeg'): mbeg=int(list_new[l])
+        elif(l=='mend'): mend=int(list_new[l])
+#        elif(l=='mbeg_min'): mbeg_min=list_new[l]
+#        elif(l=='mend_max'): mend_max=list_new[l]
+#        elif(l=='idir'): idir=str(list_new[l])
+#        elif(l=='season'): season=str(list_new[l])
+        elif(l=='levs'): levs=str(list_new[l])
+        elif(l=='cmorlogfile'): cmorlogfile=str(list_new[l])
+        elif(l=='printfile'): printfile=str(list_new[l])
+#        elif(l=='xxxprintfile'): None
+        elif(l=='printDefinedDiagnostics'):
+          if(list_new[l]=='True'): printDefinedDiagnostics=True
+        elif(l==''): grid_label=str(list_new[l])
+        elif(l=='cafepp_machine'): cafepp_machine=str(list_new[l])
+        else: raise SystemExit('Unknown option_with_argument,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    elif(key_now0=="options_no_arguments"):
+      list_new=(json_input_instructions_data[key_now0])
+      for l in list_new: #used to be list_new2
+        if(l=='name'): name=str(list_new[l])
+        elif(l=='info'): info=str(list_new[l])
+#        elif(l=='Forecast'): 
+#          if(list_new[l]=='True'): Forecast=list_new[l]
+        elif(l=='Regrid'):
+          if(list_new[l]=='True'): Regrid=True
+#        elif(l=='MonthlyWeights'): 
+#          if(list_new[l]=='True'): MonthlyWeights=True
+        elif(l=='NoClobber'): 
+          if(list_new[l]=='True'): NoClobber=list_new[l]
+        else: raise SystemExit('Unknown option_no_argument,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    elif(key_now0=="defaults"):
+      list_new=(json_input_instructions_data[key_now0])
+      for l in list_new: #used to be list_new2
+        if(l=='name'): name=str(list_new[l])
+        elif(l=='info'): info=str(list_new[l])
+        elif(l=='area_t'): 
+          if(list_new[l]=='True'): area_t=list_new[l]
+        elif(l=='area_u'): 
+          if(list_new[l]=='True'): area_u=list_new[l]
+        elif(l=='grid'): grid=str(list_new[l])
+        elif(l=='grid_label'): grid_label=str(list_new[l])
+        elif(l=='vertical_interpolation_method'): vertical_interpolation_method=str(list_new[l])
+        elif(l=='frequency'): frequency=str(list_new[l])
+        elif(l=='cafepp_experiments_meta'): cafepp_experiments_meta=str(list_new[l])
+        elif(l=='cafepp_defs'): cafepp_defs=str(list_new[l])
+        elif(l=='json_input_var_meta'): json_input_var_meta=str(list_new[l])
+
+        else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if 'printfile' in locals():
+    fh_printfile=open(printfile,"w")
+  else:
+    fh_printfile=sys.stdout
+  print('fh_printfile=',fh_printfile)
+
+#cafepp_experiments_meta='cafepp_experiments.json'
+os.system('awk -f uncomment_json.awk JsonTemplates/'+cafepp_experiments_meta+' > '+cafepp_experiments_meta)
+cafepp_experiments_fh=open(cafepp_experiments_meta).read()
+print('cafepp_experiments_fh=',cafepp_experiments_fh,file=fh_printfile)
+cafepp_experiments_data=json.loads(cafepp_experiments_fh)
+print('cafepp_experiments_data=',cafepp_experiments_data,file=fh_printfile)
+
+print("Summary of JSON experiments input: ",json.dumps(cafepp_experiments_data,indent=4,sort_keys=True),file=fh_printfile)
+
+top_level_keys=cafepp_experiments_data.keys()
+print('Top level JSON experiments keys=',top_level_keys,file=fh_printfile)
+
+cafepp_experiment_found=False
+for key_now in cafepp_experiments_data.iteritems():
+  #print('processing key_now[0]=',key_now[0],file=fh_printfile)
+  key_now0=key_now[0]
+  if(key_now0==cafe_experiment):
+    cafepp_experiment_found=True
+    print("Found required output experiment :",cafe_experiment,file=fh_printfile)
+    list_new=(cafepp_experiments_data[key_now0])
+    #print('list_new=',list_new,file=fh_printfile)
+    for l in list_new:
+      print('l=',l,file=fh_printfile)
+      if(l=='experiment'): experiment=str(list_new[l])
+      elif(l=='experiment_id'): experiment_id=str(list_new[l])
+      elif(l=='parent_experiment_id'): parent_experiment_id=str(list_new[l])
+      elif(l=='history'): history=str(list_new[l])
+      elif(l=='confluence_notes'): confluence_notes=str(list_new[l])
+      elif(l=='reference'): reference=str(list_new[l])
+      elif(l=='integration_machine'): integration_machine=str(list_new[l])
+      elif(l=='integration_machine_info'): integration_machine_info=str(list_new[l])
+      elif(l=='storage_machine_no1'): storage_machine_no1=str(list_new[l])
+      elif(l=='top_directory_no1'):
+        top_directory_no1=str(list_new[l])
+        idir=top_directory_no1
+      elif(l=='active_disk_no1'): active_disk_no1=str(list_new[l])
+      elif(l=='storage_machine_no2'): storage_machine_no2=str(list_new[l])
+      elif(l=='top_directory_no2'):
+        top_directory_no2=str(list_new[l])
+        idir=top_directory_no2 #temporary until disks sorted out...
+      elif(l=='active_disk_no2'): active_disk_no2=str(list_new[l])
+      elif(l=='main_science_contact'): main_science_contact=str(list_new[l])
+      elif(l=='main_technical_contact'): main_technical_contact=str(list_new[l])
+      elif(l=='readable_nexus_ids_no1'): readable_nexus_ids_no1=str(list_new[l])
+      elif(l=='readable_nexus_ids_no2'): readable_nexus_ids_no2=str(list_new[l])
+      elif(l=='writable_nexus_ids'): writable_nexus_ids=str(list_new[l])
+      elif(l=='ybeg_min'): ybeg_min=int(list_new[l])
+      elif(l=='yend_max'): yend_max=int(list_new[l])
+      elif(l=='mbeg_min'): mbeg_min=int(list_new[l])
+      elif(l=='mend_max'): mend_max=int(list_new[l])
+      elif(l=='dbeg_min'): dbeg_min=int(list_new[l])
+      elif(l=='dend_max'): dend_max=int(list_new[l])
+      elif(l=='realisation'): realisation=int(list_new[l])
+      elif(l=='initialisation'): initialisation=int(list_new[l])
+      elif(l=='physics'): physics=int(list_new[l])
+      elif(l=='forcing'): forcing=int(list_new[l])
+      elif(l=='institution'): institution=str(list_new[l])
+      elif(l=='institution_id'): institution_id=str(list_new[l])
+      else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  else:
+    pass
+
+if(not cafepp_experiment_found):
+  raise SystemExit('Could not find CAFEPP experiment',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 netcdf='NETCDF4_CLASSIC'
 netcdf='NETCDF3_64BIT'
@@ -127,13 +302,87 @@ netcdf='NETCDF4'
 
 print(sys.argv,file=fh_printfile)
 
+#json_input_var_meta='cafepp_vars_day.json'
+os.system('awk -f uncomment_json.awk JsonTemplates/'+json_input_var_meta+' > '+json_input_var_meta)
+json_input_var_fh=open(json_input_var_meta).read()
+print('json_input_var_fh=',json_input_var_fh,file=fh_printfile)
+json_input_var_data=json.loads(json_input_var_fh)
+print('json_input_var_data=',json_input_var_data,file=fh_printfile)
+
+print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True))
+
+top_level_keys=json_input_var_data.keys()
+print('Top level JSON variable keys=',top_level_keys,file=fh_printfile)
+
+for key_now in json_input_var_data.iteritems():
+  #print('processing key_now[0]=',key_now[0],file=fh_printfile)
+  key_now0=key_now[0]
+  if(key_now0=="defaults"):
+    list_new=(json_input_var_data[key_now0])
+    for l in list_new:
+      if(l=='info'): info=str(list_new[l])
+      elif(l=='area_t'): area_t=list_new[l]
+      elif(l=='area_u'): area_u=list_new[l]
+      #elif(l=='grid'): grid=str(list_new[l])
+      #elif(l=='grid_label'): grid_label=str(list_new[l])
+      #elif(l=='vertical_interpolation_method'): vertical_interpolation_method=str(list_new[l])
+      else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  elif(key_now0==dvar):
+    print("Found required output variable:",dvar,file=fh_printfile)
+    list_new=(json_input_var_data[key_now0])
+    for l in list_new:
+      #print(l,file=fh_printfile)
+      if(l=='info'): info=str(list_new[l])
+      elif(l=='area_t'): 
+          if(list_new[l]=='True'): area_t=True
+      elif(l=='area_u'): 
+          if(list_new[l]=='True'): area_u=True
+      elif(l=='inputs'): inputs=string.split(str(list_new[l]))
+        #newinputs=string.split(inputs)
+        #print('inputs=',inputs)
+        #print('newinputs=',newinputs)
+        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      elif(l=='realm'): realm=str(list_new[l])
+#      elif(l=='diag_dims'): diag_dims=string.split(str(list_new[l]))
+      elif(l=='units'): units=str(list_new[l])
+      elif(l=='table'): table=str(list_new[l])
+      elif(l=='ovars'): ovars=string.split(str(list_new[l]))
+      elif(l=='varStructure'): varStructure=list_new[l]
+      elif(l=='positive'): positive=list_new[l]
+      elif(l=='output_type'): output_type=list_new[l]
+      elif(l=='grid'): grid=str(list_new[l])
+      elif(l=='grid_label'): grid_label=str(list_new[l])
+      else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  else:
+    pass
+    #print("hello",file=fh_printfile)
+#print('units=',units,file=fh_printfile)
+
+print('printDefinedDiagnostics=',printDefinedDiagnostics,file=fh_printfile)
+if(printDefinedDiagnostics):
+  print("Alphabetically ordered List of currently loaded diagnostis (varable/unit):",file=fh_printfile)
+  for key_now in sorted(json_input_var_data.iteritems(),reverse=False):
+    if(key_now[0]!="defaults"):
+      #print(key_now)
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      list_new=(json_input_var_data[key_now[0]])
+      #print(list_new)
+      for l in list_new:
+        if(l=='units'):
+          print(key_now[0],list_new[l],file=fh_printfile)
+  raise SystemExit('Finished writing current set.')
+
+
 nmy=12
 
 #area_u=False
 #area_t=False
 
-frequency='daily'
-realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure=grab_var_meta(dvar,frequency)
+#frequency='daily'
+#realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure=grab_var_meta(dvar,frequency)
+
+raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 if 'new_ovars' in locals():
   ovars=new_ovars
@@ -226,7 +475,7 @@ if(table=='Oday' or table=='day'):
     copyfile(fileA,fileB)
 
 cmor_tables=['coordinate','CV','Ofx','fx']
-#raise SystemExit('forced break')
+#raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 for cmor_table in cmor_tables:
   #print(cmor_table,file=fh_printfile)
   fileA='TablesTemplates/CMIP6_'+cmor_table+'.json'
@@ -401,7 +650,7 @@ if(dvar=='nino34'):
 
   #print('lat_vals=',lat_vals)
   #print('lon_vals=',lon_vals)
-  #raise SystemExit('Forced exit.')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 elif(dvar=='tos'):
   if(dvar=='umo'):
     lat_vals=xfh.variables['y_T']
@@ -552,8 +801,7 @@ for icnt in range(0,len(tavg)):
     data=diag_nino34(data,area_t,lat_vals[:],lon_vals[:],fh_printfile)
     #print('data=',data)
     #print('data.shape=',data.shape)
-    #raise SystemExit('forced break')
-
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   elif(dvar=='tos'):
     data=input_fhs[icnt].variables[inputs[0]][0,0,]
