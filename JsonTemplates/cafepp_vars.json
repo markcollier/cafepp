@@ -1,0 +1,423 @@
+#BOF
+{
+    "defaults":{
+    "info":"None", #some basic info.
+    "area_t":"None",
+    "area_u":"None"
+               },
+#
+    "tos":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"temp",
+    "inputs_alternative":"sst", #some daily outputs use sst
+    "inputs":"sst", #some daily outputs use sst
+    "realm":"ocean", #ocean,atmos currently
+#    "diag_dims":"time yt_ocean xt_ocean", #input dimensions, do we need this?
+    "units":"degC", #input units
+    "table":"Omon,Oday", #CMIP6 table
+    "table_frequency":"monthly,daily", #list for valid frequencies, will help choose appropriate table (monthly,daily,6hr,3hr, only monthly,daily for now).
+    "ovars":"dvar", #name of output variable/diagnostic
+    "varStructure":"time_lat_lon", #type of structure of output
+    "positive":"None", #does it need a positive attribute?
+    "output_type":"broadcast", #either a broadcast (with or without modifications) or a diagnostic
+    "plev_type":"None", #whether pfull or phalf (atmospheric plev variables).
+    "lat_lon_type":"y_T x_T" #labels used for lat/lon definitions.
+    },
+#
+    "sos":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"salt",
+    "realm":"ocean",
+#    "diag_dims":"time yt_ocean xt_ocean",
+    "units":"0.001",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_T"
+    },
+#
+    "tauu":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"tau_x",
+    "realm":"atmos",
+#    "diag_dims":"time lat lon",
+    "units":"Pa",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"up",
+    "output_type":"broadcast",
+    "plev_type":"None"
+    },
+#
+    "tauv":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"tau_y",
+    "realm":"atmos",
+#    "diag_dims":"time lat lon",
+    "units":"Pa",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"up",
+    "output_type":"broadcast",
+    "plev_type":"None"
+    },
+#
+    "nino34":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"temp",
+    "inputs_alternative":"sst", #some daily outputs use sst
+    "realm":"ocean",
+#    "diag_dims":"time",
+    "units":"degC",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time",
+    "positive":"None",
+    "output_type":"diagnostic",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_T",
+    "diagnostic_args_string":"area_t,lat_vals[:],lon_vals[:],fh_printfile"
+    },
+    "iod":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"temp",
+    "inputs_alternative":"sst", #some daily outputs use sst
+    "realm":"ocean",
+#    "diag_dims":"time",
+    "units":"degC",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time",
+    "positive":"None",
+    "output_type":"diagnostic",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_T",
+    "diagnostic_args_string":"area_t,lat_vals[:],lon_vals[:],fh_printfile"
+    },
+#
+    "thetao":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"temp",
+    "realm":"ocean",
+#    "diag_dims":"time st_ocean yt_ocean xt_ocean",
+    "units":"degC",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_depth_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_T"
+    },
+    "thetao100m":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"temp",
+    "realm":"ocean",
+#    "diag_dims":"time st_ocean yt_ocean xt_ocean",
+    "units":"degC",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_reduceddepth_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "grid":"Upper 100m of ocean only",
+    "grid_label":"gn100m",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_T"
+    },
+#
+    "psl":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"slp",
+    "realm":"atmos",
+#    "diag_dims":"time lat lon",
+    "units":"Pa",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"up",
+    "output_type":"diagnostic",
+    "plev_type":"None"
+    },
+#
+    "zg500":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"h500",
+    "realm":"atmos",
+#    "diag_dims":"time lat lon",
+    "units":"m",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"up",
+    "output_type":"broadcast",
+    "plev_type":"None"
+    },
+#
+    "zg":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"h",
+    "realm":"atmos",
+    "units":"m",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"phalf"
+    },
+#
+    "ua":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"ucomp",
+    "realm":"atmos",
+    "units":"m/sec",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"pfull"
+    },
+#
+    "huss":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"q_ref",
+    "realm":"atmos",
+    "units":"1.0",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"None"
+    },
+#
+    "hfss":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"shflx",
+    "realm":"atmos",
+    "units":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"up"
+    },
+#
+    "rlut":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"olr",
+    "realm":"atmos",
+    "units":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"up"
+    },
+#
+    "sfcWind":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"wind",
+    "realm":"atmos",
+    "units":"m s-1",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"None"
+    },
+#
+    "tslsi":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"t_ref",
+    "realm":"atmos",
+    "units":"K",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"None"
+    },
+#
+    "hfls":{
+    "info":"None",
+    "area_t":"False",
+#    "inputs":"evap",
+    "inputs":"shflx", #dummy to test out, later use correct one.
+    "realm":"atmos",
+    "units":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"diagnostic",
+    "plev_type":"None",
+    "positive":"up",
+    "comment":"Converted from evap using 28.9, assuming latent heat of vaporization of 2.5 MJ/kg"
+    },
+#
+    "uas":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"uas",
+    "realm":"atmos",
+    "units":"m s-1",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"None"
+    },
+#
+    "vas":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"vas",
+    "realm":"atmos",
+    "units":"m s-1",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"None"
+    },
+    "mlotst":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"mld",
+    "realm":"ocean",
+#    "diag_dims":"time yt_ocean xt_ocean",
+    "units":"m",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_T"
+    },
+    "umo":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"tx_trans",
+    "realm":"ocean",
+#    "diag_dims":"time yt_ocean xt_ocean",
+    "units":"m",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_C"
+    },
+    "vmo":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"ty_trans",
+    "realm":"ocean",
+#    "diag_dims":"time yt_ocean xt_ocean",
+    "units":"m",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "lat_lon_type":"y_C x_T"
+    },
+    "zos":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"eta_t",
+    "realm":"ocean",
+#    "diag_dims":"time yt_ocean xt_ocean",
+    "units":"m",
+    "table":"Omon,Oday",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "lat_lon_type":"y_T x_T"
+    },
+    "rlus":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"lwup_sfc",
+    "realm":"atmos",
+    "units":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"diagnostic",
+    "plev_type":"None",
+    "positive":"up"
+    },
+    "dummy":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"lwup_sfc",
+    "realm":"atmos",
+    "units":"W m-2",
+    "table":"Amon",
+    "table_frequency":"monthly,daily",
+    "ovars":"dvar",
+    "varStructure":"time_lat_lon",
+    "output_type":"diagnostic",
+    "plev_type":"None",
+    "positive":"up"
+    }
+}
+#EOF
