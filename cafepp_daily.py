@@ -624,6 +624,8 @@ tables.append(cmor.load_table('cmor/Tables/CMIP6_coordinate.json'))
 
 if os.path.exists('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
   xfh=netCDF4.Dataset('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+elif os.path.exists('/home/mon137/cafepp/cafepp/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
+  xfh=netCDF4.Dataset('/home/mon137/cafepp/cafepp/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
 else:
   xfh=netCDF4.Dataset('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
 if(area_t):
