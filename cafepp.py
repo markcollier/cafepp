@@ -107,7 +107,8 @@ area_t=False
 cafepp_defs='cafepp_csiro-gfdl.json'
 cafepp_experiments='cafepp_experiments.json'
 json_input_var_meta='cafepp_vars_mon.json'
-json_input_instructions='cafepp.json'
+#json_input_instructions='cafepp.json'
+json_input_instructions=sys.argv[1]
 cafepp_machine='raijin.nci.org.au'
 
 #fh_printfile=sys.stdout
@@ -283,7 +284,8 @@ if 'json_input_instructions' in locals():
 #        elif(l=='xxxprintfile'): None
         elif(l=='printDefinedDiagnostics'):
           if(list_new[l]=='True'): printDefinedDiagnostics=True
-        elif(l==''): grid_label=str(list_new[l])
+#        elif(l=='grid'): grid=str(list_new[l])
+#        elif(l=='grid_label'): grid_label=str(list_new[l])
         elif(l=='cafepp_machine'): cafepp_machine=str(list_new[l])
         else: raise SystemExit('Unknown option_with_argument,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     elif(key_now0=="options_no_arguments"):
@@ -291,8 +293,8 @@ if 'json_input_instructions' in locals():
       for l in list_new: #used to be list_new2
         if(l=='name'): name=str(list_new[l])
         elif(l=='info'): info=str(list_new[l])
-        elif(l=='Forecast'): 
-          if(list_new[l]=='True'): Forecast=list_new[l]
+#        elif(l=='Forecast'): 
+#          if(list_new[l]=='True'): Forecast=list_new[l]
         elif(l=='Regrid'):
           if(list_new[l]=='True'): Regrid=True
         elif(l=='MonthlyWeights'): 
@@ -316,6 +318,11 @@ if 'json_input_instructions' in locals():
         elif(l=='cafepp_experiments_meta'): cafepp_experiments_meta=str(list_new[l])
         elif(l=='cafepp_defs'): cafepp_defs=str(list_new[l])
         elif(l=='json_input_var_meta'): json_input_var_meta=str(list_new[l])
+    elif(key_now0=="monthly_specific"):
+      list_new=(json_input_instructions_data[key_now0])
+      for l in list_new:
+        if(l=='name'): name=str(list_new[l])
+        else: raise SystemExit('Unknown monthly_specific,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
         else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -349,6 +356,8 @@ for key_now in cafepp_experiments_data.iteritems():
     for l in list_new:
       #print('l=',l,file=fh_printfile)
       if(l=='experiment'): experiment=str(list_new[l])
+      elif(l=='Forecast'): 
+        if(list_new[l]=='True'): Forecast=list_new[l]
       elif(l=='experiment_id'): experiment_id=str(list_new[l])
       elif(l=='parent_experiment_id'): parent_experiment_id=str(list_new[l])
       elif(l=='history'): history=str(list_new[l])
@@ -375,11 +384,9 @@ for key_now in cafepp_experiments_data.iteritems():
         top_directory_no3=str(list_new[l])
         #idir=top_directory_no3 #temporary until disks sorted out...
       elif(l=='active_disk_no3'): active_disk_no3=str(list_new[l])
-
 #tube-hba
 #raijin*
 #Snapper-as
-
       elif(l=='main_science_contact'): main_science_contact=str(list_new[l])
       elif(l=='main_technical_contact'): main_technical_contact=str(list_new[l])
       elif(l=='readable_nexus_ids_no1'): readable_nexus_ids_no1=str(list_new[l])
@@ -391,6 +398,8 @@ for key_now in cafepp_experiments_data.iteritems():
       elif(l=='mend_max'): mend_max=int(list_new[l])
       elif(l=='dbeg_min'): pass #ignore for cafepp.py only relevant for cafepp_daily.py
       elif(l=='dend_max'): pass #ignore for cafepp.py only relevant for cafepp_daily.py
+      elif(l=='daily_data_layout'): pass #ignore.
+      elif(l=='monthly_data_layout'): monthly_data_layout=str(list_new[l])
       elif(l=='realisation'): realisation=int(list_new[l])
       elif(l=='initialisation'): initialisation=int(list_new[l])
       elif(l=='physics'): physics=int(list_new[l])
@@ -494,7 +503,7 @@ print('json_input_var_fh=',json_input_var_fh,file=fh_printfile)
 json_input_var_data=json.loads(json_input_var_fh)
 print('json_input_var_data=',json_input_var_data,file=fh_printfile)
 
-print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True))
+print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True),file=fh_printfile)
 
 top_level_keys=json_input_var_data.keys()
 print('Top level JSON variable keys=',top_level_keys,file=fh_printfile)
@@ -530,13 +539,15 @@ for key_now in json_input_var_data.iteritems():
       elif(l=='realm'): realm=str(list_new[l])
 #      elif(l=='diag_dims'): diag_dims=string.split(str(list_new[l]))
       elif(l=='units'): units=str(list_new[l])
-      elif(l=='table'): table=str(list_new[l])
+      elif(l=='table'): table_tmp=string.split(str(list_new[l]),sep=",")
+      elif(l=='table_frequency'): table_frequency=string.split(str(list_new[l]),sep=",")
       elif(l=='ovars'): ovars=string.split(str(list_new[l]))
-      elif(l=='varStructure'): varStructure=list_new[l]
-      elif(l=='positive'): positive=list_new[l]
-      elif(l=='output_type'): output_type=list_new[l]
-      elif(l=='grid'): grid=str(list_new[l])
-      elif(l=='grid_label'): grid_label=str(list_new[l])
+      elif(l=='varStructure'): varStructure=str(list_new[l])
+      elif(l=='positive'): positive=str(list_new[l])
+      elif(l=='output_type'): output_type=str(list_new[l])
+      elif(l=='plev_type'): plev_type=str(list_new[l])
+      elif(l=='grid'): grid=str(list_new[l]) #this will override defaults.
+      elif(l=='grid_label'): grid_label=str(list_new[l]) #this will override defaults.
       else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   else:
@@ -558,7 +569,20 @@ if(printDefinedDiagnostics):
           print(key_now[0],list_new[l],file=fh_printfile)
   raise SystemExit('Finished writing current set.')
 
+if 'table_tmp' in locals():
+  table=table_tmp[table_frequency.index(frequency)]
+else:
+  raise SystemExit('Must choose valid table:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#print(table_tmp)
+#print(table_frequency)
 #print(frequency)
+#print(table)
+#frequency='day'
+#j=table_frequency.index(frequency)
+#print(j)
+#print(type(table))
+#newtable=
 
 #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 

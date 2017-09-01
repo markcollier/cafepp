@@ -1201,7 +1201,8 @@ def diag_isothetaoNc(data,lev,value):
   #raise SystemExit('Forced exit.')
   return data
 
-def diag_nino34(data,area_t,lat,lon,fh_printfile):
+#def diag_nino34(data,area_t,lat,lon,fh_printfile):
+def diag_nino34(data,*argv):
   '''
   #5s-5n,170-120W
   Comput the Nino34 index from upper level (temporarly averaged in seasonal average case) SST.
@@ -1218,6 +1219,15 @@ def diag_nino34(data,area_t,lat,lon,fh_printfile):
   data : Nino34 index (scalar or vector depending on inputs)
   '''
   import numpy as np
+  #print('data.shape=',data.shape)
+  #print('argv0=',argv[0])
+  #print('argv1=',argv[1])
+  #print('argv2=',argv[2])
+  #lon=argv[0]
+  area_t,lon,lat,fh_printfile=argv
+  #for arg in argv:
+  #  print('another arg through *argv :',arg)
+  #raise SystemExit('Forced exit.')
   #lon=np.add(lon,360.0)
   #lon=np.where(lon<360.,lon,lon-360.)
 
@@ -1356,7 +1366,8 @@ def create_ofils(season,table,ovars,experiment_id,source_id,ripf,grid_label,ybeg
 
     return ofil,ofil_modified
 
-def diag_iod(data,area_t,lat,lon):
+#def diag_iod(data,area_t,lat,lon):
+def diag_iod(data,*argv):
   '''
   #5s-5n,170-120W
   Comput the IOD index from upper level (temporarly averaged in seasonal average case) SST.
@@ -1374,6 +1385,7 @@ def diag_iod(data,area_t,lat,lon):
   '''
 
   import numpy as np
+  area_t,lon,lat,fh_printfile=argv
   lon=np.add(lon,360.0)
   lon=np.where(lon<360.,lon,lon-360.)
   lon=np.roll(lon,80)
@@ -1390,21 +1402,21 @@ def diag_iod(data,area_t,lat,lon):
   iodE_lat_max=np.abs(lat - 0.).argmin()
   iodE_lon_min=np.abs(lon - 90.).argmin()
   iodE_lon_max=np.abs(lon - 110.).argmin()
-  #print('data.shape=',data.shape)
-  #print('area_t.shape',area_t.shape)
+  #print('data.shape=',data.shape,file=fh_printfile)
+  #print('area_t.shape',area_t.shape,file=fh_printfile)
   #j=np.vstack((area_t,area_t))
   #j=np.resize(area_t,data.shape)
   s=data.shape
-  #print('s=',s)
-  #print('iodW_lat_min=',iodW_lat_min)
-  #print('iodW_lat_max=',iodW_lat_max)
-  #print('iodW_lon_min=',iodW_lon_min)
-  #print('iodW_lon_max=',iodW_lon_max)
-  #print('')
-  #print('iodE_lat_min=',iodE_lat_min)
-  #print('iodE_lat_max=',iodE_lat_max)
-  #print('iodE_lon_min=',iodE_lon_min)
-  #print('iodE_lon_max=',iodE_lon_max)
+  #print('s=',s,file=fh_printfile)
+  #print('iodW_lat_min=',iodW_lat_min,file=fh_printfile)
+  #print('iodW_lat_max=',iodW_lat_max,file=fh_printfile)
+  #print('iodW_lon_min=',iodW_lon_min,file=fh_printfile)
+  #print('iodW_lon_max=',iodW_lon_max,file=fh_printfile)
+  #print('',file=fh_printfile)
+  #print('iodE_lat_min=',iodE_lat_min,file=fh_printfile)
+  #print('iodE_lat_max=',iodE_lat_max,file=fh_printfile)
+  #print('iodE_lon_min=',iodE_lon_min,file=fh_printfile)
+  #print('iodE_lon_max=',iodE_lon_max,file=fh_printfile)
   #raise SystemExit('Forced exit.')
 
   if(len(s)==3):
@@ -2396,7 +2408,7 @@ def grab_var_meta(dvar,frequency):
   elif(dvar=='vmo'):
     #diag=True
     area_t=False
-    inputs=['tx_trans']
+    inputs=['ty_trans']
     realm='ocean'
     diag_dims=['time','yu_ocean','xt_ocean']
     units='kg s-1'
@@ -2638,3 +2650,15 @@ def grab_var_meta(dvar,frequency):
     dvarnow=[dvar]
     #exit
   return realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure
+
+def diag_psl(data):
+  '''
+  '''
+  import numpy as np
+  return data*100.0
+
+def diag_hfls(data):
+  '''
+  '''
+  import numpy as np
+  return data/28.9

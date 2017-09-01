@@ -5120,7 +5120,7 @@
             "units": "degC",
             "cell_methods": "area: mean where sea time: mean", 
             "cell_measures": "", 
-            "long_name": "Nino34 index",
+            "long_name": "IOD index",
             "comment": "IOD index from the observed sst based on the DMI definition Saji+Yamagata 2003",
             "dimensions": "time", 
             "out_name": "iod", 

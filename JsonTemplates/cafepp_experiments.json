@@ -31,7 +31,8 @@
     "physics":1, #follow CMIP6 guidelines.
     "forcing":1, #follow CMIP6 guidelines.
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
-    "institution_id":"CSIRO"
+    "institution_id":"CSIRO",
+    "Forecast":"False" #Forecast experiments have their daily/monthly data in a subdirectory using a YYYYMMDD naming system.
     },
 #
     "v1":{
@@ -65,7 +66,8 @@
     "physics":1,
     "forcing":1,
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
-    "institution_id":"CSIRO"
+    "institution_id":"CSIRO",
+    "Forecast":"False"
     },
 #
     "v2":{
@@ -100,7 +102,8 @@
     "physics":1,
     "forcing":1,
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
-    "institution_id":"CSIRO"
+    "institution_id":"CSIRO",
+    "Forecast":"False"
     },
 #
     "v0_forecast":{
@@ -134,7 +137,8 @@
     "physics":1,
     "forcing":1,
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
-    "institution_id":"CSIRO"
+    "institution_id":"CSIRO",
+    "Forecast":"True"
     },
 #
     "coupled_da/OUTPUT-2step-nobreeding-carbon":{
@@ -168,7 +172,8 @@
     "physics":1,
     "forcing":1,
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
-    "institution_id":"CSIRO"
+    "institution_id":"CSIRO",
+    "Forecast":"True"
     },
 #
     "breed_da_twostep_carbon/MEMBERS/m.1/OUTPUT":{
@@ -180,21 +185,28 @@
     "reference":"None",
     "integration_machine":"raijin.nci.org.au",
     "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+#
     "storage_machine_no1":"tube-hba.nexus.csiro.au",
-    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da/twostep_carbon/MEMBERS/m.1/OUTPUT/",
+    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da/twostep_carbon/MEMBERS/m.1/OUTPUT",
     "active_disk_no1":"yes",
+#
     "storage_machine_no2":"raijin.nci.org.au",
-    "top_directory_no2":"None",
-    "active_disk_no2":"no",
+    "top_directory_no2":"/short/v14/mac599/breed_da/twostep_carbon/MEMBERS/m.1/OUTPUT",
+    "active_disk_no2":"yes",
+#
+    "storage_machine_no3":"Snapper-as",
+    "top_directory_no3":"/Volumes/LaCieNo1/breed_da/twostep_carbon/MEMBERS/m.1/OUTPUT",
+    "active_disk_no3":"no",
+#
     "main_science_contact":"tok599",
     "main_technical_contact":"tok599",
     "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
     "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
     "writable_nexus_ids":"tok599,dpm599",
     "ybeg_min":2002,
-    "yend_max":2016,
+    "yend_max":2003, #normally 2016
     "mbeg_min":2,
-    "mend_max":6,
+    "mend_max":3, #normally 6
     "dbeg_min":1,
     "dend_max":31,
     "realisation":1,
@@ -202,7 +214,10 @@
     "physics":1,
     "forcing":1,
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
-    "institution_id":"CSIRO"
+    "institution_id":"CSIRO",
+    "daily_data_layout":"leap_1fileperday", #noleap_1fileperyear,leap_1fileperday,leap_1fileperyear
+    "monthly_data_layout":"leap_1filepermonth", #noleap_1fileperyear,leap_1filepermonth
+    "Forecast":"True"
     },
 #
     "test_case":{
@@ -238,12 +253,58 @@
     "mend_max":12,
     "dbeg_min":1,
     "dend_max":31,
+    "daily_data_layout":"noleap_1fileperyear",
+    "monthly_data_layout":"noleap_1fileperyear", #noleap_1fileperyear,leap_1filepermonth
     "realisation":1,
     "initialisation":1,
     "physics":1,
     "forcing":1,
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
-    "institution_id":"CSIRO"
+    "institution_id":"CSIRO",
+    "Forecast":"False"
+    },
+    "v0_multiyear_forecast":{
+    "experiment":"present-day control",
+    "experiment_id":"pdControl",
+    "parent_experiment_id":"piControl",
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"None",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", #uname -a for now. (change # into other string e.g. NO)
+#
+    "storage_machine_no1":"tube-hba",
+    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/forecasts/v0/yr2006/mn1/OUTPUT.1",
+    "active_disk_no1":"yes",
+#
+    "storage_machine_no2":"raijin",
+    "top_directory_no2":"/g/data1legacy/v14/forecast/v0/yr2006/mn1/OUTPUT.1",
+    "active_disk_no2":"yes",
+#
+    "storage_machine_no3":"Snapper-as",
+    "top_directory_no3":"/Volumes/LaCieNo1/coupled_model/feb17a/OUTPUT",
+    "active_disk_no3":"no",
+#
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (some restrictions).
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", #nexus id's that can read the data (no restrictions).
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":2006,
+    "yend_max":2011,
+    "mbeg_min":1,
+    "mend_max":12,
+    "dbeg_min":1,
+    "dend_max":31,
+    "daily_data_layout":"leap_1fileperyear",
+    "monthly_data_layout":"leap_1fileperyear",
+    "realisation":1,
+    "initialisation":1,
+    "physics":1,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO",
+    "Forecast":"False"
     }
 }
 #EOF

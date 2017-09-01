@@ -140,13 +140,14 @@ let mval=$realisation+1
   idir="/g/data1/v14/dpm599/ao_am2/breeding/da/twostep_carbon/MEMBERS/m."$mval"/OUTPUT/"$end_directory
 
 else #breeding
-
-if [ $ivar = "xxx" ] || [ $ivar = "newtry" ];then
-  idir="/g/data1/v14/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon/"$end_directory
-else
   idir="/g/data1/v14/tok599/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon/"$end_directory
-  idir="/g/data1/v14/tok599/coupled_da/workdir2/OUTPUT-2step-nobreeding/"$end_directory #use this directory as other one has been moved...
-fi
+
+#if [ $ivar = "xxx" ] || [ $ivar = "newtry" ];then
+#  idir="/g/data1/v14/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon/"$end_directory
+#else
+#  idir="/g/data1/v14/tok599/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon/"$end_directory
+#  idir="/g/data1/v14/tok599/coupled_da/workdir2/OUTPUT-2step-nobreeding/"$end_directory #use this directory as other one has been moved...
+#fi
 
 fi #breeding
 
@@ -157,7 +158,7 @@ fi #breeding
 
 #./cafepp_daily.py -i 5 --version v20170804 --initialisation=1 --realisation=$realisation --physics=1 --forcings=1 -v $ivar --ybeg=$ybeg_now --yend=$yend_now --ybeg_min=$ybeg_now --yend_max=$yend_now --mbeg=$mbeg_now --mend=$mend_now --mbeg_min=$mbeg_now --mend_max=$mend_now --dbeg=$dbeg_now --dend=$dend_now --dbeg_min=$dbeg_now --dend_max=$dend_now --idir=$idir --cmorlogfile=cmor_log.txt -l stdout.txt --new_ovars="rws5,div5,eta5,uchi5,vchi5" --new_units="s-2,s-1,s-1,ms-1,ms-1"
 
-./cafepp_daily.py cafepp_daily.json
+./cafepp_daily.py cafepp.json
 
 # --new_ovars="rws5,div5,eta5,uchi5,vchi5" --new_units="s-2,s-1,s-1,ms-1,ms-1" #can be used with rws5
 
