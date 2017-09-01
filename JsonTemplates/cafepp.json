@@ -8,8 +8,8 @@
     "grid":"native_grid", #description of grid (default native_grid).
     "grid_label":"gn", #label for grid (default gn).
     "vertical_interpolation_method":"None", #default vertical interpolation method, currently used to interpolate 3d fields on atmospheric pressure levels.
-#    "frequency":"month", #input data monthly.
-    "frequency":"daily", #input data daily.
+    "frequency":"month", #input data monthly.
+#    "frequency":"daily", #input data daily.
     "cafepp_experiments_meta":"cafepp_experiments.json", #describes all known CAFE experiments.
     "cafepp_defs":"cafepp_csiro-gfdl.json", #input to CMOR3
     "json_input_var_meta":"cafepp_vars.json" #describes all known CAFEPP variables/diagnostics.
@@ -72,7 +72,7 @@
     "mbeg":1, #beg month to process (default 1).
     "mend":12, #end month to process (default 12).
 #
-#    "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
+    "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     "levs":"", #set of levels to extract, comma seperated, base 0 (e.g. 1,3,5,7).
     "cmorlogfile":"cmor_log.txt", #name of file for CMOR output.
     "printfile":"stdout.txt",

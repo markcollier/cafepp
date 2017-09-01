@@ -323,8 +323,7 @@ if 'json_input_instructions' in locals():
       for l in list_new:
         if(l=='name'): name=str(list_new[l])
         else: raise SystemExit('Unknown monthly_specific,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-
-        else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        #else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   if 'printfile' in locals():
     fh_printfile=open(printfile,"w")
@@ -536,6 +535,7 @@ for key_now in json_input_var_data.iteritems():
         #print('inputs=',inputs)
         #print('newinputs=',newinputs)
         #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      elif(l=='inputs_alternative'): inputs_alternative=string.split(str(list_new[l]))
       elif(l=='realm'): realm=str(list_new[l])
 #      elif(l=='diag_dims'): diag_dims=string.split(str(list_new[l]))
       elif(l=='units'): units=str(list_new[l])
@@ -546,6 +546,8 @@ for key_now in json_input_var_data.iteritems():
       elif(l=='positive'): positive=str(list_new[l])
       elif(l=='output_type'): output_type=str(list_new[l])
       elif(l=='plev_type'): plev_type=str(list_new[l])
+      elif(l=='lat_lon_type'): lat_lon_type=string.split(str(list_new[l]))
+      elif(l=='diagnostic_args_string'): diagnostic_args_string=str(list_new[l])
       elif(l=='grid'): grid=str(list_new[l]) #this will override defaults.
       elif(l=='grid_label'): grid_label=str(list_new[l]) #this will override defaults.
       else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -569,6 +571,9 @@ if(printDefinedDiagnostics):
           print(key_now[0],list_new[l],file=fh_printfile)
   raise SystemExit('Finished writing current set.')
 
+
+#print(table_tmp)
+#print(table_frequency)
 if 'table_tmp' in locals():
   table=table_tmp[table_frequency.index(frequency)]
 else:
@@ -957,11 +962,11 @@ f=netCDF4.Dataset(idir+idir_extra+'/'+ifil)
 time=f.variables['time']
 
 #here var_dims is just dummy as complete requirements depend on the output variable definition.
-if(realm=='ocean' and ( varStructure=='time_lat_lon' or varStructure=='time_depth_lat_lon' or varStructure=='time_reduceddepth_lat_lon')):
+if(realm=='ocean' and ( varStructure=='time_lat_lon' or varStructure=='time_depth_lat_lon' or varStructure=='time_reduceddepth_lat_lon' or varStructure=='time')):
   ivar=f.variables[inputs[0]]
   var_dims=f.variables[inputs[0]].dimensions
   var_size=f.variables[inputs[0]].shape
-elif(realm=='atmos' and ( varStructure=='time_lat_lon' or varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon')):
+elif(realm=='atmos' and ( varStructure=='time_lat_lon' or varStructure=='time_plev_lat_lon' or varStructure=='time_reducedplev_lat_lon' or varStructure=='time')):
   ivar=f.variables[inputs[0]]
   var_dims=f.variables[inputs[0]].dimensions
   var_size=f.variables[inputs[0]].shape
