@@ -16,7 +16,7 @@ if not outpath:
 try:
 	sys.path.append(os.environ['CDAT_LOCATION'])
 except:
-	print "you have not specified the environment variable: 'CDAT_LOCATION' , trying to import cdms2 anyway"
+	print("you have not specified the environment variable: 'CDAT_LOCATION' , trying to import cdms2 anyway")
 import cdms2
 
 
@@ -27,7 +27,7 @@ def plotVar(outpath,file_name,cmip_table,vcmip,local_experiment):
 	dims=var.shape
 	units=var.units
 	plt.figure()
-	print 'plotting...'
+	print('plotting...')
 	#3D field: 
 	#plot lat-lon plots at different levels, 
 	#for first time step only
@@ -51,9 +51,9 @@ def plotVar(outpath,file_name,cmip_table,vcmip,local_experiment):
 		#average
 		plt.subplot(224)
 		plt.title('ave over z')
-		print 'calculating ave over z...'
+		print('calculating ave over z...')
 		plt.imshow(np.ma.average(var[0,:],axis=0),origin='lower')
-		print 'done'		
+		print('done')
 		plt.colorbar()
 	elif len(dims)==3: 
 	#
@@ -83,7 +83,7 @@ def plotVar(outpath,file_name,cmip_table,vcmip,local_experiment):
 	if not os.path.isdir(folder):
 		os.makedirs(folder)
 	plt.savefig(folder+'/'+vcmip+'.png')
-	print 'saved figure for variable ', vcmip
+	print('saved figure for variable ', vcmip)
 	
 	#cleanup
 	plt.clf()
@@ -114,8 +114,8 @@ def calculateVals(access_file,varNames,calculation):
 			var.append(access_file[1].variables[v][:])
 	try:
 		return eval(calculation)
-	except Exception , e:
-		print "error evaluating calculation:", calculation
+	except (Exception , e):
+		print("error evaluating calculation:", calculation)
 		raise
 
 #Calculate the y_overturning mass streamfunction
@@ -288,26 +288,26 @@ def monthAve(var,time):
 			month=d.month
 	#append last month to list 
 	monthave.append(val_sum/count)
-	print 'monthly ave has shape:',np.shape(np.array(monthave))
-	print np.array(monthave)[0,50,50]
+	print('monthly ave has shape:',np.shape(np.array(monthave)))
+	print(np.array(monthave)[0,50,50])
 	return np.array(monthave)
 
 #calculate a climatology of monthly means
 def monthClim(var,time,vals_wsum,clim_days):
 	datelist=time.asComponentTime()
-	print 'calculating climatology...'
+	print('calculating climatology...')
 	#loop over all dates,
 	try:
 		for index, d in enumerate(datelist):
 			m=d.month #month
 			#add the number of days for this month
 			dummy,days=calendar.monthrange(d.year,m)
-#			print index,d,m,days
+#			print(index,d,m,days)
 			clim_days[m-1]+=days
 			#add values weighted by the number of days in this month
 			vals_wsum[m-1,:]+=(var[index,:]*days)
-	except Exception,e:
-		print e
+	except (Exception,e):
+		print(e)
 		raise
 
 	return vals_wsum,clim_days
@@ -315,19 +315,19 @@ def monthClim(var,time,vals_wsum,clim_days):
 #calculate a average monthly means (average is vals_wsum/clim_days)
 def ave_months(var,time,vals_wsum,clim_days):
 	datelist=time.asComponentTime()
-	print 'calculating climatology...'
+	print('calculating climatology...')
 	#loop over all dates,
 	try:
 		for index, d in enumerate(datelist):
 			m=d.month #month
 			#add the number of days for this month
 			dummy,days=calendar.monthrange(d.year,m)
-#			print index,d,m,days
+#			print(index,d,m,days)
 			clim_days+=days
 			#add values weighted by the number of days in this month
 			vals_wsum[:]+=(var[index,:]*days)
-	except Exception,e:
-		print e
+	except (Exception,e):
+		print(e)
 		raise
 
 	return vals_wsum,clim_days
@@ -374,7 +374,7 @@ def day2mon(tvals):
 	tmin=[] #list of start of month bounds
 	tmax=[] #list of end of month bounds
 	tmin.append(np.floor(tvals[0]))
-	print month
+	print(month)
 	#loop over all dates
 	for index, d in enumerate(datelist[1:]):
 		#print index , count ,d.month
@@ -390,7 +390,7 @@ def day2mon(tvals):
 			tmax.append(np.floor(tvals[index+1]))
 	#append last month to list 
 	tmonth.append(val_sum/count)
-	print tmonth
+	print(tmonth)
 	tmax.append(np.floor(tvals[index+1])+1)
 	return np.array(tmonth), tmin,tmax
 
@@ -826,7 +826,7 @@ def calc_volcello(area,dht):
 #assumes only one time step
 def calc_clwvi(var):
 	press=var[0]
-	print press.shape
+	print(press.shape)
 	out=np.ma.zeros([1]+list(press.shape[2:]),dtype=np.float32)
 	for z in range(press.shape[1]-1):
 		mix=np.ma.zeros(press.shape[2:],dtype=np.float32)		
@@ -948,13 +948,10 @@ def sw_press(dpth,lat):
 	x = np.sin(abs(lat[:])*deg2rad)  # convert to radians
 	c1 = 5.92e-3+x**2*5.25e-3
 	#expand arrays into 3 dimensions
-        print('dpth.shape=',dpth.shape)
 	nd,=dpth.shape
 	nlat,nlon=lat.shape
 	dpth=np.expand_dims(np.expand_dims(dpth[:],1),2)
-        print('dpth.shape=',dpth.shape)
 	dpth=np.tile(dpth,(1,nlat,nlon))
-        print('dpth.shape=',dpth.shape)
 	c1=np.expand_dims(c1,0)
 	c1=np.tile(c1,(nd,1,1))
 	return ((1-c1)-np.sqrt(((1-c1)**2)-(8.84e-6*dpth)))/4.42e-6

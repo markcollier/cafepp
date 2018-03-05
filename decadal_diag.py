@@ -2,7 +2,7 @@ from __future__ import print_function #this is to allow print(,file=xxx) feature
 
 def finish(file_name,odir,ofil,ofil_modified,season,fh_printfile):
   '''
-  finish
+  Do final processing, reporting and tidying up.
   '''
   import os
 
@@ -35,6 +35,9 @@ def filemonth_index(season,ybeg,yend,mbeg,mend,fh_printfile):
   '''
   System for generating array of indices to select months used in temporal averaging from each input file.
   Current thinking is to have it dimensioned nyears,12 even if all months are not there for first and/or last year.
+
+  Want to be able to create arbitrary seasonal outputs. For example, rather than just ANN, might want have a set of annuall defined seasons, all written out in one go. This could be DJF, MAM, JJA, SON, DJF, ... MAM, JJA, DJF. These might be easier and use less disk than utilising each in a seperate file. They might not be continous, e.g. could be just DJF, JJA. These could be DjFMaMJjASoN  DjFJjA for the two examples. But likely not have overlap, so that the seasons describe unique input data.
+
   '''
   import numpy as np
 
@@ -317,48 +320,60 @@ def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_
   #raise SystemExit('Forced exit.')
   return(tdata)
 
-def diag_nhblocking_index(data,lat,lon):
+#def diag_nhblocking_index(data,lat,lon):
+def diag_nhblocking_index(data,*argv):
   '''
+  http://www.cpc.ncep.noaa.gov/products/precip/CWlink/blocking/index/index.nh.shtml
+
   To write out GHGS/GHGN would need to have a new dimension based on size of deltas vector.
   http://www.met.rdg.ac.uk/phdtheses/The%20predictability%20of%20atmospheric%20blocking.pdf
   '''
   import numpy as np
-  print('data.shape=',data.shape)
+  import inspect
+
+  lat,lon,fh_printfile=argv
+
+  print('blocking data.shape=',data.shape,file=fh_printfile)
   #np.set_printoptions(threshold='nan')
-  #print('lat=',lat[:])
+  #print('lat=',lat[:],file=fh_printfile)
   #deltas=np.array([-5.,0.,5.])
   deltas=np.array([-5.,5.,0.])
-  if(len(data.shape) == 3):
-    blocked=np.zeros((12,len(lon[:])))
-  else:
-    blocked=np.zeros(len(lon[:]))
-  #print('lat60d=',lat60d)
-  #print('lat40d=',lat40d)
+  blocked=np.zeros((1,len(lon[:])))
+#  if(len(data.shape) == 3):
+#    blocked=np.zeros((12,len(lon[:])))
+#  else:
+#    blocked=np.zeros(len(lon[:]))
+  #print('lat60d=',lat60d,file=fh_printfile)
+  #print('lat40d=',lat40d,file=fh_printfile)
+
   for delta in range(0,len(deltas)):
     lat40d=np.abs(lat[:] - 40.+deltas[delta]).argmin()
     lat60d=np.abs(lat[:] - 60.+deltas[delta]).argmin()
     lat80d=np.abs(lat[:] - 80.+deltas[delta]).argmin()
-    if(len(data.shape) == 3):
-      GHGS=(data[:,lat60d,:]-data[:,lat40d,:])/(lat[lat60d]-lat[lat40d])
-      GHGN=(data[:,lat80d,:]-data[:,lat60d,:])/(lat[lat80d]-lat[lat60d])
-      #print('GHGS=',GHGS[30])
-      #print('GHGN=',GHGN[30])
-      blocked=blocked+(np.select([GHGS>0.],[1])+np.select([GHGN<-10.],[1])/2)
-      kkk=np.where(blocked>0)
+    #if(len(data.shape) == 3):
+    GHGS=(data[:,lat60d,:]-data[:,lat40d,:])/(lat[lat60d]-lat[lat40d])
+    GHGN=(data[:,lat80d,:]-data[:,lat60d,:])/(lat[lat80d]-lat[lat60d])
+      #print('GHGS=',GHGS[30],file=fh_printfile)
+      #print('GHGN=',GHGN[30],file=fh_printfile)
+    blocked=blocked+(np.select([GHGS>0.],[1])+np.select([GHGN<-10.],[1])/2)
+    kkk=np.where(blocked>0)
       #jjj=np.where(GHGS.any()>0. and GHGN.any()<-10.)
       #jjj=np.logical_and(GHGS>0.,GHGN<-10.)
-      #print(blocked[:])
-      #print(kkk[:])
-    else:
-      GHGS=(data[lat60d,:]-data[lat40d,:])/(lat[lat60d]-lat[lat40d])
-      GHGN=(data[lat80d,:]-data[lat60d,:])/(lat[lat80d]-lat[lat60d])
-      #print('GHGS=',GHGS[30])
-      #print('GHGN=',GHGN[30])
-      blocked=blocked+(np.select([GHGS>0.],[1])+np.select([GHGN<-10.],[1])/2)
-      kkk=np.where(blocked>0)
-  #raise SystemExit('Forced exit.')
-      print('GHGS.shape=',GHGS.shape)
-  return(blocked,GHGS,GHGN) #note only delta=0 value kept here.
+      #print(blocked[:],file=fh_printfile)
+      #print(kkk[:],file=fh_printfile)
+    #else:
+    #  GHGS=(data[lat60d,:]-data[lat40d,:])/(lat[lat60d]-lat[lat40d])
+    #  GHGN=(data[lat80d,:]-data[lat60d,:])/(lat[lat80d]-lat[lat60d])
+    #  #print('GHGS=',GHGS[30],file=fh_printfile)
+    #  #print('GHGN=',GHGN[30],file=fh_printfile)
+    #  blocked=blocked+(np.select([GHGS>0.],[1])+np.select([GHGN<-10.],[1])/2)
+    #  kkk=np.where(blocked>0)
+  #print('GHGS.shape=',GHGS.shape,file=fh_printfile)
+  #print(blocked.shape)
+  #print(blocked)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  return(blocked,GHGS,GHGN)
+  #return(blocked,GHGS,GHGN) #note only delta=0 value kept here.
 
 def init_data(ivarSnow,input_fhs,file_index,month_index,times_in_season_cnt,ntims_out,levels,nlev,weights):
   import numpy as np
@@ -623,63 +638,62 @@ def make_mask3D(data,nbasins,nzb,nlats):
   import numpy as np
   import numpy.ma as ma
   import cdms2
+  import inspect
 
-  print('msftyyz data.shape=',data.shape)
+  #print('msftyyz data.shape=',data.shape)
   #print(np.shape(data))
-  if(len(np.shape(data))==3):
-    t0=1
-  else:
-    t0=np.shape(data)[0]
-  #print('t0=',t0)
-  tmpdata=np.ma.zeros((t0,nbasins,nzb,nlats),dtype='f')
+  #if(len(np.shape(data))==3):
+  #  t0=1
+  #else:
+  #  t0=np.shape(data)[0]
+  tmpdata=np.ma.zeros((1,nbasins,nzb,nlats),dtype='f')
+  #print('tmpdata.shape=',tmpdata.shape)
   landMask=np.where( np.array(data,dtype=bool) ,0,1)
-  mask_vals=cdms2.open('/g/data/p66/mac599/CMIP5/ancillary_files/lsmask_20110618.nc','r').variables['mask_ttcell'][:,:,:]
+  mask_vals=cdms2.open('/home/599/mac599/decadal/CMIP5/ancillary_files/lsmask_20110618.nc','r').variables['mask_ttcell'][:,:,:]
 
   mask=np.zeros(np.shape(data),dtype=float)
-  if(t0==1):
-    mask=mask+np.where(mask_vals==2,1,0)
-    mask=mask+np.where(mask_vals==4,1,0)
-  else:
-    for txx in range(t0):
-      mask[txx,]=mask[txx,]+np.where(mask_vals==2,1,0)
-      mask[txx,]=mask[txx,]+np.where(mask_vals==4,1,0)
+
+  #print('mask_vals.shape=',mask_vals.shape)
+  #print('data.shape=',data.shape)
+  #print('mask.shape=',mask.shape)
+
+  mask=mask+np.where(np.expand_dims(mask_vals,axis=0)==2,1,0)
+  mask=mask+np.where(np.expand_dims(mask_vals,axis=0)==4,1,0)
   atlantic_arctic_mask=ma.masked_equal(mask,0)
 
   mask=np.zeros(np.shape(data),dtype=float)
-  if(t0==1):
-    mask=mask+np.where(mask_vals==3,1,0)
-    mask=mask+np.where(mask_vals==5,1,0)
-  else:
-    for txx in range(t0):
-      mask[txx,]=mask[txx,]+np.where(mask_vals==3,1,0)
-      mask[txx,]=mask[txx,]+np.where(mask_vals==5,1,0)
+  mask=mask+np.where(np.expand_dims(mask_vals,axis=0)==3,1,0)
+  mask=mask+np.where(np.expand_dims(mask_vals,axis=0)==5,1,0)
   indoPac_mask=ma.masked_equal(mask,0)
 
   mask=np.zeros(np.shape(data),dtype=float)
-  if(t0==1):
-    mask=mask+np.where(mask_vals/mask_vals==1,1,0)
-  else:
-    for txx in range(t0):
-      mask[txx,]=mask[txx,]+np.where(mask_vals/mask_vals==1,1,0)
+  mask=mask+np.where(np.expand_dims(mask_vals,axis=0)/np.expand_dims(mask_vals,axis=0)==1,1,0)
   global_mask=ma.masked_equal(mask,0)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   return atlantic_arctic_mask,indoPac_mask,global_mask
 
-def diag_msftyyz(data,atlantic_arctic_mask,indoPac_mask,global_mask,nbasins,nzb,nlats):
+#def diag_msftyyz(data1,data2,atlantic_arctic_mask,indoPac_mask,global_mask,nbasins,nzb,nlats):
+def diag_msftyyz(data1,data2,*argv):
   '''
   '''
   import numpy as np
   import numpy.ma as ma
   import cdms2
-  if(len(np.shape(data))==3):
-    t0=1
-  else:
-    t0=np.shape(data)[0]
+  import inspect
+  atlantic_arctic_mask,indoPac_mask,global_mask,nbasins,nzb,nlats=argv
+#  if(len(np.shape(data))==3):
+#    t0=1
+#  else:
+#    t0=np.shape(data)[0]
   #print('t0=',t0)
-  tmpdata=np.ma.zeros((t0,nbasins,nzb,nlats),dtype='f')
+  data=data1+data2
+  tmpdata=np.ma.zeros((1,nbasins,nzb,nlats),dtype='f')
   tmpdata[:,0,:,:]=np.cumsum( np.sum( data*np.where(atlantic_arctic_mask==1,1,1e20) ,axis=-1) ,axis=-2)
   tmpdata[:,1,:,:]=np.cumsum( np.sum( data*np.where(indoPac_mask==1,1,1e20) ,axis=-1) ,axis=-2)
   tmpdata[:,2,:,:]=np.cumsum( np.sum( data*np.where(global_mask==1,1,1e20) ,axis=-1) ,axis=-2)
   data=tmpdata*1e9
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
     #sss=np.array()
     #print('sss=',sss)
@@ -779,7 +793,8 @@ def transPort(var,i_start,i_end,j_start,j_end):
   #print('trans=',trans)
   return trans
 
-def diag_rws500(u,v,lat,lon,fh_printfile):
+#def diag_rws500(u,v,lat,lon,fh_printfile):
+def diag_rws500(u,v,*argv):
   '''
   rws500
   '''
@@ -787,6 +802,8 @@ def diag_rws500(u,v,lat,lon,fh_printfile):
   from windspharm.standard import VectorWind
   from windspharm.tools import prep_data, recover_data, order_latdim
   import spharm
+
+  lat,lon,fh_printfile=argv
 
   #print('lat=',lat)
 
@@ -819,7 +836,8 @@ def diag_rws500(u,v,lat,lon,fh_printfile):
   print('S.shape=',S.shape,file=fh_printfile)
   return S 
 
-def diag_mfo(tx_trans,ty_trans,nlines):
+#def diag_mfo(tx_trans,ty_trans,nlines):
+def diag_mfo(tx_trans,ty_trans,*argv):
   '''
   transAcrossLine from app_funcs.py
   '''
@@ -827,10 +845,13 @@ def diag_mfo(tx_trans,ty_trans,nlines):
   import numpy.ma as ma
   import cdms2
   #from app_funcs import *
-  if(len(np.shape(tx_trans))==3):
-    t0=1
-  else:
-    t0=np.shape(data)[0]
+
+  nlines,fh_printfile=argv
+
+  #if(len(np.shape(tx_trans))==3):
+  t0=1
+  #else:
+  #  t0=np.shape(data)[0]
   print('tx_trans.shape=',tx_trans.shape)
   #transports= np.zeros([len(tx_trans[:,0,0,0]),len(getTransportLines())],dtype=np.float32)
   transports=np.zeros((t0,nlines),dtype='f')
@@ -1042,7 +1063,8 @@ def diag_nhice_cover(data,area_t,lat,lon):
   data=np.sum(np.sum(step2*area_t[200:300,:],axis=0),axis=0)*1e-12
   return data
 
-def diag_rws(data1,data2,lats,lons,rws_string):
+#def diag_rws(data1,data2,lats,lons,outputs_string):
+def diag_rws5(data1,data2,*argv):
   '''
     pfull = 3.65029282220392, 19.0883974368005, 52.3401931985815, 
     99.1299239257332, 157.381018593963, 224.749226564636, 298.944381749781, 
@@ -1056,6 +1078,9 @@ def diag_rws(data1,data2,lats,lons,rws_string):
   import numpy.ma as ma
   from windspharm.standard import VectorWind
   from windspharm.tools import prep_data, recover_data, order_latdim
+
+  lats,lons,outputs_string,fh_printfile=argv
+
   #print('data1.shape=',data1.shape)
   #print('data2.shape=',data2.shape)
   #print('uwnd.shape=',uwnd.shape)
@@ -1089,15 +1114,15 @@ def diag_rws(data1,data2,lats,lons,rws_string):
 
   print('rws5.shape=',rws5.shape)
 
-  if "rws5" in rws_string:
+  if "rws5" in outputs_string:
     rws5 = recover_data(rws5, uwnd_info)
-  if "div5" in rws_string:
+  if "div5" in outputs_string:
     div5 = recover_data(div5, uwnd_info)
-  if "eta5" in rws_string:
+  if "eta5" in outputs_string:
     eta5 = recover_data(eta5, uwnd_info)
-  if "uchi5" in rws_string:
+  if "uchi5" in outputs_string:
     uchi5 = recover_data(uchi5, uwnd_info)
-  if "vchi5" in rws_string:
+  if "vchi5" in outputs_string:
     vchi5 = recover_data(vchi5, uwnd_info)
 
   print('rws5.shape=',rws5.shape)
@@ -1111,11 +1136,11 @@ def diag_rws(data1,data2,lats,lons,rws_string):
   #return recover_data(uwnd, uwnd_info)
   #return recover_data(vwnd, uwnd_info)
 
-  s=",";return_what=s.join(rws_string)
+  s=",";return_what=s.join(outputs_string)
   #return_what="rws,div,eta,uchi,vchi"
   print("return_what=",return_what)
 
-  #if "rws" in rws_string:
+  #if "rws" in outputs_string:
   #  print("yes")
   #else:
   #  print("no")
@@ -1123,6 +1148,524 @@ def diag_rws(data1,data2,lats,lons,rws_string):
 
   #return(rws,div,eta,uchi,vchi)
   return(eval(return_what))
+
+def diag_north_salt_trans(salt,vvel,*argv):
+  '''
+  note that salinity and northward velocity are on different grids, may need to interpolate to another grid. for now assume same grid.
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  north_cell_width,area,nlats,nlons,zt,z0,zb,depth=argv
+
+  z=zb-z0 #zt is level mid-point, z0 is upper bound, zb is lower bound, z is level delta (thickness).
+
+  find_z=np.abs(zb - depth).argmin() #find depth for which to sum over. Might need to add vertical interpolation to find exact depth.
+
+  salt=ma.masked_equal(salt,-1e20)
+  vvel=ma.masked_equal(salt,-1e20)
+
+  north_cell_width=np.expand_dims(np.expand_dims(area,0),0)
+  north_cell_width=np.tile(north_cell_width ,(1,find_z+1,1,1))
+
+  north_cell_width = north_cell_width*salt/salt
+
+  thickness=np.expand_dims(np.expand_dims(np.expand_dims(z[0:find_z+1],1),2),0)
+
+  thickness=np.tile( thickness ,(1,1,nlats,nlons))
+
+  thickness = thickness*salt/salt
+
+  print(salt.shape)
+  print(north_cell_width.shape)
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  result = np.sum(vvel * north_cell_width * thickness * (salt[:,0:find_z+1,:,:]), axis=1)
+
+  print('total salt transport of ocean=',np.sum(np.sum(np.sum(result))))
+
+  return(result)
+
+#def diag_so5l(data,*argv):
+#  '''
+#  build up new level by level a new set of so taking into account bounds of input and output. Will need to think about how to deal with missing data especially ocean bottom.
+#  '''
+#
+#  import numpy as np
+#  import numpy.ma as ma
+#  import inspect
+#
+#  nlats,nlons,nzt,zt,z0,zb,nzt_new,zt_new,z0_new,zb_new=argv
+#
+#  #data=ma.masked_equal(data,-1e20)
+#
+#  #print(data.shape)
+#
+#  nzt=zt_new.size
+#
+#  #interpolated_data=np.zeros((1,5,nlats,nlons),dtype=float)
+#  interpolated_data=np.zeros((1,nzt_new,nlats,nlons),dtype=float)
+#
+#  zbounds_new=np.column_stack((z0_new,zb_new))
+#
+#  for lll in range(0,nzt_new):
+#    #print(lll)
+#    #print(zbounds_new[lll,:])
+#    interpolated_data[:,lll,:,:]=ocean_vertical_interpolate(data,nlats,nlons,zt,zb,z0,zbounds_new[lll,:])
+#
+#  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#
+#  return interpolated_data
+
+def diag_dTbydz(data,*argv):
+  '''
+need to think of clever way to export new vertical coordinate and have it defined before the cmor dimension definitions are performed.
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  nlats,nlons,nzt,zt,z0,zb=argv
+
+  data=ma.masked_equal(data,-1e20)
+
+  data_new=np.zeros((1,nzt,nlats,nlons),dtype=float)
+
+  zt_new=np.zeros(nzt-1,dtype=float)
+  dz=zb-z0
+
+  #print(data.shape)
+  #nzt=zt.size
+  #print('zt: mid level depth value.')
+  #print('z0: top level depth value.')
+  #print('zb: bottom level depth value.')
+  #print('dz: level thickness .')
+  #print('data: data value at depth zt.')
+
+  #print("     zt    z0    zb    dz  data")
+  #print("     zt    z0    zb    dz")
+  for zzz in range(1,nzt):
+    #print("%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz], "%5.2f"% data[zzz])
+    #print("%2.0f"% zzz, "%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz])
+
+    for lll in range(1,nzt-1):
+      data_new[:,lll,:,:]=(data[:,lll+1,:,:]-data[:,lll,:,:]) / (zt[lll+1]-zt[lll])
+      zt_new[lll]=(zt[lll+1]+zt[lll])/2.
+  #output=np.amax(data_new,axis=1)
+
+  #print(data_new.shape)
+
+  #print(zt_new)
+  #print(output.shape)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  return data_new
+
+def diag_maxdTbydz(data,*argv):
+  '''
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  nlats,nlons,nzt,zt,z0,zb=argv
+
+  data=ma.masked_equal(data,-1e20)
+
+  data_new=np.zeros((1,nzt-1,nlats,nlons),dtype=float)
+  zt_new=np.zeros(nzt-1,dtype=float)
+  dz=zb-z0
+
+  #print(data.shape)
+  #nzt=zt.size
+  #print('zt: mid level depth value.')
+  #print('z0: top level depth value.')
+  #print('zb: bottom level depth value.')
+  #print('dz: level thickness .')
+  #print('data: data value at depth zt.')
+
+  #print("     zt    z0    zb    dz  data")
+  #print("     zt    z0    zb    dz")
+  for zzz in range(0,nzt):
+    #print("%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz], "%5.2f"% data[zzz])
+    #print("%2.0f"% zzz, "%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz])
+
+    for lll in range(0,nzt-1):
+      data_new[:,lll,:,:]=(data[:,lll+1,:,:]-data[:,lll,:,:]) / (zt[lll+1]-zt[lll])
+      zt_new[lll]=(zt[lll+1]+zt[lll])/2.
+  output=np.amax(data_new,axis=1)
+
+  #print(zt_new)
+  #print(output.shape)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  return output
+
+def diag_depmaxdTbydz(data,*argv):
+  '''
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  nlats,nlons,nzt,zt,z0,zb=argv
+
+  data=ma.masked_equal(data,-1e20)
+
+  data_new=np.zeros((1,nzt-1,nlats,nlons),dtype=float)
+  output=np.zeros((1,nlats,nlons),dtype=float)
+  zt_new=np.zeros(nzt-1,dtype=float)
+  dz=zb-z0
+
+  #print(data.shape)
+  #nzt=zt.size
+  #print('zt: mid level depth value.')
+  #print('z0: top level depth value.')
+  #print('zb: bottom level depth value.')
+  #print('dz: level thickness .')
+  #print('data: data value at depth zt.')
+  #print("     zt    z0    zb    dz  data")
+  #print("     zt    z0    zb    dz")
+  #for zzz in range(0,nzt):
+    #print("%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz], "%5.2f"% data[zzz])
+    #print("%2.0f"% zzz, "%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz])
+
+  for lll in range(0,nzt-1):
+    data_new[:,lll,:,:]=(data[:,lll+1,:,:]-data[:,lll,:,:]) / (zt[lll+1]-zt[lll])
+    zt_new[lll]=(zt[lll+1]+zt[lll])/2.
+  zindex_where_max=np.argmax(data_new,axis=1) #note only first occurence of maximum value is obtained, usually OK.
+
+  #print(zt_new)
+  #print(zt_new.shape)
+  #zt_new3d=np.expand_dims(np.expand_dims(np.expand_dims(zt_new,0),2),3)
+  #zt_new3d=np.tile( zt_new3d,(1,1,nlats,nlons))
+  #print(zt_new3d.shape)
+  #jjj=data_new[output]
+  #print(jjj.shape)
+#* data[:,0,:,:]/data[:,0,:,:]
+  #print('zindex_where_max.shape=',zindex_where_max.shape)
+  #print('data_new.shape=',data_new.shape)
+  #print('zt_new3d.shape=',zt_new3d.shape)
+
+  for jj in range(0,nlats):
+    for ii in range(0,nlons):
+      output[:,jj,ii]=zt_new[zindex_where_max[:,jj,ii]]
+  output=output * data[:,0,:,:]/data[:,0,:,:]
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  return output
+
+def diag_varNl(data,*argv):
+  '''
+  build up new level by level a new set of thetao taking into account bounds of input and output. Will need to think about how to deal with missing data especially ocean bottom.
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  nlats,nlons,nzt,zt,z0,zb,nzt_new,zt_new,z0_new,zb_new=argv
+
+  #data=ma.masked_equal(data,-1e20)
+
+  #print(data.shape)
+
+  nzt=zt_new.size
+  #zbounds_new=np.column_stack((z0_new,zb_new)).flatten()
+  zbounds_new=np.column_stack((z0_new,zb_new))
+
+  #interpolated_data=np.zeros((1,5,nlats,nlons),dtype=float)
+  if(nzt==1):
+    interpolated_data=np.zeros((1,nlats,nlons),dtype=float)
+
+    #print(zt,zb,z0,zbounds_new)
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    #jjj=ocean_vertical_interpolate(data,nlats,nlons,zt,zb,z0,zbounds_new[:,])
+    #print(jjj.shape)
+    interpolated_data[:,:,:]=ocean_vertical_interpolate(data,nlats,nlons,zt,zb,z0,zbounds_new[:,])
+  else:
+    interpolated_data=np.zeros((1,nzt_new,nlats,nlons),dtype=float)
+    print(zt,zb,z0,zbounds_new)
+    for lll in range(0,nzt_new):
+      interpolated_data[:,lll,:,:]=ocean_vertical_interpolate(data,nlats,nlons,zt,zb,z0,zbounds_new[lll,:])
+
+  #np.set_printoptions(threshold='nan') #will print out whole array
+  #print(interpolated_data[:])
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  return interpolated_data
+
+#def diag_thetao10l(data,*argv):
+#  '''
+#  build up new level by level a new set of thetao taking into account bounds of input and output. Will need to think about how to deal with missing data especially ocean bottom.
+#  '''
+#
+#  import numpy as np
+#  import numpy.ma as ma
+#  import inspect
+#
+#  nlats,nlons,nzt,zt,z0,zb,nzt_new,zt_new,z0_new,zb_new=argv
+#
+#  #data=ma.masked_equal(data,-1e20)
+#
+#  #print(data.shape)
+#
+#  interpolated_data=np.zeros((1,nzt_new,nlats,nlons),dtype=float)
+#
+#  zbounds_new=np.column_stack((z0_new,zb_new))
+#
+#  for lll in range(0,nzt_new):
+#    #print(lll)
+#    #print(zbounds_new[lll,:])
+#    interpolated_data[:,lll,:,:]=ocean_vertical_interpolate(data,nlats,nlons,zt,zb,z0,zbounds_new[lll,:])
+#  print(interpolated_data.shape)
+#
+#  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#
+#  return interpolated_data
+
+def diag_thetao0to80m(data,*argv):
+  '''
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  nlats,nlons,zt,z0,zb=argv
+
+  data=ma.masked_equal(data,-1e20)
+
+  print(data.shape)
+
+  lev_top_bot=np.array([0.0, 80.0])
+  lev_top_bot=np.array([5.0, 80.0])
+  lev_top_bot=np.array([5.0, 85.0])
+
+  result=ocean_vertical_interpolate(data,nlats,nlons,zt,zb,z0,lev_top_bot)
+
+  #print(result.shape)
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  return(result)
+
+def diag_salt_content(data,*argv):
+  '''
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  area,nlats,nlons,zt,z0,zb,depth=argv
+
+  data=ma.masked_equal(data,-1e20)
+
+  #print(data.shape)
+
+  z=zb-z0 #zt is level mid-point, z0 is upper bound, zb is lower bound, z is level delta (thickness).
+
+  find_z=np.abs(zb - depth).argmin() #find depth for which to sum over. Might need to add vertical interpolation to find exact depth.
+
+  print('total area of earth=',np.sum(np.sum(area)))
+
+  area=np.expand_dims(np.expand_dims(area,0),0)
+  area=np.tile(area ,(1,find_z+1,1,1))
+
+  area = area*data/data
+
+  print(area.shape)
+
+  print('total area of ocean=',np.sum(np.sum(area[0,0,:])))
+
+  thickness=np.expand_dims(np.expand_dims(np.expand_dims(z[0:find_z+1],1),2),0)
+
+  thickness=np.tile( thickness ,(1,1,nlats,nlons))
+
+  thickness = thickness*data/data
+
+  mass = thickness * area * 1020.0 #of ocean
+
+  volume = thickness * area
+
+  print('total mass of water=',np.sum(np.sum(np.sum(mass))))
+
+  print('total volume of ocean=',np.sum(np.sum(np.sum(volume))))
+
+#salt in psu not g/kg or kg/kg
+
+  result = np.sum(thickness * area * (data[:,0:find_z+1,:,:]*1.), axis=1)
+
+  print('total salt of ocean=',np.sum(np.sum(np.sum(result))))
+
+#total salt/volume agrees with: https://www.quora.com/How-much-total-NaCl-is-dissolved-in-all-of-the-oceans-and-seas-on-Earth-accounting-for-differences-in-salinity-and-how-would-we-estimate-this-figure
+
+#total area of ocean agrees with:
+
+  return(result)
+
+def diag_north_heat_trans(temp,vvel,*argv):
+  '''
+  note that temperature and northward velocity are on different grids, may need to interpolate to another grid. for now assume same grid.
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  north_cell_width,area,nlats,nlons,zt,z0,zb,depth=argv
+
+  z=zb-z0 #zt is level mid-point, z0 is upper bound, zb is lower bound, z is level delta (thickness).
+
+  find_z=np.abs(zb - depth).argmin() #find depth for which to sum over. Might need to add vertical interpolation to find exact depth.
+
+  temp=ma.masked_equal(temp,-1e20)
+  vvel=ma.masked_equal(temp,-1e20)
+
+  north_cell_width=np.expand_dims(np.expand_dims(area,0),0)
+  north_cell_width=np.tile(north_cell_width ,(1,find_z+1,1,1))
+
+  north_cell_width = north_cell_width*temp/temp
+
+  thickness=np.expand_dims(np.expand_dims(np.expand_dims(z[0:find_z+1],1),2),0)
+
+  thickness=np.tile( thickness ,(1,1,nlats,nlons))
+
+  thickness = thickness*temp/temp
+
+  print(temp.shape)
+  print(north_cell_width.shape)
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  result = np.sum(vvel * north_cell_width * thickness * (temp[:,0:find_z+1,:,:]+273.15) * 1020.0 * 4184.0, axis=1)
+
+  print('total heat transport of ocean=',np.sum(np.sum(np.sum(result))))
+
+  return(result)
+
+#def diag_heat_content(data,lev,value):
+def diag_heat_content(data,*argv):
+
+  '''
+  http://www.geo.utexas.edu/courses/387H/Lectures/term_Chris.pdf
+  https://www.sciencedaily.com/terms/seawater.htm
+  http://pordlabs.ucsd.edu/ltalley/sio210/transports/index.html
+  http://pordlabs.ucsd.edu/jen/sio210/lecture_heat_salt_transports_US.ppt
+  http://sam.ucsd.edu/sio210/lect_2/lecture_2.html
+
+  Q = CpmT (J)
+  dQ = CpmdT
+
+  Q = Cp p T (J/m^3), where p is density
+
+  Q is total heat content (J)
+  Cp is the specific heat capacity at constant pressure (J kg-1 K-1), Cp=4184.
+  m is the mass of the material (kg)
+  T is temperature (K)
+
+  or J/m^2 if integrate over depth only
+
+  '''
+
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  data=ma.masked_equal(data,-1e20)
+
+  #print(data)
+  #print(data.filled())
+  #print(data.fill_value)
+  #data
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  area,nlats,nlons,zt,z0,zb,depth=argv
+
+  #depth=200.#temporary
+  #depth=10000.#temporary
+  z=zb-z0 #zt is level mid-point, z0 is upper bound, zb is lower bound, z is level delta (thickness).
+
+  find_z=np.abs(zb - depth).argmin() #find depth for which to sum over. Might need to add vertical interpolation to find exact depth.
+
+  #print(zt,z0,zb,z)
+
+  #print(data.shape)
+
+  #print('zb=',zb)
+
+  #print(area.shape)
+
+  #print('find_z=',find_z)
+
+  #print('total_area=',np.sum(np.sum(area)))
+
+  print('integrating from surface to depth ',zb[find_z])
+
+  #j=np.reshape(z,(50,300,360))
+  #j=np.tile(z,(50,300,360))
+  #print(j.shape)
+
+  print('total area of earth=',np.sum(np.sum(area)))
+
+  area=np.expand_dims(np.expand_dims(area,0),0)
+  area=np.tile(area ,(1,find_z+1,1,1))
+
+  area = area*data/data
+
+  print('total area of ocean=',np.sum(np.sum(area[0,0,:])))
+
+  #print(area.shape)
+
+  thickness=np.expand_dims(np.expand_dims(np.expand_dims(z[0:find_z+1],1),2),0)
+
+  thickness=np.tile( thickness ,(1,1,nlats,nlons))
+
+  thickness = thickness*data/data
+
+  mass = thickness * area * 1020.0 #of ocean
+
+  volume = thickness * area
+
+  print('total mass of water=',np.sum(np.sum(np.sum(mass))))
+
+  print('total volume of ocean=',np.sum(np.sum(np.sum(volume))))
+
+  #print('thickness.shape=',thickness.shape)
+
+  #print('thickness.shape=',thickness.shape)
+
+  #print('area',area[0,:,30,30])
+  #print('thickness',thickness[0,:,30,30])
+  #print('data',data[0,:,50,50])
+  #print(data[0,0,50:60,100:120][:])
+
+  #print(depth)
+
+  #could calculate dependent density and heat capacity using seawater package.
+
+  result = np.sum(thickness * area * (data[:,0:find_z+1,:,:]+273.15) * 1020.0 * 4184.0, axis=1)
+
+  print('total heat content of ocean *10^22=',np.sum(np.sum(np.sum(result)))/10**22)
+
+  #result = np.sum(thickness * (data[:,0:find_z+1,:,:]+273.15) * 1020.0 * 4184.0, axis=1)
+  #result = np.sum(thickness * (data[:,0:find_z+1,:,:]+0.) * 1020.0 * 4184.0, axis=1)
+
+#/ np.sum(thickness,axis=1)
+
+  #print(result.shape)
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  return(result)
 
 def diag_isothetaoNc(data,lev,value):
   '''
@@ -1144,7 +1687,7 @@ def diag_isothetaoNc(data,lev,value):
 #      depwgts[:,j,i]=depdiffs
 
   #print('data=',data)
-  #print('data.shape=',data.shape)
+  #print('diag_isothetaoNc data.shape=',data.shape)
 
   data=ma.getdata(data)
 
@@ -1176,7 +1719,7 @@ def diag_isothetaoNc(data,lev,value):
     newdata=np.zeros((data_shape[0],data_shape[2],data_shape[3]))
     #for mnow in range(0,nmy): #monthly
     for tnow in range(0,data_shape[0]):
-      print('tnow=',tnow)
+      #print('tnow=',tnow)
       newdata[tnow,]=calc_isoN(data[tnow,], value=value, levs=lev, lmax=lmax, ymin=ymin, ymax=ymax, diag=False)
 
     #raise SystemExit('Forced exit.')
@@ -1193,9 +1736,8 @@ def diag_isothetaoNc(data,lev,value):
   #print('data.shape=',data.shape)
   #lon=np.where(lon<360.,lon,lon-360.)
   #data=np.ma.masked_less_equal(data,0)
-  print('data=',data)
-  print('data.shape=',data.shape)
-
+  #print('data=',data)
+  #print('data.shape=',data.shape)
   #print('data=',data[:,180])
 
   #raise SystemExit('Forced exit.')
@@ -1224,7 +1766,7 @@ def diag_nino34(data,*argv):
   #print('argv1=',argv[1])
   #print('argv2=',argv[2])
   #lon=argv[0]
-  area_t,lon,lat,fh_printfile=argv
+  area_t,lat,lon,fh_printfile=argv
   #for arg in argv:
   #  print('another arg through *argv :',arg)
   #raise SystemExit('Forced exit.')
@@ -1240,6 +1782,8 @@ def diag_nino34(data,*argv):
   lat=np.squeeze(lat)
   area_t=np.roll(area_t,80,axis=-1)
   data=np.roll(data,80,axis=-1)
+
+  #print('data.shape=',data.shape)
 
   #print('lat=',lat,file=fh_printfile)
   #print('lon=',lon,file=fh_printfile)
@@ -1262,27 +1806,61 @@ def diag_nino34(data,*argv):
   #print('area_t.shape',area_t.shape,file=fh_printfile)
   #j=np.vstack((area_t,area_t))
   #j=np.resize(area_t,data.shape)
-  s=data.shape
-  #print('s=',s,file=fh_printfile)
+  data_shape=data.shape
+  data_size=len(data_shape)
+  #print('data_shape=',data_shape)
+  #print('data_size=',data_size)
 
-#in future all data will have time dimension.
-  if(len(s)==3):
-    #has time dimension in it.
-    newdata=np.zeros(s[0])
-    #print('newdata.shape=',newdata.shape,file=fh_printfile)
-    #print('tmpdata.shape=',tmpdata.shape,file=fh_printfile)
-    for q in range(s[0]):
-      tmpdata=data[q,]
-      #print('q=',q,file=fh_printfile)
-      #print('tmpdata.shape=',tmpdata.shape,file=fh_printfile)
-      newdata[q]=xtra_nino34(tmpdata,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
-    data=newdata 
-      #print('newdata=',newdata,file=fh_printfile)
+  ntims=data_shape[0]
+  #nlevs=s[1]
+  nlats=data_shape[-2]
+  nlons=data_shape[-1]
+
+  newdata=np.zeros(ntims,dtype=float)
+
+  if(data_size==3):
+    nlevs=1
   else:
-    data=xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
-    #print('xxdata=',data,file=fh_printfile)
-    #raise SystemExit('Forced exit.')
-  return data
+    nlevs=data_shape[1]
+
+  if(data_size==3): #sst
+    for t in range(ntims):
+      newdata[t]=xtra_nino34(data[t,],nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
+  else: #temp
+    for t in range(ntims):
+      newdata[t]=xtra_nino34(data[t,0,],nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
+  #print(newdata)
+  #raise SystemExit('Forced exit.')
+
+  #  for t in range(ntims):
+  #    data=xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
+
+##in future all data will have time dimension.
+#  if(len(s)==3):
+#    #has time dimension in it.
+#    newdata=np.zeros(s[0])
+#    #print('newdata.shape=',newdata.shape,file=fh_printfile)
+#    #print('tmpdata.shape=',tmpdata.shape,file=fh_printfile)
+#    for q in range(s[0]):
+#      tmpdata=data[q,]
+#      #print('q=',q,file=fh_printfile)
+#      #print('tmpdata.shape=',tmpdata.shape,file=fh_printfile)
+#      newdata[q]=xtra_nino34(tmpdata,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
+#    data=newdata 
+#      #print('newdata=',newdata,file=fh_printfile)
+#  else:
+#    data=xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile)
+#    #print('xxdata=',data,file=fh_printfile)
+#    #raise SystemExit('Forced exit.')
+  return(newdata)
+
+#    Vshape=salt.shape
+#    ntims=Vshape[0]
+#    nlevs=Vshape[1]
+#
+#    #print('Vshape=',Vshape)
+#    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 def xtra_nino34(data,nino34_lat_min,nino34_lat_max,nino34_lon_min,nino34_lon_max,area_t,fh_printfile):
   '''
@@ -1350,7 +1928,8 @@ def create_ofils(season,table,ovars,experiment_id,source_id,ripf,grid_label,ybeg
 
       elif(table=='fx' or table=='Ofx'):
         ofil.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'.nc')
-        ofil_modified.append(ofil)
+        ofil_modified.append(ovars[o]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'.nc')
+        #ofil_modified.append(ofil)
 
       else:
         if(season=='MON'):
@@ -1385,7 +1964,7 @@ def diag_iod(data,*argv):
   '''
 
   import numpy as np
-  area_t,lon,lat,fh_printfile=argv
+  area_t,lat,lon,fh_printfile=argv
   lon=np.add(lon,360.0)
   lon=np.where(lon<360.,lon,lon-360.)
   lon=np.roll(lon,80)
@@ -1444,7 +2023,204 @@ def xtra_iod(data,iodW_lat_min,iodW_lat_max,iodW_lon_min,iodW_lon_max,iodE_lat_m
   data=np.sum(np.sum(data[iodW_lat_min:iodW_lat_max,iodW_lon_min:iodW_lon_max]*area_t[iodW_lat_min:iodW_lat_max,iodW_lon_min:iodW_lon_max],axis=0),axis=0) / np.sum(np.sum(area_t[iodW_lat_min:iodW_lat_max,iodW_lon_min:iodW_lon_max],axis=0),axis=0) - np.sum(np.sum(data[iodE_lat_min:iodE_lat_max,iodE_lon_min:iodE_lon_max]*area_t[iodE_lat_min:iodE_lat_max,iodE_lon_min:iodE_lon_max],axis=0),axis=0) / np.sum(np.sum(area_t[iodE_lat_min:iodE_lat_max,iodE_lon_min:iodE_lon_max],axis=0),axis=0)
   return data
 
-def vertical_interpolate(data,zt,newlevs,ps,type):
+def ocean_vertical_interpolate(data,nlats,nlons,zt,zb,z0,lev_top_bot):
+  '''
+  see raijin:~mac599/decadal/ocean_vertical_interpolate.py (test/development script).
+  need to think about when mising values b/c part of weighting. For example, could try
+  to enforce same total quantity content by rescaling profile.
+  '''
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+
+  MissVal=1e20
+
+  #print(lev_top_bot)
+  lev_top_bot=np.squeeze(lev_top_bot)
+  #print(lev_top_bot)
+  #raise SystemExit('Forced exit.')
+
+  data=ma.masked_equal(data,-1e20)
+  data.set_fill_value(MissVal)
+
+  ilat,jlat=199,300 #at this point the data has only valid values in top 5 levels here.
+  #print(data[:,:,ilat,jlat]) #199,300:top 5 levels only.
+  mask=ma.getmaskarray(data[0,]) #only need surface
+  #print(mask)
+
+  dz=zb-z0
+  nzt=zt.size
+
+  #dz3d=data*dz
+
+  dz3d=np.expand_dims(np.expand_dims(np.expand_dims(dz[:],0),2),3)
+  #print(dz3d.shape)
+  dz3d=np.tile( dz3d,(1,1,nlats,nlons)) * data/data
+
+  #print(dz3d.shape)
+
+  #print(dz3d[:,:,ilat,jlat])
+
+  diag=True
+  diag=False
+
+  total_thickness=0.0
+  interpolated_data=np.zeros((1,nlats,nlons),dtype=float)
+
+  total_thickness2d=np.zeros((1,nlats,nlons),dtype=float)
+  #total_thickness_lower2d=np.zeros((1,nlats,nlons),dtype=float)
+  #total_thickness_upper2d=np.zeros((1,nlats,nlons),dtype=float)
+
+  if(diag):
+    print('zt: mid level depth value.')
+    print('z0: top level depth value.')
+    print('zb: bottom level depth value.')
+    print('dz: level thickness .')
+    print('data: data value at depth zt.')
+
+    #print("     zt    z0    zb    dz  data")
+    #print("     zt    z0    zb    dz")
+    #for zzz in range(0,nzt):
+      #print("%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz], "%5.2f"% data[zzz])
+      #print("%2.0f"% zzz, "%5.2f"% zt[zzz], "%5.2f"% z0[zzz], "%5.2f"% zb[zzz], "%5.2f"% dz[zzz])
+
+  lev_midway=np.average(lev_top_bot)
+
+  #print('lev_top_bot,lev_midway=',lev_top_bot,',',lev_midway)
+  #lev_top_bot=np.array([0.,6000.]) #temporary for testing
+
+  #print('lev_top_bot[0]=',lev_top_bot[0,])
+
+  if(lev_top_bot[0]<z0[0]):
+    raise SystemExit('Bad upper value.')
+
+  if(lev_top_bot[1]>zb[-1]):
+    raise SystemExit('Bad lower value.')
+
+  Upper=True #means shallower part of ocean.
+  Lower=True #means deeper part of ocean.
+  Between=False #if between 2 levels and use level value.
+
+  for lll in range(0,nzt):
+    #print(z0[lll],zb[lll])
+    if(lev_top_bot[0]>=z0[lll] and lev_top_bot[1]<=zb[lll]):
+      #print('Requested vertical slab between existing levels, data will simply take value at zt[lll].')
+      Upper=False
+      Lower=False
+      Between=True
+      upper=lll
+      lower=lll
+      break
+  #if(Upper and Lower): print('Requested vertical slab not between any existing levels.')
+
+  if(Upper):
+    upper=0
+    for lll in range(0,nzt):
+      if(z0[lll]==lev_top_bot[0]):
+        #print('no upper partial cell contribution')
+        Upper=False
+        upper=lll
+        break
+      elif(zt[lll]>lev_top_bot[0]):
+        upper=lll
+        #print('a upper',upper,zt[upper])
+        break
+
+  if(Lower):
+    lower=0
+    for lll in range(0,nzt):
+      if(zb[lll]>lev_top_bot[1]):
+        lower=lll
+        #print('a lower',lower,zb[lower])
+        break
+      elif(zb[lll]==lev_top_bot[1]):
+        #print('no lower partial cell contribution')
+        Lower=False
+        #lower=lll+1
+        lower=lll #made this change to cope with full depth integration...
+        break
+
+  if(diag):
+    print('Levels for which full input data is used (based 0)=',upper,' to ',lower,' out of ',nzt-1,' (base 0) levels.')
+    #if(Upper):
+    #  print('Contributions from upper partial level (base 0)=',upper-1)
+
+    #if(Lower):
+    #  print('Contributions from lower partial level (base 0)=',lower)
+
+  if(Upper):
+    #print('Contributions from upper partial level ',upper-1,'.')
+    #print('b upper',data[upper],dz[upper],zb[upper],lev_top_bot[0])
+
+    total_thickness_upper=z0[upper]-lev_top_bot[0]
+    total_thickness_upper2d=data[0,upper-1,:,:]/data[0,upper-1,:,:]*total_thickness_upper
+    total_thickness_upper2d=ma.masked_equal( np.expand_dims(total_thickness_upper2d,0), MissVal)
+    total_thickness2d[0,:,:]=total_thickness2d[0,:,:]+total_thickness_upper2d[0,:,:].filled(0.)
+    #print('total_thickness_upper=',total_thickness_upper)
+
+    #total_thickness=total_thickness+total_thickness_upper
+    interpolated_data=interpolated_data+data[:,upper,:,:]*total_thickness_upper
+
+    #print('total_thickness_upper=',total_thickness_upper,'data=',data[0,upper,ilat,jlat])
+
+  #print('Contributions from middle levels.')
+  #for mmm in range(upper,lower+1):
+  for mmm in range(upper,lower+0):
+    #print('mmm',mmm)
+    #print('mmm=',mmm,'data=',data[0,mmm,ilat,jlat])
+    #interpolated_data=interpolated_data+data[:,mmm,:,:]*dz[mmm]
+    interpolated_data=interpolated_data+data[:,mmm,:,:].filled(0.)*dz3d[0,mmm,:,:].filled(0.)
+
+    total_thickness=total_thickness+dz[mmm]
+    total_thickness2d[0,:,:]=total_thickness2d[0,:,:] + dz3d[0,mmm,:,:] #.filled(0.)
+
+  if(Lower):
+    #print('Contributions from lower partial level ',lower,'.')
+    #print('b lower',data[lower],dz[lower],zb[lower-1],lev_top_bot[1])
+
+    total_thickness_lower=lev_top_bot[1]-z0[lower]
+    total_thickness_lower2d=data[0,lower,:,:]/data[0,lower,:,:]*total_thickness_lower
+    total_thickness_lower2d=ma.masked_equal( np.expand_dims(total_thickness_lower2d,0), MissVal)
+    total_thickness2d[0,:,:]=total_thickness2d[0,:,:]+total_thickness_lower2d[0,:,:].filled(0.)
+
+    #total_thickness_lower2d=total_thickness_lower * data[0,lower,:,:]/data[0,lower,:,:]
+    #np.set_printoptions(threshold='nan') #will print out whole array
+    #print(total_thickness_lower2d.shape)
+    #print(total_thickness_lower2d[:,:,:])
+    #raise SystemExit('Forced exit.')
+    #print('total_thickness_lower=',total_thickness_lower,'data=',data[0,lower,ilat,jlat])
+    #total_thickness=total_thickness+total_thickness_lower #temp del
+    #interpolated_data=interpolated_data+data[:,lower,:,:]*total_thickness_lower #temp del
+    #interpolated_data=interpolated_data+data[:,lower,:,:].filled(0.)*total_thickness_lower2d[0,lower,:,:]
+  #print('total_thickness2d=',total_thickness2d[0,ilat,jlat])
+  #print('interpolated_data=',interpolated_data[:,ilat,jlat])
+  #raise SystemExit('Forced exit.')
+  #interpolated_data=(interpolated_data/total_thickness)*data[:,0,:,:]/data[:,0,:,:]
+  #interpolated_data=(interpolated_data/total_thickness)
+  #interpolated_data=ma.masked_equal(interpolated_data/total_thickness2d, NaN)
+  #interpolated_data=ma.masked_equal( np.where(total_thickness2d>0,interpolated_data/total_thickness2d,-1e20), -1e20)
+
+  #if(not Upper and not Lower):
+  if(Between):
+    interpolated_data=data[:,lower,:,:]
+  else:
+    interpolated_data=np.where(total_thickness2d>0,interpolated_data/total_thickness2d,MissVal)
+
+  #interpolated_data.set_fill_value(MissVal)
+  #print(interpolated_data)
+  #print(interpolated_data.filled())
+  #print(interpolated_data.fill_value)
+  #print(data.type)
+  #print(interpolated_data.type)
+  #print(interpolated_data.shape)
+  #print('total_thickness=',total_thickness)
+  #print('interpolated_data=',interpolated_data[:,ilat,jlat])
+  #print(interpolated_data)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  return(interpolated_data)
+  #return(interpolated_data.filled())
+
+def atmos_vertical_interpolate(data,zt,newlevs,ps,type):
   '''
   '''
   import numpy as np
@@ -1475,8 +2251,8 @@ def vertical_interpolate(data,zt,newlevs,ps,type):
 
   interpolated_data=np.zeros((1,nnewlevs,nlat,nlon),dtype=float)
 
-  index_hi=np.zeros(nnewlevs,float)
-  index_lo=np.zeros(nnewlevs,float)
+  index_hi=np.zeros(nnewlevs,dtype=int)
+  index_lo=np.zeros(nnewlevs,dtype=int)
 
   for lll in range(0,nnewlevs):
     found=False
@@ -1498,7 +2274,7 @@ def vertical_interpolate(data,zt,newlevs,ps,type):
       index_lo[lll]=nzt-2
       index_hi[lll]=nzt-1
 
-  #print('index_hi,index_lo=',index_hi,index_lo)
+  print('index_hi,index_lo=',index_hi,index_lo)
   #raise SystemExit('Forced exit.')
 
   if(type=='linear'):
@@ -1621,13 +2397,15 @@ iso    defined           not-defined       defined            not-defined
   '''
   import numpy as np
   import numpy.ma as ma
+  import inspect
 
   nlev=data.shape[0]
   nlat=data.shape[1]
   nlon=data.shape[2]
 
   #if(diag):
-  #  print('data.shape=',data.shape)
+  #print('data.shape=',data.shape)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   #  print('value=',value)
   #  print('levs=',levs)
   #  print('nlev,nlat,nlon=',nlev,nlat,nlon)
@@ -1642,8 +2420,8 @@ iso    defined           not-defined       defined            not-defined
   if(ymin<0): raise SystemExit('ymin<0.')
   if(ymax>nlat): raise SystemExit('ymax>nlat.')
 
-  xabove=np.zeros((nlat,nlon))
-  xbelow=np.zeros((nlat,nlon))
+  xabove=np.zeros((nlat,nlon),dtype=int)
+  xbelow=np.zeros((nlat,nlon),dtype=int)
 
   newdata=newdata+1e20 #assign default value, missing.
 
@@ -1779,6 +2557,7 @@ iso    defined           not-defined       defined            not-defined
   #print('mask2=',mask2)
   for y in range(ymin,ymax):
     for x in range(0,nlon):
+      #print('x,y=',x,y)
       if(not mask2[y,x]): #skip over points where missing (combination of land and values alread set) at surface.
         newdata[y,x] = (data[xabove[y,x],y,x] - value) / (data[xabove[y,x],y,x] - data[xbelow[y,x],y,x]) * (levs[xbelow[y,x]] - levs[xabove[y,x]]) + levs[xabove[y,x]]
   #if(diag): print('ifound1,2,3,4,5=',ifound1,ifound2,ifound3,ifound4,ifound5)
@@ -2651,14 +3430,925 @@ def grab_var_meta(dvar,frequency):
     #exit
   return realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure
 
-def diag_psl(data):
+def diag_psl(data,*argv):
   '''
   '''
   import numpy as np
-  return data*100.0
+  onehundred,fh_printfile=argv
+  return data*onehundred
 
 def diag_hfls(data):
   '''
   '''
   import numpy as np
   return data/28.9
+
+def diag_volcello(data,*argv):
+  '''
+  '''
+  import numpy as np
+  import inspect
+  area_t,zt,z,nlats,nlons,fh_printfile=argv
+  area=np.tile(np.expand_dims(area_t,0), (len(zt),1,1))
+  thickness=np.expand_dims(np.expand_dims(z[:],1),2)
+  thickness=np.tile( thickness ,(1,nlats,nlons))
+  data=np.ma.array(data/data) * thickness*area
+  #print('area.shape=',area.shape)
+  #print('thickness.shape=',thickness.shape)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  return data
+
+def diag_cl(data,*argv):
+  '''
+  '''
+  import numpy as np
+#  import inspect
+  return np.where(data<0.,0.,data*100.0) 
+
+def curvilinear_to_rectilinear(cube, target_grid_cube=None):
+    """Regrid curvilinear data to a rectilinear grid if necessary."""
+
+    coord_names = [coord.name() for coord in cube.dim_coords]
+    aux_coord_names = [coord.name() for coord in cube.aux_coords]
+
+    if 'time' in aux_coord_names:
+        aux_coord_names.remove('time')
+    if 'depth' in aux_coord_names:
+        aux_coord_names.remove('depth')
+
+    if aux_coord_names == ['latitude', 'longitude']:
+
+        if not target_grid_cube:
+            grid_res = get_grid_res(cube.coord('latitude').shape)
+            lats = numpy.arange(-90, 90.01, grid_res)
+            lons = numpy.arange(0, 360, grid_res)
+            target_grid_cube = _make_grid(lats, lons)
+
+        # Interate over slices (experimental regridder only works on 2D slices)
+        cube, coord_names = _check_coord_names(cube, coord_names)
+        slice_dims = coord_names
+
+        if 'time' in slice_dims:
+            slice_dims.remove('time')
+        if 'depth' in slice_dims:
+            slice_dims.remove('depth')
+    
+        cube_list = []
+        for i, cube_slice in enumerate(cube.slices(slice_dims)):
+            weights = numpy.ones(cube_slice.shape)
+            cube_slice.coord(axis='x').coord_system = iris.coord_systems.GeogCS(iris.fileformats.pp.EARTH_RADIUS)
+            cube_slice.coord(axis='y').coord_system = iris.coord_systems.GeogCS(iris.fileformats.pp.EARTH_RADIUS)
+            regridded_cube = regrid_weighted_curvilinear_to_rectilinear(cube_slice, weights, target_grid_cube)
+            cube_list.append(regridded_cube)
+
+        new_cube = iris.cube.CubeList(cube_list)
+        new_cube = new_cube.merge_cube()
+        coord_names = [coord.name() for coord in new_cube.dim_coords]
+
+        regrid_status = True
+
+    else:
+
+        new_cube = cube
+        regrid_status = False
+    
+    return new_cube, coord_names, regrid_status
+
+#@numba.jit
+def apply_weights(src, dest_shape, n_s, n_b, row, col, s):
+    """
+    Apply ESMF regirdding weights.
+    """
+
+    dest = np.ndarray(dest_shape).flatten()
+    dest[:] = 0.0
+    src = src.flatten()
+
+    for i in range(n_s):
+        dest[row[i]-1] = dest[row[i]-1] + s[i]*src[col[i]-1]
+
+    return dest.reshape(dest_shape)
+
+def shade_2d_simple(data):
+  '''
+  plot a 2d array and save to a file.
+  '''
+  import matplotlib.pyplot as plt
+
+  fn='test.png'
+  cs=plt.contourf(data)
+  plt.contour(data,colors='black')
+  cb=plt.colorbar(cs)
+  cb.set_label('units')
+  plt.savefig('test.png')
+  print('Image saved to ',fn)
+  #pylab.show()
+  #plt.show()
+
+  return()
+
+def shade_2d_latlon(data,lats,lons,clevs):
+    """
+    """
+    import cartopy.crs as ccrs
+    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+    from cartopy.util import add_cyclic_point
+    import matplotlib as mpl
+    mpl.rcParams['mathtext.default'] = 'regular'
+    import matplotlib.pyplot as plt
+
+    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=180))
+    #clevs = [0,50,100,150,200,250,300,10000]
+    #clevs = [0,50,100,150,200,250,300]
+    if('clevs' in locals()):
+      fill = ax.contourf(lons, lats, data , clevs, cmap=plt.cm.RdBu_r, transform=ccrs.PlateCarree(), extend='both')
+    else:
+      fill = ax.contourf(lons, lats, data, cmap=plt.cm.RdBu_r, transform=ccrs.PlateCarree(), extend='both')
+    ax.coastlines()
+    ax.gridlines()
+    ax.set_xticks([0, 60, 120, 180, 240, 300, 359.99], crs=ccrs.PlateCarree())
+    ax.set_yticks([-90, -60, -30, 0, 30, 60, 90], crs=ccrs.PlateCarree())
+    lon_formatter = LongitudeFormatter(zero_direction_label=True, number_format='.0f')
+    lat_formatter = LatitudeFormatter()
+    ax.xaxis.set_major_formatter(lon_formatter)
+    ax.yaxis.set_major_formatter(lat_formatter)
+    plt.colorbar(fill, orientation='horizontal')
+    plt.title('data($units$)', fontsize=16)
+    plt.savefig('test.png')
+    #plt.show()
+
+def diag_zmld_boyer(temp,salt,*argv):
+    """
+    depth in metres (m) is approximately equal to pressure in decibars (db).
+    http://www.seabird.com/document/an69-conversion-pressure-depth
+    Update: seem to get an IndexError in zmld_boyer, not sure why a.t.m.
+    """
+    import numpy as np
+    import inspect
+    import seawater as sw
+    import numpy.ma as ma
+
+    p,nlats,nlons,fh_printfile=argv
+    temp=ma.masked_equal(temp,-1e20)
+    salt=ma.masked_equal(salt,-1e20)
+
+    #print(temp.shape)
+
+    Vshape=temp.shape
+    ntims=Vshape[0]
+    #print('Vshape=',Vshape)
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    data=np.ones((ntims,nlats,nlons),float)*-1e20
+
+    for t in range(0,ntims):
+      #for y in range(50,nlats):
+      #  for x in range(50,nlons):
+      for y in range(0,nlats):
+        for x in range(0,nlons):
+          print('y,x=',y,x)
+          kval_tmp=np.array(np.nonzero(~temp[0,:,y,x].mask)).flatten() #assume salt has some number of non-missing points above ocean bottom.
+        #print('kval_tmp=',kval_tmp)
+        #print(kval_tmp.size)
+          if(kval_tmp.size>0):
+            kval=kval_tmp[-1]
+            print('kval=',kval)
+            print('temp=',temp[0,0:kval,y,x])
+            print('salt=',salt[0,0:kval,y,x])
+            print('p=',p[0:kval])
+            data[t,y,x],dummy=zmld_boyer(salt[t,0:kval,y,x],temp[t,0:kval,y,x],p[0:kval]) #dummy is mld based on temperature threshold, ignore for now.
+          #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    return(data)
+
+def zmld_boyer(s,t,p):
+    """
+    Computes mixed layer depth, based on de Boyer Montegut et al., 2004.
+
+    Parameters
+    ----------
+    s : array_like
+        salinity [psu (PSS-78)]
+    t : array_like
+        temperature [?~D~C (ITS-90)]
+    p : array_like
+        pressure [db].
+
+    Notes
+    -----
+    Based on density with fixed threshold criteria
+    de Boyer Montegut et al., 2004. Mixed layer depth over the global ocean:
+        An examination of profile data and a profile-based climatology.
+        doi:10.1029/2004JC002378
+
+    dataset for test and more explanation can be found at:
+    http://www.ifremer.fr/cerweb/deboyer/mld/Surface_Mixed_Layer_Depth.php
+
+    Codes based on : http://mixedlayer.ucsd.edu/
+    taken from python-oceans//oceans/sw_extras/sw_extras.py
+    """
+    import numpy as np
+    import inspect
+    import seawater as sw
+
+    #p,fh_printfile=argv
+
+#    print(t.shape)
+#    print(s.shape)
+#    print(p.shape)
+
+    m = len(s)
+    # starti = min(find((pres-10).^2==min((pres-10).^2)));
+    starti = np.min(np.where(((p - 10.)**2 == np.min((p - 10.)**2)))[0])
+    pres = p[starti:m]
+    sal = s[starti:m]
+    temp = t[starti:m]
+    starti = 0
+    m = len(sal)
+    pden = sw.dens0(sal, temp)-1000
+
+    mldepthdens_mldindex = m
+    for i, pp in enumerate(pden):
+        if np.abs(pden[starti] - pp) > .03:
+            mldepthdens_mldindex = i
+            break
+
+    # Interpolate to exactly match the potential density threshold.
+    presseg = [pres[mldepthdens_mldindex-1], pres[mldepthdens_mldindex]]
+    pdenseg = [pden[starti] - pden[mldepthdens_mldindex-1], pden[starti] -
+               pden[mldepthdens_mldindex]]
+    P = np.polyfit(presseg, pdenseg, 1)
+    presinterp = np.linspace(presseg[0], presseg[1], 3)
+    pdenthreshold = np.polyval(P, presinterp)
+
+    # The potential density threshold MLD value:
+    ix = np.max(np.where(np.abs(pdenthreshold) < 0.03)[0])
+    mldepthdens_mldindex = presinterp[ix]
+
+    # Search for the first level that exceeds the temperature threshold.
+    mldepthptmp_mldindex = m
+    for i, tt in enumerate(temp):
+        if np.abs(temp[starti] - tt) > 0.2:
+            mldepthptmp_mldindex = i
+            break
+
+    # Interpolate to exactly match the temperature threshold.
+    presseg = [pres[mldepthptmp_mldindex-1], pres[mldepthptmp_mldindex]]
+    tempseg = [temp[starti] - temp[mldepthptmp_mldindex-1],
+               temp[starti] - temp[mldepthptmp_mldindex]]
+    P = np.polyfit(presseg, tempseg, 1)
+    presinterp = np.linspace(presseg[0], presseg[1], 3)
+    tempthreshold = np.polyval(P, presinterp)
+
+    # The temperature threshold MLD value:
+    ix = np.max(np.where(np.abs(tempthreshold) < 0.2)[0])
+    mldepthptemp_mldindex = presinterp[ix]
+
+    return mldepthdens_mldindex, mldepthptemp_mldindex
+    #return data
+
+def sigmatheta(s, t, p, pr=0):
+    """
+    :math:`\\sigma_{\\theta}` is a measure of the density of ocean water
+    where the quantity :math:`\\sigma_{t}` is calculated using the potential
+    temperature (:math:`\\theta`) rather than the in situ temperature and
+    potential density of water mass relative to the specified reference
+    pressure.
+
+    Parameters
+    ----------
+    s(p) : array_like
+           salinity [psu (PSS-78)]
+    t(p) : array_like
+           temperature [:math:`^\\circ` C (ITS-90)]
+    p : array_like
+        pressure [db]
+    pr : number
+         reference pressure [db], default = 0
+
+    Returns
+    -------
+    sgmte : array_like
+           density  [kg m :sup:`3`]
+
+    Examples
+    --------
+    >>> # Data from UNESCO Tech. Paper in Marine Sci. No. 44, p22.
+    >>> from seawater.library import T90conv
+    >>> from oceans import sw_extras as swe
+    >>> s = [0, 0, 0, 0, 35, 35, 35, 35]
+    >>> t = T90conv([0, 0, 30, 30, 0, 0, 30, 30])
+    >>> p = [0, 10000, 0, 10000, 0, 10000, 0, 10000]
+    >>> swe.sigmatheta(s, t, p)
+    array([ -0.157406  ,  -0.20476006,  -4.34886626,  -3.63884068,
+            28.10633141,  28.15738545,  21.72863949,  22.59634627])
+
+    References
+    ----------
+    .. [1] Fofonoff, P. and Millard, R.C. Jr UNESCO 1983. Algorithms for
+    computation of fundamental properties of seawater. UNESCO Tech. Pap. in
+    Mar. Sci., No. 44, 53 pp.  Eqn.(31) p.39.
+    http://www.scor-int.org/Publications.htm
+
+    .. [2] Millero, F.J., Chen, C.T., Bradshaw, A., and Schleicher, K. A new
+    high pressure equation of state for seawater. Deap-Sea Research., 1980,
+    Vol27A, pp255-264. doi:10.1016/0198-0149(80)90016-3
+
+    """
+    import numpy as np
+    import inspect
+    import seawater as sw
+    import numpy.ma as ma
+    s, t, p, pr = list(map(np.asanyarray, (s, t, p, pr)))
+    return sw.pden(s, t, p, pr) - 1000.0
+
+def diag_zmld_so(temp,salt,*argv):
+    """
+    depth in metres (m) is approximately equal to pressure in decibars (db).
+    http://www.seabird.com/document/an69-conversion-pressure-depth
+    Update:
+    """
+    import numpy as np
+    import inspect
+    #import seawater as sw
+    import numpy.ma as ma
+
+    p,nlats,nlons,fh_printfile=argv
+    temp=ma.masked_equal(temp,-1e20)
+    salt=ma.masked_equal(salt,-1e20)
+
+    #print(temp.shape)
+
+    Vshape=temp.shape
+
+    ntims=Vshape[0]
+    #print('Vshape=',Vshape)
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    data=np.ones((ntims,nlats,nlons),float)*-1e20
+
+    for t in range(0,ntims):
+      #for y in range(50,nlats):
+      #  for x in range(50,nlons):
+      for y in range(0,nlats):
+        for x in range(0,nlons):
+          #print('y,x=',y,x)
+          kval_tmp=np.array(np.nonzero(~temp[0,:,y,x].mask)).flatten() #assume salt has some number of non-missing points above ocean bottom.
+        #print('kval_tmp=',kval_tmp)
+        #print(kval_tmp.size)
+          if(kval_tmp.size>0):
+            kval=kval_tmp[-1]#kval is the deepest point.
+            #print('kval=',kval)
+            #print('temp=',temp[0,0:kval,y,x])
+            #print('salt=',salt[0,0:kval,y,x])
+            #print('p=',p[0:kval])
+            value=zmld_so(salt[t,0:kval,y,x], temp[t,0:kval,y,x],p[0:kval], threshold=0.05, smooth=None)
+            if(value.size==1):
+              #print('value=',value)
+              data[t,y,x]=zmld_so(salt[t,0:kval,y,x], temp[t,0:kval,y,x],p[0:kval], threshold=0.05, smooth=None) #do I have to set to 0 otherwise? sometimes I got 2 values for return value...
+          #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    return(data)
+
+def zmld_so(s, t, p, threshold=0.05, smooth=None):
+    """
+    Computes mixed layer depth of Southern Ocean waters.
+
+    Parameters
+    ----------
+    s : array_like
+        salinity [psu (PSS-78)]
+    t : array_like
+        temperature [?~D~C (ITS-90)]
+    p : array_like
+        pressure [db].
+    smooth : int
+        size of running mean window, to smooth data.
+
+    References
+    ----------
+    Mitchell B. G., Holm-Hansen, O., 1991. Observations of modeling of the
+        Antartic phytoplankton crop in relation to mixing depth. Deep Sea
+        Research, 38(89):981-1007. doi:10.1016/0198-0149(91)90093-U
+
+    """
+    from pandas import rolling_mean
+    import numpy as np
+    import inspect
+    sigma_t = sigmatheta(s, t, p)
+    depth = p
+    if smooth is not None:
+        sigma_t = rolling_mean(sigma_t, smooth, min_periods=1)
+
+    sublayer = np.where(depth[(depth >= 5) & (depth <= 10)])[0]
+    sigma_x = np.nanmean(sigma_t[sublayer])
+    nan_sigma = np.where(sigma_t < sigma_x + threshold)[0]
+    sigma_t[nan_sigma] = np.nan
+    der = np.divide(np.diff(sigma_t), np.diff(depth))
+    mld = np.where(der == np.nanmax(der))[0]
+    zmld = depth[mld]
+
+    return zmld
+
+def diag_spice(temp,salt,*argv):
+    """
+    depth in metres (m) is approximately equal to pressure in decibars (db).
+    http://www.seabird.com/document/an69-conversion-pressure-depth
+    Update:
+    """
+    import numpy as np
+    import inspect
+    #import seawater as sw
+    import numpy.ma as ma
+
+    p,nlats,nlons,fh_printfile=argv
+    temp=ma.masked_equal(temp,-1e20)
+    salt=ma.masked_equal(salt,-1e20)
+
+    Vshape=temp.shape
+    ntims=Vshape[0]
+    nlevs=Vshape[1]
+    #print('Vshape=',Vshape)
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    data=np.ones((ntims,nlevs,nlats,nlons),float)*-1e20
+
+    for t in range(0,ntims):
+      temp_flat=temp[t,].reshape(nlevs*nlats*nlons) #units of degC
+      salt_flat=salt[t,].reshape(nlevs*nlats*nlons) #units of psu (1.0) e.g. 35
+      data=spice(salt_flat,temp_flat,p).reshape(nlevs,nlats,nlons) #p passed as dummy, not needed as no potential temperature calculation needed..
+
+      #print(data_flat.shape)
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#    for t in range(0,ntims):
+#      #for y in range(50,nlats):
+#      #  for x in range(50,nlons):
+#      for y in range(0,nlats):
+#        for x in range(0,nlons):
+#          #print('y,x=',y,x)
+#          kval_tmp=np.array(np.nonzero(~temp[0,:,y,x].mask)).flatten() #assume salt has some number of non-missing points above ocean bottom.
+#        #print('kval_tmp=',kval_tmp)
+#        #print(kval_tmp.size)
+#          if(kval_tmp.size>0):
+#            kval=kval_tmp[-1]#kval is the deepest point.
+#            #print('kval=',kval)
+#            #print('temp=',temp[0,0:kval,y,x])
+#            #print('salt=',salt[0,0:kval,y,x])
+#            #print('p=',p[0:kval])
+#            data[t,0:kval,y,x]=spice(salt[t,0:kval,y,x], temp[t,0:kval,y,x],p[0:kval])
+#            #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    return(data)
+
+#def spice(s, t, p):
+def spice(s, pt, p): #already potential temperature
+    """
+    Compute sea spiciness as defined by Flament (2002).
+
+    .. math:: \pi(\theta,s) = \sum^5_{i=0} \sum^4_{j=0} b_{ij}\theta^i(s-35)^i
+
+    Parameters
+    ----------
+    s(p) : array_like
+           salinity [psu (PSS-78)]
+    t(p) : array_like
+           temperature [:math:`^\\circ` C (ITS-90)]
+    p : array_like
+        pressure [db]
+
+    Returns
+    -------
+    sp : array_like
+         :math:`\pi` [kg m :sup:`3`]
+
+    See Also
+    --------
+    pressure is not used... should the input be theta instead of t?
+    Go read the paper!
+
+    Notes
+    -----
+    Spiciness, just like potential density, is only useful over limited
+    vertical excursions near the pressure to which they are referenced; for
+    large vertical ranges, the slope of the isopycnals and spiciness isopleths
+    vary significantly with pressure, and generalization of the polynomial
+    expansion to include a reference pressure dependence is needed.
+
+    Examples
+    --------
+    >>> from oceans import sw_extras as swe
+    >>> swe.spice(33, 15, 0)
+    array(0.5445864137500002)
+
+    References
+    ----------
+    .. [1] A state variable for characterizing water masses and their
+    diffusive stability: spiciness. Prog. in Oceanography Volume 54, 2002,
+    Pages 493-501.
+
+    http://www.satlab.hawaii.edu/spice/spice.m
+
+    """
+    import numpy as np
+    import inspect
+    #import seawater as sw
+    #import numpy.ma as ma
+    #s, t, p = list(map(np.asanyarray, (s, t, p))) #not needed
+
+    #print('s.shape=',s.shape)
+    # FIXME: I'm not sure about this next step.
+    #pt = sw.ptmp(s, t, p) #not neeed
+
+    B = np.zeros((6, 5))
+    B[0, 0] = 0.
+    B[0, 1] = 7.7442e-001
+    B[0, 2] = -5.85e-003
+    B[0, 3] = -9.84e-004
+    B[0, 4] = -2.06e-004
+
+    B[1, 0] = 5.1655e-002
+    B[1, 1] = 2.034e-003
+    B[1, 2] = -2.742e-004
+    B[1, 3] = -8.5e-006
+    B[1, 4] = 1.36e-005
+
+    B[2, 0] = 6.64783e-003
+    B[2, 1] = -2.4681e-004
+    B[2, 2] = -1.428e-005
+    B[2, 3] = 3.337e-005
+    B[2, 4] = 7.894e-006
+
+    B[3, 0] = -5.4023e-005
+    B[3, 1] = 7.326e-006
+    B[3, 2] = 7.0036e-006
+    B[3, 3] = -3.0412e-006
+    B[3, 4] = -1.0853e-006
+
+    B[4, 0] = 3.949e-007
+    B[4, 1] = -3.029e-008
+    B[4, 2] = -3.8209e-007
+    B[4, 3] = 1.0012e-007
+    B[4, 4] = 4.7133e-008
+
+    B[5, 0] = -6.36e-010
+    B[5, 1] = -1.309e-009
+    B[5, 2] = 6.048e-009
+    B[5, 3] = -1.1409e-009
+    B[5, 4] = -6.676e-010
+
+    sp = np.zeros_like(pt)
+    T = np.ones_like(pt)
+    s = s - 35
+    r, c = B.shape
+    for i in range(r):
+        S = np.ones_like(pt)
+        for j in range(c):
+            sp += B[i, j] * T * S
+            S *= s
+        T *= pt
+
+    #print('sp=',sp.shape)
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    return(sp)
+
+def diag_bigthetao(temp,salt,*argv):
+    """
+    depth in metres (m) is approximately equal to pressure in decibars (db).
+    http://www.seabird.com/document/an69-conversion-pressure-depth
+    Update:
+    """
+    import numpy as np
+    import inspect
+    import gsw as gsw
+    import numpy.ma as ma
+
+    depths,lat_vals,lon_vals_360,nlats,nlons,fh_printfile=argv
+
+    depths3d=np.expand_dims(np.expand_dims(depths,1),2)
+    depths3d=np.tile( depths3d ,(1,nlats,nlons)) # 1m same as pressure in db.
+
+    #print('depths3d.shape=',depths3d.shape)
+
+    temp=ma.masked_equal(temp,-1e20)
+    salt=ma.masked_equal(salt,-1e20)
+    #print(depths3d.shape)
+    #print('salt.shape=',salt.shape)
+    #print('type(salt)=',type(salt))
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    #print('salt=',salt[0,:50,50])
+    #print('temp=',temp[0,:50,50])
+
+    Vshape=temp.shape
+    ntims=Vshape[0]
+    nlevs=Vshape[1]
+
+    #print('Vshape=',Vshape)
+    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    data=np.zeros((ntims,nlevs,nlats,nlons),float)
+
+    #SP = [34.5487, 34.7275, 34.8605, 34.6810, 34.5680, 34.5600]
+    #p = [10, 50, 125, 250, 600, 1000]
+    #lon = 188
+    #lat = 4
+    #print(gsw.SA_from_SP(SP, p, lon, lat))
+
+    #print(lon_vals_360[:])
+    #p=depths[:]-10.1325
+    #p=depths[:]
+    #print(p)
+
+    #print(lon_vals_360)
+    #print('type(lon_vals_360=',type(lon_vals_360))
+
+    for t in range(0,ntims):
+      #s=salt[t,:,:,:]
+      #print('s.shape=',s.shape)
+      #print('depths3d.shape=',depths3d.shape)
+      #print('lon_vals_360.shape=',lon_vals_360.shape)
+      #print('lat_vals.shape=',lat_vals.shape)
+      abs_salt=gsw.SA_from_SP(salt[t,:,:,:], depths3d-10.1325, lon_vals_360[:], lat_vals[:])
+      #abs_salt=gsw.SA_from_SP(salt[t,:,:,:], depths3d-10.1325, lon_vals_360, lat_vals)
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      #print(abs_salt.shape)
+      data[t,:,:,:]=gsw.CT_from_pt(abs_salt, temp[t,:,:,:])
+      data=ma.masked_where(temp==-1e20,data)
+      #print('data.shape=',data.shape)
+      #print('type(data)=',type(data))
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    return(data)
+
+def diag_soabs(salt,*argv):
+    """
+    depth in metres (m) is approximately equal to pressure in decibars (db).
+    http://www.seabird.com/document/an69-conversion-pressure-depth
+    Update:
+    """
+    import numpy as np
+    import inspect
+    import gsw as gsw
+    import numpy.ma as ma
+
+    depths,lat_vals,lon_vals_360,nlats,nlons,fh_printfile=argv
+
+    depths3d=np.expand_dims(np.expand_dims(depths,1),2)
+    depths3d=np.tile( depths3d ,(1,nlats,nlons)) # 1m same as pressure in db.
+
+    salt=ma.masked_equal(salt,-1e20)
+
+    Vshape=salt.shape
+    ntims=Vshape[0]
+    nlevs=Vshape[1]
+
+    #print('Vshape=',Vshape)
+    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    data=np.zeros((ntims,nlevs,nlats,nlons),float)
+
+    for t in range(0,ntims):
+      data[t,:,:,:]=gsw.SA_from_SP(salt[t,:,:,:], depths3d-10.1325, lon_vals_360[:], lat_vals[:])
+      data=ma.masked_where(salt==-1e20,data)
+    return(data)
+
+def diag_spiciness(temp,salt,*argv):
+    """
+    depth in metres (m) is approximately equal to pressure in decibars (db).
+    http://www.seabird.com/document/an69-conversion-pressure-depth
+    Update:
+    """
+    import numpy as np
+    import inspect
+    import gsw as gsw
+    import numpy.ma as ma
+
+    depths,lat_vals,lon_vals_360,nlats,nlons,fh_printfile=argv
+
+    depths3d=np.expand_dims(np.expand_dims(depths,1),2)
+    depths3d=np.tile( depths3d ,(1,nlats,nlons)) # 1m same as pressure in db.
+
+    temp=ma.masked_equal(temp,-1e20)
+    salt=ma.masked_equal(salt,-1e20)
+
+    Vshape=temp.shape
+    ntims=Vshape[0]
+    nlevs=Vshape[1]
+
+    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    data=np.zeros((ntims,nlevs,nlats,nlons),float)
+
+    for t in range(0,ntims):
+      abs_salt=gsw.SA_from_SP(salt[t,:,:,:], depths3d-10.1325, lon_vals_360[:], lat_vals[:])
+      con_temp=gsw.CT_from_pt(abs_salt, temp[t,:,:,:])
+      data[t,:,:,:]=gsw.spiciness0(abs_salt, con_temp)
+      data=ma.masked_where(temp==-1e20,data)
+    return(data)
+
+def diag_potrho(temp,salt,*argv):
+    """
+    depth in metres (m) is approximately equal to pressure in decibars (db).
+    http://www.seabird.com/document/an69-conversion-pressure-depth
+    Update:
+    """
+    import numpy as np
+    import inspect
+    import gsw as gsw
+    import numpy.ma as ma
+
+    depths,lat_vals,lon_vals_360,nlats,nlons,fh_printfile=argv
+
+    depths3d=np.expand_dims(np.expand_dims(depths,1),2)
+    depths3d=np.tile( depths3d ,(1,nlats,nlons)) # 1m same as pressure in db.
+
+    temp=ma.masked_equal(temp,-1e20)
+    salt=ma.masked_equal(salt,-1e20)
+
+    Vshape=temp.shape
+    ntims=Vshape[0]
+    nlevs=Vshape[1]
+
+    if(nlats!=Vshape[-2]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(nlons!=Vshape[-1]): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    data=np.zeros((ntims,nlevs,nlats,nlons),float)
+    offset=10.1325
+    offset=0.
+
+    for t in range(0,ntims):
+      abs_salt=gsw.SA_from_SP(salt[t,:,:,:], depths3d-offset, lon_vals_360[:], lat_vals[:])
+      con_temp=gsw.CT_from_pt(abs_salt, temp[t,:,:,:])
+      data[t,:,:,:]=gsw.rho(abs_salt, con_temp, depths3d-offset)
+      data=ma.masked_where(temp==-1e20,data)
+    return(data)
+
+def uncomment_json(input,output,clobber):
+  '''
+  To remove comments from input file and write to output file observing clobber setting.
+  '''
+  import os
+  import inspect
+
+  ifh=open(input)
+
+  if(os.path.exists(output) and not clobber):
+    raise SystemExit('Output exists and clobber=False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  else:
+    if(os.path.exists(output)):
+      os.remove(output)
+    ofh=open(output,'w')
+
+  for i,line in enumerate(ifh):
+    fields=line.strip().split('#')
+
+    if(fields[0]!=''):
+      print(fields[0],file=ofh)
+    else:
+      None
+
+  ifh.close()
+  ofh.close()
+
+  return()
+
+def process_json(input,output,REALISATION,YBEG_MIN,YEND_MAX,MBEG_MIN,MEND_MAX,DBEG_MIN,DEND_MAX,clobber):
+  '''
+  To process keyword strings input file and write to output file observing clobber setting.
+  '''
+  import os
+  import inspect
+
+  ifh=open(input)
+
+  if(os.path.exists(output) and not clobber):
+    raise SystemExit('Output exists and clobber=False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  else:
+    if(os.path.exists(output)):
+      os.remove(output)
+    ofh=open(output,'w')
+
+  #print(type(REALISATION))
+  if(REALISATION<10):
+    PPREALISATION="00"+str(REALISATION)
+  elif ( REALISATION<100 ):
+    PPREALISATION="0"+str(REALISATION)
+  else:
+    PPREALISATION=str(REALISATION)
+
+  if ( REALISATION<10 ):
+    PREALISATION="0"+str(REALISATION)
+  elif ( REALISATION<100 ):
+    PREALISATION=str(REALISATION)
+  else:
+    PREALISATION=str(REALISATION)
+
+  #print(PPREALISATION)
+
+  for i,line in enumerate(ifh):
+
+    line=line.replace('YBEG_MIN',str(YBEG_MIN))
+    line=line.replace('YEND_MAX',str(YEND_MAX))
+    line=line.replace('MBEG_MIN',str(MBEG_MIN))
+    line=line.replace('MEND_MAX',str(MEND_MAX))
+    line=line.replace('DBEG_MIN',str(DBEG_MIN))
+    line=line.replace('DEND_MAX',str(DEND_MAX))
+    line=line.replace('PPREALISATION',str(PPREALISATION))
+    line=line.replace('PREALISATION',str(PREALISATION))
+    line=line.replace('REALISATION',str(REALISATION))
+
+    #print(line,end='')
+    print(line,file=ofh,end='')
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  ifh.close()
+  ofh.close()
+
+  return()
+
+def fractional_year_from_num2date(stamps,calendar):
+  '''
+  Calculate fractional year YYYY.XXXX for generating time-axis suitable for plotting.
+  Can cope with different calendar systems. Ignores time-frequencies less than hours (e.g. minutes, seconds)
+  although they could be included if required.
+  First written 02 March 2018 by Mark Collier
+  Last modified 02 March 2018 by Mark Collier
+  '''
+  import datetime
+  import netCDF4
+  import numpy as np
+    
+  fraction_year_size=len(stamps)
+  #print('fraction_year_size=',fraction_year_size)
+  fraction_year=np.zeros(fraction_year_size,dtype=float)
+
+  for i,stamp in enumerate(stamps):
+    #print(i,stamp)
+    this_year=(stamp.year)
+    this_month=(stamp.month)
+    this_day=(stamp.day)
+    this_hour=(stamp.hour)
+    #print('this_hour=',this_hour)
+    time_string='days since '+str(this_year)+'-01-01'
+    
+    time_stamp_beg=datetime.datetime(this_year,1,1) + datetime.timedelta(hours=0.0)
+    time_beg=netCDF4.date2num(time_stamp_beg,time_string,calendar)
+    
+    time_stamp_now=datetime.datetime(this_year,this_month,this_day) + datetime.timedelta(hours=this_hour)
+    time_now=netCDF4.date2num(time_stamp_now,time_string,calendar)
+    
+    time_stamp_end=datetime.datetime(this_year,12,31) + datetime.timedelta(hours=24.0)
+    time_end=netCDF4.date2num(time_stamp_end,time_string,calendar)
+
+    fraction_of_the_year=(time_now-time_beg)/(time_end+1.0)
+    fraction_year[i]=this_year+fraction_of_the_year
+
+  return(fraction_year)
+
+def get_daily_indices_for_monthlyave(time,stamp,calendar):
+  '''
+  Calculate the indices of time that correspond to the month, allowing monthly averages of some quantity to be calculated.
+  Might need to consider other kinds of calendars e.g. 365_day etc.
+  '''
+  import datetime
+  import netCDF4
+  import calendar
+
+  ybeg=stamp[0].year
+  yend=stamp[-1].year
+  
+  indices=[]
+  for ynow in range(ybeg,yend+1):
+    if(not calendar.isleap(ynow) or calendar=='noleap'):
+      days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31]
+    else:
+      days_in_month=[31,29,31,30,31,30,31,31,30,31,30,31]
+    for mnow in range(0,12):
+      #print('ynow,mnow=',ynow,mnow)
+      dates=[datetime.datetime(ynow,mnow+1,1,12)+n*datetime.timedelta(hours=24) for n in range(days_in_month[mnow])]
+      #print('dates=',dates)
+      indices.append(netCDF4.date2index(dates,time,select='exact'))
+  return(indices)
+
+def new_monthly_array_shape(data_shape,a,b):
+  '''
+  Determine vector describing how to reshape array so that monthly climatologies can be formed.
+  a typically equals number of years
+  b typically equals 12, number of months in a year
+  '''
+  import numpy as np
+  in_shape=np.asarray(data_shape)
+  in_size=in_shape.size
+  value=np.zeros((2+in_size-1),dtype=int)
+  value[0]=a
+  value[1]=b
+  if(len(in_shape)>1):
+    for i,d in enumerate(in_size):
+      if(i>0):
+        #print('i,d=',i,d)
+        value[i+1]=d
+  return(value)
