@@ -4352,3 +4352,20 @@ def new_monthly_array_shape(data_shape,a,b):
         #print('i,d=',i,d)
         value[i+1]=d
   return(value)
+
+def restrict_input_files(input_files):
+  '''
+  get rid of files that have less than normal number of days in a month.
+  '''
+  import netCDF4
+  data=[]
+  for i,f in enumerate(input_files):
+    fh=netCDF4.Dataset(f)
+    time=fh.variables['time']
+    time_size=time.size
+    #print(time_size)
+    if(time_size>=28 and time_size<=31):
+      data.append(f)
+    else:
+      print('Removing ',f,' from list.')
+  return(data)
