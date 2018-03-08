@@ -5,22 +5,11 @@
     "info":"None",
     "area_t":"None",
     "area_u":"None",
-#
     "grid":"native_grid", #description of grid (default native_grid).
     "grid_label":"gn", #label for grid (default gn).
-
-    #"grid":"data regridded via linear interpolation to a 2x2 degree latxlon (90x180) grid from the native 300x360 latxlon tri-polar grid", #description of grid (default native_grid), this pairs with gr1.
-    #"grid_label":"gr1",
-
-    #"grid":"data regridded via linear interpolation to a 1x1 degree latxlon  (180x360)grid from the native 300x360 latxlon tri-polar grid", #description of grid (default native_grid), this pairs with gr2.
-    #"grid_label":"gr2",
-#
-    #"grid":"data regridded via linear interpolation to a 5x5 degree latxlon  (36x72)grid from the native 300x360 latxlon tri-polar grid", #description of grid (default native_grid), this pairs with gr3.
-    #"grid_label":"gr3",
-#
-    "vertical_interpolation_method":"None", #default vertical interpolation method, currently used to interpolate 3d fields on atmospheric pressure levels.
-#    "frequency":"month", #input data monthly.
-    "frequency":"daily", #input data daily.
+#    "vertical_interpolation_method":"None", #default vertical interpolation method, currently used to interpolate 3d fields on atmospheric pressure levels.
+    "frequency":"month", #input data monthly.
+#    "frequency":"daily", #input data daily.
     "cafepp_experiments_meta":"cafepp_experiments.json", #describes all known CAFE experiments.
     "cafepp_defs":"cafepp_csiro-gfdl.json", #input to CMOR3
     "json_input_var_meta":"cafepp_vars.json" #describes all known CAFEPP variables/diagnostics.
@@ -30,69 +19,29 @@
     "info":"None",
     "name":"options_no_arguments_cafepp.json",
 #    "Forecast":"False", #Forecast experiments have their daily/monthly data in a subdirectory using a YYYYMMDD naming system. (obsolte, now in experiments.json).
-#    "Regrid":"False", #regridding data to other horizontal resolutions/domains (now obsolete).
+    "Regrid":"False", #regridding data to other horizontal resolutions/domains.
 #    "MonthlyWeights":"False", #apply monthly weights, for calculating seasonal averages.
-    "NoClobber":"True", #do not overwrite indeded output file, exit.
+    "NoClobber":"False", #do not overwrite indeded output file, exit.
     "ProcessFileList":"False" #process a list of files, assuming they are contiguous in time.
           },
 #
     "options_with_arguments":{
-    "cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",
+    "cafe_experiment":"v1", #experiment to process, see file cafepp_experimentrs.json for the current list.
+     "cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",
     "info":"last modified today",
     "force_hostname":"raijin", #force hostname to ensure idir is correct (e.g. when submitting to raijin, the batch machine name is very hard to match.
     "name":"options_with_arguments_cafepp.json",
     "importance":5, #a number between 1-5, the higher the number the less important it is in terms of keeping long term.
     "version":"v20171025", #cmor defaults to current date, sometimes want output to go into a specific directory.
 #
-#    "dvar":"thetao",
-#    "dvar":"tos",
-#    "dvar":"ta5",
-#    "dvar":"ua5",
-#    "dvar":"va5",
-#    "dvar":"zg5",
-#    "dvar":"isothetao20c", #now called t20d
-#    "dvar":"hus5",
-#    "dvar":"heatcontent",
-#    "dvar":"saltcontent",
-#    "dvar":"northheattrans",
-#    "dvar":"northsalttrans",
-#    "dvar":"thetao0to80m",
-#    "dvar":"thetao5l",
-#    "dvar":"thetao10l",
-#    "dvar":"so5l",
-#    "dvar":"t20d", #some variables should not be remapped off native grid as the variable grid will vary and is not known apriori and therefore cannot be remapped reliably.
-#    "dvar":"mlotst",
-#    "dvar":"zmld_boyer",
-#    "dvar":"zmld_so",
-#    "dvar":"t16d",
-#    "dvar":"t22d",
-#    "dvar":"tauu",
-#    "dvar":"tauv",
-#    "dvar":"mlotstsq",
-#    "dvar":"thetaot",
-#    "dvar":"thetaot300",
-#    "dvar":"thetaot700",
-#    "dvar":"thetaot2000",
-#    "dvar":"dTbydz",
-#    "dvar":"maxdTbydz",
-#    "dvar":"depmaxdTbydz",
-#    "dvar":"pr",
-#    "dvar":"ta",
-#    "dvar":"spice", #version based on code in python-oceans
-#    "dvar":"spiciness", #version based on teos-10
-#    "dvar":"bigthetao",
-#    "dvar":"soabs",
-#    "dvar":"ua",
-    "dvar":"nino34",
-#    "dvar":"potrho",
-#    "dvar":"msftyz",
+    "dvar":"tos",
 #
-    "ybeg":2011, #beg year to process (no default).
-    "yend":2011, #end year to process (no default). 2016
-    "mbeg":2, #beg month to process (default 1).
-    "mend":2, #end month to process (default 12). 6
+    "ybeg":2002, #beg year to process (no default).
+    "yend":2016, #end year to process (no default). 2012
+    "mbeg":1, #beg month to process (default 1).
+    "mend":6, #end month to process (default 12). 6
 #
-#    "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
+     "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     "levs":"", #set of levels to extract, comma seperated, base 0 (e.g. 1,3,5,7).
     "cmorlogfile":"cmor_log.txt", #name of file for CMOR output.
 #    "printfile":"stdout.txt",
@@ -102,7 +51,7 @@
     "daily_specific":{
     "name":"daily_specific",
     "dbeg":1, #beg day to process (daily processing only).
-    "dend":28 #end day to process (daily processing only). careful...depends on month end... 30
+    "dend":30 #end day to process (daily processing only). careful...depends on month end...
           },
     "monthly_specific":{
     "name":"monthly_specific"
