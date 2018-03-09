@@ -45,10 +45,10 @@ igo=True
 if(igo):
   input_files=['cafepp_daily.ipynb','cafepp_daily_nino34_from_sst.ipynb','cafepp_monthly_nino34_from_sst.ipynb','qjob.csh','cafepp_daily_assimilation.json','cafepp_daily_assimilation_year_month.py','cafepp_daily_forecast_experiments.json','setup_jupyter_server.bash','cafepp_monthly_assimilation.json','cafepp_monthly_assimilation.py']
   input_files=['cafepp_daily_assimilation.json','cafepp_daily_assimilation_year_month.py']
-  input_files=['setup_jupyter_server.bash']
   input_files=['cafepp_monthly_assimilation.json']
   input_files=['cafepp_monthly_assimilation.py']
   input_files=['cafepp_daily.ipynb','cafepp_daily_nino34_from_sst.ipynb','cafepp_monthly_nino34_from_sst.ipynb']
+  input_files=['setup_jupyter_server.bash']
   for i,file in enumerate(input_files):
     command='scp mac599@raijin.nci.org.au:decadal/paper_analysis/'+file+' ./'
     print(command)

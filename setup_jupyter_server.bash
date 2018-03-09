@@ -1,6 +1,6 @@
 #cd ~mac599/decadal/paper_analysis
 
-hostname=hostname
+hostname=`hostname`
 
 value=`nslookup $hostname | awk '{if ( $1=="Address:" && NR==5 )print$2}'`
 
