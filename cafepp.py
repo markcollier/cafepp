@@ -38,7 +38,7 @@ import seawater
 #import sys
 import getopt
 import string
-from decadal_diag import MustHaveAllLevs,diag_acc_drake,diag_acc_africa,diag_mozmbq,diag_aabw,diag_nadw,diag_pp,diag_nflux,diag_ep,diag_ssh,diag_moc,diag_moc_atlantic,diag_moc_pacific,diag_moc_indian,diag_shice_cover,diag_nhice_cover,diag_nino34,xtra_nino34,init_data,sum_data,avg_data,filemonth_index,data_wavg,time_avg,diag_nhblocking_index,diag_rws5,finish,diag_msftyyz,make_mask3D,diag_mfo,transPort,diag_rws500,create_odirs,create_ofils,diag_iod,diag_iod,xtra_iod,atmos_vertical_interpolate,diag_isothetaoNc,calc_iso_surface,calc_isoN,grab_var_meta,diag_psl,diag_hfls,diag_heat_content,diag_salt_content,diag_north_heat_trans,diag_north_salt_trans,ocean_vertical_interpolate,diag_thetao0to80m,diag_varNl,uncomment_json,process_json,modify_json,get_daily_indices_for_monthlyave,get_timestamp_number
+from decadal_diag import MustHaveAllLevs,diag_acc_drake,diag_acc_africa,diag_mozmbq,diag_aabw,diag_nadw,diag_pp,diag_nflux,diag_ep,diag_ssh,diag_moc,diag_moc_atlantic,diag_moc_pacific,diag_moc_indian,diag_shice_cover,diag_nhice_cover,diag_nino34,xtra_nino34,init_data,sum_data,avg_data,filemonth_index,data_wavg,time_avg,diag_nhblocking_index,diag_rws5,finish,diag_msftyyz,make_mask3D,diag_mfo,transPort,diag_rws500,create_odirs,create_ofils,diag_iod,diag_iod,xtra_iod,atmos_vertical_interpolate,diag_isothetaoNc,calc_iso_surface,calc_isoN,grab_var_meta,diag_psl,diag_hfls,diag_heat_content,diag_salt_content,diag_north_heat_trans,diag_north_salt_trans,ocean_vertical_interpolate,diag_thetao0to80m,diag_varNl,uncomment_json,process_json,modify_json,get_daily_indices_for_monthlyave,get_timestamp_number,data_wavg_ProcTime
 
 from decadal_diag import diag_maxdTbydz,diag_depmaxdTbydz,diag_dTbydz,shade_2d_simple,shade_2d_latlon,diag_zmld_boyer,zmld_boyer,sigmatheta,diag_zmld_so,zmld_so,diag_spice,spice,diag_bigthetao,diag_soabs,diag_spiciness,diag_potrho
 
@@ -47,7 +47,8 @@ import cdtime
 from app_funcs import *
 import json
 import pprint
-from datetime import date
+#from datetime import date,datetime,timedelta
+import datetime
 import filecmp
 from shutil import copyfile
 import cdms2
@@ -66,6 +67,8 @@ mpl.rcParams['mathtext.default'] = 'regular'
 import matplotlib.pyplot as plt
 #plt.switch_backend("TkAgg")
 from gridfill import fill as poisson_fill
+from array import array
+import types
 
 def main(json_input_instructions):
 
@@ -615,11 +618,11 @@ def main(json_input_instructions):
   #elif(dvar=='umo' or dvar=='vmo'):
   #  ounits='10^9 kg s-1'
   
-  if(Forecast):
-    cdtime.DefaultCalendar=cdtime.JulianCalendar
-  else:
-    #cdtime.DefaultCalendar=cdtime.GregorianCalendar
-    cdtime.DefaultCalendar=cdtime.NoLeapCalendar
+#!  if(Forecast):
+#!    cdtime.DefaultCalendar=cdtime.JulianCalendar
+#!  else:
+#!    #cdtime.DefaultCalendar=cdtime.GregorianCalendar
+#!    cdtime.DefaultCalendar=cdtime.NoLeapCalendar
   
   #cmor.setup(inpath='Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=cmorlogfile)
   cmor.setup(inpath='cmip6-cmor-tables/Tables',netcdf_file_action=cmor.CMOR_REPLACE_4,logfile=cmorlogfile)
@@ -766,7 +769,7 @@ def main(json_input_instructions):
   #  grid_label='gn17'
   #  grid='3D vars use plev17'
   
-  today=date.today()
+  today=datetime.date.today()
   t=today.timetuple()
   #print('today=',today,file=fh_printfile)
   #for i in t:
@@ -858,6 +861,7 @@ def main(json_input_instructions):
   else:
     modify_json('TablesTemplates/CMIP6_'+table+'.json','cmip6-cmor-tables/Tables/CMIP6_'+table+'.json','400.00000',True)
 
+  #modify_json('TablesTemplates/CMIP6_'+table+'.json','cmip6-cmor-tables/Tables/CMIP6_'+table+'.json','35.00000',True)
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   cmor_tables=['coordinate','CV','Ofx','fx']
@@ -939,8 +943,8 @@ def main(json_input_instructions):
   #print(ybeg_min)
   #print(yend_max)
   
-  if(ybeg<ybeg_min or ybeg>yend_max or yend<ybeg_min or yend>yend_max):
-    raise SystemExit('Problem with ybeg/yend ybeg_min/yend_max',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  if(ybeg<ybeg_min or ybeg>yend_max or yend<ybeg_min or yend>yend_max):
+#!    raise SystemExit('Problem with ybeg/yend ybeg_min/yend_max',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   #if(cbeg<ybeg_min or cbeg>yend_max or cend<ybeg_min or cend>yend_max):
   #  raise SystemExit('Problem with ybeg/yend cbeg/cend.')
@@ -969,114 +973,115 @@ def main(json_input_instructions):
   #else:
   #  estr='_e'+str(ebeg)+'-'+str(eend)
   
-  nmy=12
+#!  nmy=12
   
-  total_months_beg_to_end=(nmy-mbeg)+1 + (yend-ybeg+1-2)*nmy + mend
+#!  total_months_beg_to_end=(nmy-mbeg)+1 + (yend-ybeg+1-2)*nmy + mend
   
-  ybeg_now=ybeg
-  yend_now=yend
+#!  ybeg_now=ybeg
+#!  yend_now=yend
   
-  mbeg_now=mbeg
-  mend_now=mend
+#!  mbeg_now=mbeg
+#!  mend_now=mend
   
-  print('total_months_beg_to_end=',total_months_beg_to_end,file=fh_printfile)
+#!  print('total_months_beg_to_end=',total_months_beg_to_end,file=fh_printfile)
   
-  print('ybeg_now=',ybeg_now,' yend_now=',yend_now,file=fh_printfile)
+#!  print('ybeg_now=',ybeg_now,' yend_now=',yend_now,file=fh_printfile)
   
-  sstr,times_in_season,tindex_select_maxyears_by_nmy_0or1=filemonth_index(season,ybeg_now,yend_now,mbeg_now,mend_now,fh_printfile) #MON special case where times_in_season=1, so always reading/writing one month at a time...
+#!  sstr,times_in_season,tindex_select_maxyears_by_nmy_0or1=filemonth_index(season,ybeg_now,yend_now,mbeg_now,mend_now,fh_printfile) #MON special case where times_in_season=1, so always reading/writing one month at a time...
   
   #iii=np.arange(total_months_beg_to_end).reshape((yend-ybeg+1),12)
   #tindex_select_maxyears_by_nmy_0or1=np.zeros(iii.shape)
   #tindex_select_maxyears_by_nmy_0or1[index_start]=1
   #tindex_select_maxyears_by_nmy_0or1[index_end]=1
   #print(iii,file=fh_printfile)
-  print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1,file=fh_printfile)
+#!  print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1,file=fh_printfile)
   
-  print('total_months_beg_to_end,total_months_beg_to_end,index_start,end=',total_months_beg_to_end,total_months_beg_to_end,file=fh_printfile)
+#!  print('total_months_beg_to_end,total_months_beg_to_end,index_start,end=',total_months_beg_to_end,total_months_beg_to_end,file=fh_printfile)
   #,index_start,index_end)
   #raise SystemExit('Forced exit.')
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
-  month_in_file_total_months_beg_to_end=np.ones(total_months_beg_to_end,dtype=np.int) #132, this will have to change depending on the layout of the input files...
+#!  month_in_file_total_months_beg_to_end=np.ones(total_months_beg_to_end,dtype=np.int) #132, this will have to change depending on the layout of the input files...
   
-  y=ybeg
+#!  y=ybeg
   
-  if(Forecast):
-    idir_extra='/'+str('{0:04d}'.format(y))+str('{0:02d}'.format(mbeg))+str('{0:02d}'.format(1)) #probably can use 
-  else:
-    idir_extra=''
+#!  if(Forecast):
+#!    idir_extra='/'+str('{0:04d}'.format(y))+str('{0:02d}'.format(mbeg))+str('{0:02d}'.format(1)) #probably can use 
+#!  else:
+#!    idir_extra=''
   
-  if(Forecast):
-    ifil=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(mbeg))+'.nc'
-  else:
-    ifil=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(1))+'.nc' #always 1
+#!  if(Forecast):
+#!    ifil=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(mbeg))+'.nc'
+#!  else:
+#!    ifil=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(1))+'.nc' #always 1
   
-  print(y,' ',idir+idir_extra+'/'+ifil,file=fh_printfile)
-  #raise SystemExit('Forced exit.')
-  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  print(y,' ',idir+idir_extra+'/'+ifil,file=fh_printfile)
+#!  #raise SystemExit('Forced exit.')
+#!  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
-  f=netCDF4.Dataset(idir+idir_extra+'/'+ifil)
-  time=f.variables['time']
+#!  f=netCDF4.Dataset(idir+idir_extra+'/'+ifil)
+#!  time=f.variables['time']
   
-  #here var_dims is just dummy as complete requirements depend on the output variable definition.
-  
-  if(realm=='ocean' and ( OutputVarStructure=='time_lat_lon' or OutputVarStructure=='time_depth_lat_lon' or OutputVarStructure=='time_reduceddepth_lat_lon' or OutputVarStructure=='time' or OutputVarStructure=='time_oline' or OutputVarStructure=='depth_lat_lon' or OutputVarStructure=='time_basin_depth_lat')):
-    ivar=f.variables[inputs[0]]
-    var_dims=f.variables[inputs[0]].dimensions
-    var_size=f.variables[inputs[0]].shape
-    if(len(inputs)>=2):
-      ivar2=f.variables[inputs[1]]
-      var_dims2=f.variables[inputs[1]].dimensions
-      var_size2=list(f.variables[inputs[1]].shape)
-  
-      if(len(inputs)>=3):
-        ivar3=f.variables[inputs[2]]
-        var_dims3=f.variables[inputs[2]].dimensions
-        var_size3=list(f.variables[inputs[2]].shape)
-  
-  elif(realm=='atmos' and ( OutputVarStructure=='time_lat_lon' or OutputVarStructure=='time_plev_lat_lon' or OutputVarStructure=='time_reducedplev_lat_lon' or OutputVarStructure=='time' or OutputVarStructure=='time_lon') ):
-    ivar=f.variables[inputs[0]]
-    var_dims=f.variables[inputs[0]].dimensions
-    #var_size=f.variables[inputs[0]].shape
-    var_size=list(f.variables[inputs[0]].shape) #dont want a tuple, want a list use []
-    #print(type(var_size))
-    #print(var_size)
-    #print('aaa')
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    if(len(inputs)>=2):
-      ivar2=f.variables[inputs[1]]
-      var_dims2=f.variables[inputs[1]].dimensions
-      var_size2=list(f.variables[inputs[1]].shape)
-  
-      if(len(inputs)>=3):
-        ivar3=f.variables[inputs[2]]
-        var_dims3=f.variables[inputs[2]].dimensions
-        var_size3=list(f.variables[inputs[2]].shape)
-  
-  nvar_dims=len(var_dims)
-  
-  #print('var_size=',var_size,file=fh_printfile)
-  #print(var_dims,file=fh_printfile)
-  #print(nvar_dims,file=fh_printfile)
-  #print('dvar=',dvar,file=fh_printfile)
-  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-  if(nvar_dims == 4):
-      nlev=var_size[1]
-      nlat=var_size[2]
-      nlon=var_size[3]
-  elif(nvar_dims == 3):
-      nlat=var_size[1]
-      nlon=var_size[2]
-  else:
-      nlat=0
-      nlon=0
-  
-  #nlev=0
-  #levels=0
-  
-  print('var_size=',var_size,file=fh_printfile)
-  print('var_dims=',var_dims,file=fh_printfile)
+#!  #here var_dims is just dummy as complete requirements depend on the output variable definition.
+#!  
+#!  if(realm=='ocean' and ( OutputVarStructure=='time_lat_lon' or OutputVarStructure=='time_depth_lat_lon' or OutputVarStructure=='time_reduceddepth_lat_lon' or OutputVarStructure=='time' or OutputVarStructure=='time_oline' or OutputVarStructure=='depth_lat_lon' or OutputVarStructure=='time_basin_depth_lat')):
+#!
+#!    ivar=f.variables[inputs[0]]
+#!    var_dims=f.variables[inputs[0]].dimensions
+#!    var_size=f.variables[inputs[0]].shape
+#!    if(len(inputs)>=2):
+#!      ivar2=f.variables[inputs[1]]
+#!      var_dims2=f.variables[inputs[1]].dimensions
+#!      var_size2=list(f.variables[inputs[1]].shape)
+#!  
+#!      if(len(inputs)>=3):
+#!        ivar3=f.variables[inputs[2]]
+#!        var_dims3=f.variables[inputs[2]].dimensions
+#!        var_size3=list(f.variables[inputs[2]].shape)
+#!  
+#!  elif(realm=='atmos' and ( OutputVarStructure=='time_lat_lon' or OutputVarStructure=='time_plev_lat_lon' or OutputVarStructure=='time_reducedplev_lat_lon' or OutputVarStructure=='time' or OutputVarStructure=='time_lon') ):
+#!    ivar=f.variables[inputs[0]]
+#!    var_dims=f.variables[inputs[0]].dimensions
+#!    #var_size=f.variables[inputs[0]].shape
+#!    var_size=list(f.variables[inputs[0]].shape) #dont want a tuple, want a list use []
+#!    #print(type(var_size))
+#!    #print(var_size)
+#!    #print('aaa')
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!    if(len(inputs)>=2):
+#!      ivar2=f.variables[inputs[1]]
+#!      var_dims2=f.variables[inputs[1]].dimensions
+#!      var_size2=list(f.variables[inputs[1]].shape)
+#!  
+#!      if(len(inputs)>=3):
+#!        ivar3=f.variables[inputs[2]]
+#!        var_dims3=f.variables[inputs[2]].dimensions
+#!        var_size3=list(f.variables[inputs[2]].shape)
+#!  
+#!  nvar_dims=len(var_dims)
+#!  
+#!  #print('var_size=',var_size,file=fh_printfile)
+#!  #print(var_dims,file=fh_printfile)
+#!  #print(nvar_dims,file=fh_printfile)
+#!  #print('dvar=',dvar,file=fh_printfile)
+#!  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!  if(nvar_dims == 4):
+#!      nlev=var_size[1]
+#!      nlat=var_size[2]
+#!      nlon=var_size[3]
+#!  elif(nvar_dims == 3):
+#!      nlat=var_size[1]
+#!      nlon=var_size[2]
+#!  else:
+#!      nlat=0
+#!      nlon=0
+#!  
+#!  #nlev=0
+#!  #levels=0
+#!  
+#!  print('var_size=',var_size,file=fh_printfile)
+#!  print('var_dims=',var_dims,file=fh_printfile)
   
   #if(levs=='gn1'):
   #  levels=[0,3,5]
@@ -1106,284 +1111,816 @@ def main(json_input_instructions):
   #  levels=0
   #  nlev=0
   
-  if not 'levels' in locals():
-    levels=range(0,var_size[1])
-    nlev=len(levels)
-  
-  #print(levels)
-  
-  cmor.set_table(tables[1])
-  
-  ibeg=0
-  
-  refString='days since 0001-01-01'
+#!  if not 'levels' in locals():
+#!    levels=range(0,var_size[1])
+#!    nlev=len(levels)
+#!  
+#!  #print(levels)
+#!  
+#!  cmor.set_table(tables[1])
+#!  
+#!  ibeg=0
+#!  
+#!  refString='days since 0001-01-01'
   
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
-  if(table=='fx_old' or table=='Ofx_old'):
-    print('As this is a table fx parameter, all time information will be ignored.',file=fh_printfile)
-    input_fhs={}
-    input_fhs[0]=netCDF4.Dataset(idir+'/'+realm+'_'+frequency+'_'+str('{0:04d}'.format(ybeg_now))+'_'+'01'+'.nc')
-  else:
-    ybeg_now=ybeg
-    yend_now=yend
+#!  if(table=='fx_old' or table=='Ofx_old'):
+#!    print('As this is a table fx parameter, all time information will be ignored.',file=fh_printfile)
+#!    input_fhs={}
+#!    input_fhs[0]=netCDF4.Dataset(idir+'/'+realm+'_'+frequency+'_'+str('{0:04d}'.format(ybeg_now))+'_'+'01'+'.nc')
+#!  else:
+#!    ybeg_now=ybeg
+#!    yend_now=yend
   
-    tindex=0
-    input_files={}
-    input_fhs={}
-    for y in range(ybeg_now,yend_now+1):
-      mend_now=1 #1 files per year of 12 months each.
-      if(y==ybeg_now):
-        mbeg_now=1 #need to fix
-        mend_now=12
-        mbeg_now=mbeg
-      elif(y==yend_now):
-        mbeg_now=1
-        mend_now=mend #12 files per year of 1 months each.
-      else:
-        mbeg_now=1
-        mend_now=12 #12 files per year of 1 months each.
-      #print(mbeg_now,mend_now,file=fh_printfile)
-      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!    tindex=0
+#!    input_files={}
+#!    input_fhs={}
+#!    for y in range(ybeg_now,yend_now+1):
+#!      mend_now=1 #1 files per year of 12 months each.
+#!      if(y==ybeg_now):
+#!        mbeg_now=1 #need to fix
+#!        mend_now=12
+#!        mbeg_now=mbeg
+#!      elif(y==yend_now):
+#!        mbeg_now=1
+#!        mend_now=mend #12 files per year of 1 months each.
+#!      else:
+#!        mbeg_now=1
+#!        mend_now=12 #12 files per year of 1 months each.
+#!      #print(mbeg_now,mend_now,file=fh_printfile)
+#!      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!      if(not Forecast):
+#!        mbeg_now=1 #always 1 for 12 months per file.
+#!        mend_now=1 #always 1 for 12 months per file.
+#!  
+#!      for m in range(mbeg_now,mend_now+1):
+#!        if(Forecast): #has 1 month per file...
+#!          idir_extra='/'+str('{0:04d}'.format(y))+str('{0:02d}'.format(m))+str('{0:02d}'.format(1))
+#!        else:
+#!          idir_extra=''
+#!        iend=ibeg+12
+#!        print(' y=',y,' m=',m,' mend_now=',mend_now,' ibeg=',ibeg,',',' iend=',iend,file=fh_printfile)
+#!        ifila=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(m))+'.nc'
+#!        print(y,' ',idir+idir_extra+'/'+ifila,file=fh_printfile)
+#!        input_files[tindex]=idir+idir_extra+'/'+ifila
+#!        if not os.path.exists(idir+idir_extra+'/'+ifila):
+#!          raise SystemExit('Missing '+idir+idir_extra+'/'+ifila+'.')
+#!        input_fhs[tindex]=netCDF4.Dataset(input_files[tindex])
+#!        tindex+=1
   
-      if(not Forecast):
-        mbeg_now=1 #always 1 for 12 months per file.
-        mend_now=1 #always 1 for 12 months per file.
+#!    print('input files=',input_files,file=fh_printfile)
+#!    #print(len(input_files),file=fh_printfile)
+#!    print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1,file=fh_printfile)
+#!    #print(tindex_select_maxyears_by_nmy_0or1.shape,file=fh_printfile)
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!    findex_select_maxyears_by_nmy_b1_withminus1s=np.copy(tindex_select_maxyears_by_nmy_0or1)
+#!  
+#!    if(Forecast):
+#!      findex_select_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s*0-1 #set to -1, means no file at this position in year,month array.
+#!    else:
+#!      findex_select_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s*0-1
+#!  
+#!    print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
+#!  
+#!    yindex_select_maxyears_by_nmy=np.copy(tindex_select_maxyears_by_nmy_0or1)
+#!  
+#!    if(Forecast): #this is where picks up granularity of files, ie whether 1, 3, 12 months per year.
+#!      fff=0
+#!      for y in range(ybeg_now,yend_now+1):
+#!    
+#!        mend_now=1 #1 files per year of 12 months each.
+#!        if(y==ybeg_now):
+#!          #mbeg_now=1 #need to fix
+#!          mbeg_now=mbeg
+#!          mend_now=12
+#!        elif(y==yend_now):
+#!          mbeg_now=1
+#!          mend_now=mend #12 files per year of 1 months each.
+#!        else:
+#!          mbeg_now=1
+#!          mend_now=12 #12 files per year of 1 months each.
+#!        for m in range(mbeg_now,mend_now+1):
+#!          print('y,fff,y*,m*,mbeg,mend_now=',y,fff,y-ybeg_now,m-mbeg_now,mbeg_now,mend_now,file=fh_printfile)
+#!          if(tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]!=0):
+#!            findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]*fff + 1
+#!          else:
+#!            findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=0
+#!          fff+=1
+#!    else:
+#!      y=ybeg_now
+#!      for fff in range(len(input_files)):
+#!        print(fff,file=fh_printfile)
+#!        #if(tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]!=0):
+#!        #  findex_select_maxyears_by_nmy_b1_withminus1s[fff,:]=tindex_select_maxyears_by_nmy_0or1[fff,:]*fff + 1
+#!        #else:
+#!        #  findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=0
+#!        findex_select_maxyears_by_nmy_b1_withminus1s[fff,:]=(tindex_select_maxyears_by_nmy_0or1[fff,:]*fff + 1)*tindex_select_maxyears_by_nmy_0or1[fff,:]
+#!        y+=1
+#!  
+#!    print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
+#!  
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!    tindex_select_maxyears_by_nmy_0or1_flat=tindex_select_maxyears_by_nmy_0or1.reshape((yend_now-ybeg_now+1)*12)
+#!    print('tindex_select_maxyears_by_nmy_0or1_flat=',tindex_select_maxyears_by_nmy_0or1_flat,file=fh_printfile)
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!    numtims=int(np.sum(tindex_select_maxyears_by_nmy_0or1_flat))
+#!  
+#!    print('number of times used in each season definition, times_in_season=',times_in_season,file=fh_printfile)
+#!    print('total number of times (months) read in including any partial begin and end year, total_months_beg_to_end=',total_months_beg_to_end,file=fh_printfile)
+#!    print('number of times used from input file, numtims=',numtims,file=fh_printfile)
+#!  #  print('total number of seasons written out, numseas=',numseas,file=fh_printfile)
+#!  
+#!  #file_index_maxyears_by_nmy_b1_withminus1s is an array year,month. elements corresonding to the valid input months/years are inserted (0...max-1), a -1 means that no file is present or included. file_index_maxyears_by_nmy_b1_withminus1s_flat is vector version of file_index_maxyears_by_nmy_b1_withminus1s.
+#!  #file_index_maxyears_by_nmy_b1_nominus1s_flat is list from 0...max-1 number of files, gets rid of any -1s indicating missing months.
+#!  #month_index_ntims is an vector year...month with ONLY valid year,month (values going from 0..11 only corresponding to month.
+#!  #year_index_ntims, similar to month_index_ntims, only now years, actual years corresponding to each of the months in month_index_ntims
   
-      for m in range(mbeg_now,mend_now+1):
-        if(Forecast): #has 1 month per file...
-          idir_extra='/'+str('{0:04d}'.format(y))+str('{0:02d}'.format(m))+str('{0:02d}'.format(1))
-        else:
-          idir_extra=''
-        iend=ibeg+12
-        print(' y=',y,' m=',m,' mend_now=',mend_now,' ibeg=',ibeg,',',' iend=',iend,file=fh_printfile)
-        ifila=realm+'_'+frequency+'_'+str('{0:04d}'.format(y))+'_'+str('{0:02d}'.format(m))+'.nc'
-        print(y,' ',idir+idir_extra+'/'+ifila,file=fh_printfile)
-        input_files[tindex]=idir+idir_extra+'/'+ifila
-        if not os.path.exists(idir+idir_extra+'/'+ifila):
-          raise SystemExit('Missing '+idir+idir_extra+'/'+ifila+'.')
-        input_fhs[tindex]=netCDF4.Dataset(input_files[tindex])
-        tindex+=1
+#!    file_index_maxyears_by_nmy_b1_withminus1s,month_index_ntims=np.where(tindex_select_maxyears_by_nmy_0or1==1)
+#!  
+#!    print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
+#!    print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size,file=fh_printfile)
+#!  
+#!    year_index_ntims=file_index_maxyears_by_nmy_b1_withminus1s+ybeg_now
+#!  
+#!    file_index_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s.astype(int) #try, why do I overwrite definition above?
+#!  
+#!    file_index_maxyears_by_nmy_b1_withminus1s=np.where(file_index_maxyears_by_nmy_b1_withminus1s>0,file_index_maxyears_by_nmy_b1_withminus1s+0,file_index_maxyears_by_nmy_b1_withminus1s) #add 1 to values > 0
+#!  
+#!    print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
+#!    print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size,file=fh_printfile)
+#!  
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!    print('month_index_ntims=',month_index_ntims,file=fh_printfile)
+#!    print('month_index_ntims.size=',month_index_ntims.size,file=fh_printfile)
+#!    print('year_index_ntims=',year_index_ntims,file=fh_printfile)
+#!    print('year_index_ntims.size=',year_index_ntims.size,file=fh_printfile)
+#!  
+#!    file_index_maxyears_by_nmy_b1_withminus1s_flat=file_index_maxyears_by_nmy_b1_withminus1s.flatten()
+#!  
+#!    print('file_index_maxyears_by_nmy_b1_withminus1s_flat=',file_index_maxyears_by_nmy_b1_withminus1s_flat,file=fh_printfile)
+#!  
+#!    file_index_maxyears_by_nmy_b1_nominus1s_flat=file_index_maxyears_by_nmy_b1_withminus1s_flat[np.where(file_index_maxyears_by_nmy_b1_withminus1s_flat>0,True,False)]
+#!  
+#!    print('file_index_maxyears_by_nmy_b1_nominus1s_flat=',file_index_maxyears_by_nmy_b1_nominus1s_flat,file=fh_printfile)
+#!  
+#!    locate_file_index_Ntimes_b1_nominus1s_flat=file_index_maxyears_by_nmy_b1_nominus1s_flat[np.where(file_index_maxyears_by_nmy_b1_nominus1s_flat>0)]
+#!  
+#!    print('locate_file_index_Ntimes_b1_nominus1s_flat=',locate_file_index_Ntimes_b1_nominus1s_flat,file=fh_printfile)
+#!    print('locate_file_index_Ntimes_b1_nominus1s_flat.shape=',locate_file_index_Ntimes_b1_nominus1s_flat.shape,file=fh_printfile)
+#!  
+#!    cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=len(locate_file_index_Ntimes_b1_nominus1s_flat)
+#!    print('cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=',cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat,file=fh_printfile)
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!    tbeg=[]
+#!    tend=[]
+#!    tavg=[]
+#!    ind_beg=0
+#!    #will need to improve when ending time is December as will need to increment year by 1 too.
+#!    day1=1
+#!  
+#!    if(season=='MON'):
+#!      ttt=total_months_beg_to_end
+#!    else:
+#!      ttt=cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat/times_in_season #this should be equal to number of valid months/3
+#!  
+#!    print('ttt=',ttt,' times_in_season=',times_in_season,file=fh_printfile)
+#!  
+#!    for n in range(0,ttt):
+#!      #ind_end=ind_beg+times_in_season-1
+#!  
+#!      if(season=='MON'):
+#!        #ind_end=ind_beg+times_in_season
+#!        ind_end=ind_beg #always 1 month at a time for MON
+#!      else:
+#!        ind_end=ind_beg+times_in_season-1
   
-    print('input files=',input_files,file=fh_printfile)
-    #print(len(input_files),file=fh_printfile)
-    print('tindex_select_maxyears_by_nmy_0or1=',tindex_select_maxyears_by_nmy_0or1,file=fh_printfile)
-    #print(tindex_select_maxyears_by_nmy_0or1.shape,file=fh_printfile)
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-    findex_select_maxyears_by_nmy_b1_withminus1s=np.copy(tindex_select_maxyears_by_nmy_0or1)
-  
-    if(Forecast):
-      findex_select_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s*0-1 #set to -1, means no file at this position in year,month array.
-    else:
-      findex_select_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s*0-1
-  
-    print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
-  
-    yindex_select_maxyears_by_nmy=np.copy(tindex_select_maxyears_by_nmy_0or1)
-  
-    if(Forecast): #this is where picks up granularity of files, ie whether 1, 3, 12 months per year.
-      fff=0
-      for y in range(ybeg_now,yend_now+1):
-    
-        mend_now=1 #1 files per year of 12 months each.
-        if(y==ybeg_now):
-          #mbeg_now=1 #need to fix
-          mbeg_now=mbeg
-          mend_now=12
-        elif(y==yend_now):
-          mbeg_now=1
-          mend_now=mend #12 files per year of 1 months each.
-        else:
-          mbeg_now=1
-          mend_now=12 #12 files per year of 1 months each.
-        for m in range(mbeg_now,mend_now+1):
-          print('y,fff,y*,m*,mbeg,mend_now=',y,fff,y-ybeg_now,m-mbeg_now,mbeg_now,mend_now,file=fh_printfile)
-          if(tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]!=0):
-            findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]*fff + 1
-          else:
-            findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=0
-          fff+=1
-    else:
-      y=ybeg_now
-      for fff in range(len(input_files)):
-        print(fff,file=fh_printfile)
-        #if(tindex_select_maxyears_by_nmy_0or1[y-ybeg_now,m-1]!=0):
-        #  findex_select_maxyears_by_nmy_b1_withminus1s[fff,:]=tindex_select_maxyears_by_nmy_0or1[fff,:]*fff + 1
-        #else:
-        #  findex_select_maxyears_by_nmy_b1_withminus1s[y-ybeg_now,m-1]=0
-        findex_select_maxyears_by_nmy_b1_withminus1s[fff,:]=(tindex_select_maxyears_by_nmy_0or1[fff,:]*fff + 1)*tindex_select_maxyears_by_nmy_0or1[fff,:]
-        y+=1
-  
-    print('findex_select_maxyears_by_nmy_b1_withminus1s=',findex_select_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
-  
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-    tindex_select_maxyears_by_nmy_0or1_flat=tindex_select_maxyears_by_nmy_0or1.reshape((yend_now-ybeg_now+1)*12)
-    print('tindex_select_maxyears_by_nmy_0or1_flat=',tindex_select_maxyears_by_nmy_0or1_flat,file=fh_printfile)
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-    numtims=int(np.sum(tindex_select_maxyears_by_nmy_0or1_flat))
-  
-    print('number of times used in each season definition, times_in_season=',times_in_season,file=fh_printfile)
-    print('total number of times (months) read in including any partial begin and end year, total_months_beg_to_end=',total_months_beg_to_end,file=fh_printfile)
-    print('number of times used from input file, numtims=',numtims,file=fh_printfile)
-  #  print('total number of seasons written out, numseas=',numseas,file=fh_printfile)
-  
-  #file_index_maxyears_by_nmy_b1_withminus1s is an array year,month. elements corresonding to the valid input months/years are inserted (0...max-1), a -1 means that no file is present or included. file_index_maxyears_by_nmy_b1_withminus1s_flat is vector version of file_index_maxyears_by_nmy_b1_withminus1s.
-  #file_index_maxyears_by_nmy_b1_nominus1s_flat is list from 0...max-1 number of files, gets rid of any -1s indicating missing months.
-  #month_index_ntims is an vector year...month with ONLY valid year,month (values going from 0..11 only corresponding to month.
-  #year_index_ntims, similar to month_index_ntims, only now years, actual years corresponding to each of the months in month_index_ntims
-  
-    file_index_maxyears_by_nmy_b1_withminus1s,month_index_ntims=np.where(tindex_select_maxyears_by_nmy_0or1==1)
-  
-    print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
-    print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size,file=fh_printfile)
-  
-    year_index_ntims=file_index_maxyears_by_nmy_b1_withminus1s+ybeg_now
-  
-    file_index_maxyears_by_nmy_b1_withminus1s=findex_select_maxyears_by_nmy_b1_withminus1s.astype(int) #try, why do I overwrite definition above?
-  
-    file_index_maxyears_by_nmy_b1_withminus1s=np.where(file_index_maxyears_by_nmy_b1_withminus1s>0,file_index_maxyears_by_nmy_b1_withminus1s+0,file_index_maxyears_by_nmy_b1_withminus1s) #add 1 to values > 0
-  
-    print('file_index_maxyears_by_nmy_b1_withminus1s=',file_index_maxyears_by_nmy_b1_withminus1s,file=fh_printfile)
-    print('file_index_maxyears_by_nmy_b1_withminus1s.size=',file_index_maxyears_by_nmy_b1_withminus1s.size,file=fh_printfile)
-  
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-    print('month_index_ntims=',month_index_ntims,file=fh_printfile)
-    print('month_index_ntims.size=',month_index_ntims.size,file=fh_printfile)
-    print('year_index_ntims=',year_index_ntims,file=fh_printfile)
-    print('year_index_ntims.size=',year_index_ntims.size,file=fh_printfile)
-  
-    file_index_maxyears_by_nmy_b1_withminus1s_flat=file_index_maxyears_by_nmy_b1_withminus1s.flatten()
-  
-    print('file_index_maxyears_by_nmy_b1_withminus1s_flat=',file_index_maxyears_by_nmy_b1_withminus1s_flat,file=fh_printfile)
-  
-    file_index_maxyears_by_nmy_b1_nominus1s_flat=file_index_maxyears_by_nmy_b1_withminus1s_flat[np.where(file_index_maxyears_by_nmy_b1_withminus1s_flat>0,True,False)]
-  
-    print('file_index_maxyears_by_nmy_b1_nominus1s_flat=',file_index_maxyears_by_nmy_b1_nominus1s_flat,file=fh_printfile)
-  
-    locate_file_index_Ntimes_b1_nominus1s_flat=file_index_maxyears_by_nmy_b1_nominus1s_flat[np.where(file_index_maxyears_by_nmy_b1_nominus1s_flat>0)]
-  
-    print('locate_file_index_Ntimes_b1_nominus1s_flat=',locate_file_index_Ntimes_b1_nominus1s_flat,file=fh_printfile)
-    print('locate_file_index_Ntimes_b1_nominus1s_flat.shape=',locate_file_index_Ntimes_b1_nominus1s_flat.shape,file=fh_printfile)
-  
-    cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=len(locate_file_index_Ntimes_b1_nominus1s_flat)
-    print('cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat=',cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat,file=fh_printfile)
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-    tbeg=[]
-    tend=[]
-    tavg=[]
-    ind_beg=0
-    #will need to improve when ending time is December as will need to increment year by 1 too.
-    day1=1
-  
-    if(season=='MON'):
-      ttt=total_months_beg_to_end
-    else:
-      ttt=cnt_file_index_maxyears_by_nmy_b1_nominus1s_flat/times_in_season #this should be equal to number of valid months/3
-  
-    print('ttt=',ttt,' times_in_season=',times_in_season,file=fh_printfile)
-  
-    for n in range(0,ttt):
-      #ind_end=ind_beg+times_in_season-1
-  
-      if(season=='MON'):
-        #ind_end=ind_beg+times_in_season
-        ind_end=ind_beg #always 1 month at a time for MON
-      else:
-        ind_end=ind_beg+times_in_season-1
-  
-      #print('n,ind_beg,ind_end,year_beg,month_beg,year_end,month_end=',n,ind_beg,ind_end,year_index_ntims[ind_beg],month_index_ntims[ind_beg],year_index_ntims[ind_end],month_index_ntims[ind_end],file=fh_printfile)
-  
-      month_index_beg=month_index_ntims[ind_beg]+1
-      year_index_beg=year_index_ntims[ind_beg]
+#!      #print('n,ind_beg,ind_end,year_beg,month_beg,year_end,month_end=',n,ind_beg,ind_end,year_index_ntims[ind_beg],month_index_ntims[ind_beg],year_index_ntims[ind_end],month_index_ntims[ind_end],file=fh_printfile)
+#!  
+#!      month_index_beg=month_index_ntims[ind_beg]+1
+#!      year_index_beg=year_index_ntims[ind_beg]
   
       #print('year,month_index_beg=',year_index_beg,month_index_beg,file=fh_printfile)
   
-      tbeg.append(cdtime.comptime(year_index_beg,month_index_beg,day1).torel(refString).value)
-      #print(month_index_ntims[ind_beg],file=fh_printfile)
+#!      tbeg.append(cdtime.comptime(year_index_beg,month_index_beg,day1).torel(refString).value)
+#!      #print(month_index_ntims[ind_beg],file=fh_printfile)
+#!  
+#!      if(season=='MON'):
+#!        if(n==0):
+#!          #print('n==0',file=fh_printfile)
+#!          month_index_end=month_index_beg+1
+#!          year_index_end=year_index_beg
+#!        else:
+#!          #print('n!=0',file=fh_printfile)
+#!          month_index_end=month_index_beg+1
+#!          year_index_end=year_index_beg
+#!      elif(season=='ANN'):
+#!        if(n==ttt-1): #last one special
+#!          month_index_end=month_index_ntims[ind_end-1]+1+1+1
+#!          year_index_end=year_index_ntims[ind_end-1]
+#!        else:
+#!          month_index_end=month_index_ntims[ind_end]+1+1
+#!          year_index_end=year_index_ntims[ind_end]
+#!      else:
+#!        if(n==ttt-1): #last one special
+#!          month_index_end=month_index_ntims[ind_end-1]+1+1
+#!          year_index_end=year_index_ntims[ind_end-1]
+#!        else:
+#!          month_index_end=month_index_ntims[ind_end]+1
+#!          year_index_end=year_index_ntims[ind_end]
+#!  
+#!      if(month_index_end>nmy):
+#!         month_index_end=month_index_end-nmy
+#!         year_index_end+=1
+#!  
+#!      print('n=',n,' ind_beg=',ind_beg,' ind_end=',ind_end,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end,file=fh_printfile)
+#!  
+#!      tdelta=1.0
+#!      tdelta=0.0
+#!  
+#!      #tdelta=0
+#!      #tdelta=1
+#!  
+#!      tend.append(cdtime.comptime(year_index_end,month_index_end,day1).torel(refString).value-tdelta) #assume in days, -1 gets numer of days of wanted month (ie. prior month without having to know number of days in month)
+#!      #print('tbeg,tend=',tbeg,tend,file=fh_printfile)
+#!  
+#!      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!      ind_beg=ind_end+1
+#!      if(season=='MON'):
+#!        ind_beg=ind_end+1
+#!      else:
+#!        ind_beg=ind_end+1
+#!  
+#!    tbeg=np.array(tbeg)
+#!    tend=np.array(tend)
+#!    tavg=(tbeg+tend)/2.0
+#!    tval_bounds=np.column_stack((tbeg,tend))
   
-      if(season=='MON'):
-        if(n==0):
-          #print('n==0',file=fh_printfile)
-          month_index_end=month_index_beg+1
-          year_index_end=year_index_beg
-        else:
-          #print('n!=0',file=fh_printfile)
-          month_index_end=month_index_beg+1
-          year_index_end=year_index_beg
-      elif(season=='ANN'):
-        if(n==ttt-1): #last one special
-          month_index_end=month_index_ntims[ind_end-1]+1+1+1
-          year_index_end=year_index_ntims[ind_end-1]
-        else:
-          month_index_end=month_index_ntims[ind_end]+1+1
-          year_index_end=year_index_ntims[ind_end]
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+#!    #print('tbeg,tend,tavg=',tbeg,tend,tavg)
+#!    timestamp_avg=netCDF4.num2date(tavg,units=refString,calendar=calendar)
+#!    timestamp_beg=netCDF4.num2date(tbeg,units=refString,calendar=calendar)
+#!    timestamp_end=netCDF4.num2date(tend,units=refString,calendar=calendar)
+#!  
+#!    print('timestamp_avg,beg,end:',file=fh_printfile)
+#!    for n in range(0,ttt):
+#!      print(timestamp_avg[n],timestamp_beg[n],timestamp_end[n],file=fh_printfile)
+#!  
+#!    #print('timestamp_avg=',timestamp_avg,timestamp_beg)
+#!  
+#!    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+#!  
+#!    #tables[0]=cmor.load_table('cmor/Tables/CMIP6_Amon.json')
+#!    cmor.set_table(tables[0])
+#!    #itime=cmor.axis(table_entry= 'time', length=5, units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:], interval=None)
+#!    #itime=cmor.axis(table_entry= 'time', length=5, units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:])
+#!    #itime=cmor.axis('time', units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:])
+#!  
+#!    #print('tavg=',tavg,file=fh_printfile)
+#!    #print('tval_bounds=',tval_bounds,file=fh_printfile)
+#!  
+#!    time_axis_id=cmor.axis('time', units=refString, coord_vals=tavg, cell_bounds=tval_bounds)
+
+###############################################################################
+
+#ProcTime variables related to input and output files and specifically the broadcasting of uniquely defined seasons or their average..
+
+  ProcTimeseason=season
+
+  ProcTimeexperiment=cafe_experiment
+
+  ProcTimerealm=realm
+
+  ProcTimefrequency=frequency
+
+  Diagnostic=False
+
+  #Delete these variables, if they are not set then the full range based on input files will be used.
+  if('ProcTimeybeg_season_process' in locals()): del(ProcTimeybeg_season_process)
+  if('ProcTimeyend_season_process' in locals()): del(ProcTimeyend_season_process)
+  if('ProcTimembeg_season_process' in locals()): del(ProcTimembeg_season_process)
+  if('ProcTimemend_season_process' in locals()): del(ProcTimemend_season_process)
+
+  if(ProcTimeexperiment=='coupled_da/OUTPUT-2step-nobreeding-carbon2'):
+    ProcTimehours=360.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the end of the month.
+    #ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=2002,2016,1,12 #potential for 2002,2016 for DecJan cross over seasons else 2012,2016. These would be the years required for the seasonal averages if wanting to truncate the entire output, an error will occur if they do not exist. Default would be all years. mbeg,end really only applies to situations with season=MON or single month defined seasons.
+    ProcTimeidir='/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2'
+    ProcTimeinput_directories=sorted(glob.glob(ProcTimeidir+'/'+'????????/'))
+  
+    ProcTimeinput_files=[]
+    for ProcTimei,ProcTimeinput_directory in enumerate(ProcTimeinput_directories):
+      if(Diagnostic): print('ProcTimei,ProcTimeinput_directory=',ProcTimei,ProcTimeinput_directory) #get rid of not.
+      ProcTimelist_of_files=sorted((glob.glob(ProcTimeinput_directory+'/'+ProcTimerealm+'_'+ProcTimefrequency+'_????_??.nc')))
+      ProcTimeinput_files.append(ProcTimelist_of_files[0])
+    
+  elif(ProcTimeexperiment=='v1_forecast'):
+    #with this kind of experiment we would have to loop over each 2/5 year experiment as well as ensemble, producing one output file for each.
+    ProcTimehours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
+    ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=2003,2004,1,12 #potential for 2002,2004
+    ProcTimeinput_directory='/g/data1/v14/forecast/v1/yr2002/mn2/OUTPUT.1'
+    ProcTimeinput_files=sorted((glob.glob(ProcTimeinput_directory+'/'+ProcTimerealm+'_'+ProcTimefrequency+'_????_??.nc')))
+
+  elif(ProcTimeexperiment=='v2'):
+    #with this kind of experiment might want to supply just a subset of years to speed initialisatin of processing.
+    #or supply all years and use processing scalars to reduce set.
+  
+    ProcTimehours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
+    ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=1,500,1,12 #potential for 1,500,1,12
+    ProcTimeinput_directory='/g/data1/v14/coupled_model/v2/OUTPUT'
+    ProcTimeinput_files=sorted((glob.glob(ProcTimeinput_directory+'/'+ProcTimerealm+'_'+ProcTimefrequency+'_????_??.nc'))) #all files
+    #ProcTimeinput_files=sorted(glob.glob(ProcTimeinput_directory+'/'+ProcTimerealm+'_'+ProcTimefrequency+'_049?_??.nc')+glob.glob(ProcTimeinput_directory+'/'+ProcTimerealm+'_'+ProcTimefrequency+'_0500_??.nc')) #last 10 years.
+  
+    #print(type(input_files))
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  else:
+    raise Exception('Don\'t know experiment '+ProcTimeexperiment+' file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  #if they are defined use them, else the full range of years/months based on input files will be used.
+  if('ybeg' in locals()):
+    ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=ybeg,yend,mbeg,mend
+
+  if(Diagnostic): #get rid of not.
+    print('ProcTimeinput_directories=',ProcTimeinput_directories)
+
+  if(not Diagnostic): #get rid of not.
+    print('ProcTimeinput_files=',ProcTimeinput_files)
+  
+  #print(list_of_files)
+    #for i,input_file in enumerate(input_files):
+#  print('i,input_file=',i,input_file)
+#input_files=input_files[5:-5] #can take off input files from beginning/end to see impact on calculation of seasonal quantities. 5,-5 would take off first and last 5 months.
+
+  ProcTimeseason_broadcast_override=False
+  #ProcTimeseason_broadcast_override=True #we might want to write out invididual months of a season rather than forming the seasonal average, override as this is not the usual.
+
+  ProcTimeseason_map={\
+              'DJF':[12,1,2],\
+              'MAM':[3,4,5],\
+              'JJA':[6,7,8],\
+              'SON':[9,10,11],\
+              'JJAS':[6,7,8,9],\
+              'ANN':[1,2,3,4,5,6,7,8,9,10,11,12],\
+              'DecJan':[12,1],\
+              'JunJul':[6,7],\
+              'MON':[1,2,3,4,5,6,7,8,9,10,11,12],\
+              'Jan':[1],\
+              'Feb':[2],\
+              'Mar':[3],\
+              'Apr':[4],\
+              'May':[5],\
+              'Jun':[6],\
+              'Jul':[7],\
+              'Aug':[8],\
+              'Sep':[9],\
+              'Oct':[10],\
+              'Nov':[11],\
+              'Dec':[12],\
+              } #months required for each seasonal definition, avoid ambiguity by using lowercase letters where necessary.
+
+  ProcTimeseason_broadcast={\
+              'DJF':False,\
+              'MAM':False,\
+              'JJA':False,\
+              'SON':False,\
+              'JJAS':False,\
+              'ANN':False,\
+              'DecJan':False,\
+              'JunJul':False,\
+              'MON':True,\
+              'Jan':True,\
+              'Feb':True,\
+              'Mar':True,\
+              'Apr':True,\
+              'May':True,\
+              'Jun':True,\
+              'Jul':True,\
+              'Aug':True,\
+              'Sep':True,\
+              'Oct':True,\
+              'Nov':True,\
+              'Dec':True,\
+            } #True means to broadcast all inputs times to the output, else it would be an average of all times.
+
+  if(Diagnostic):
+    print('ProcTimeseason_map.keys()=',ProcTimeseason_map.keys())
+    print('ProcTimeseason_broadcast.keys()=',ProcTimeseason_broadcast.keys())
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  #various integrity test on season_map:
+  for ProcTimekey in ProcTimeseason_map.iterkeys():
+    if(ProcTimekey not in ProcTimeseason_broadcast):
+      raise Exception('Missing matching ProcTimekey',ProcTimekey,' in ProcTimeseason_broadcast dictionary file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    ProcTimeunique_season_map_key=list(set(ProcTimeseason_map[ProcTimekey]))
+    #print(sorted(ProcTimeunique_season_map_key),sorted(ProcTimeseason_map[ProcTimekey]))
+    if(not sorted(ProcTimeunique_season_map_key)==sorted(ProcTimeseason_map[ProcTimekey])):
+      raise Exception('ProcTimeseason_map must have unique numbers in it file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    ProcTimetest_season_map_key=array("i",ProcTimeseason_map[ProcTimekey])
+    if(min(ProcTimetest_season_map_key)<0 or max(ProcTimetest_season_map_key)>12):
+      raise Exception('Month indices must be between 1 and 12 file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  #various tests on season_broadcast
+  for ProcTimekey in ProcTimeseason_broadcast.iterkeys():
+    if(ProcTimekey not in ProcTimeseason_map):
+      raise Exception('Missing matching ProcTimekey',ProcTimekey,' in ProcTimeseason_map dictionary file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    if(type(ProcTimeseason_broadcast[ProcTimekey])!=types.BooleanType):
+      raise Exception('ProcTimeseason_broadcast must be True or False file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  if(ProcTimeseason in ProcTimeseason_map):
+    print('Found season definition',ProcTimeseason,' in ProcTimeseason_map with indices ',ProcTimeseason_map[ProcTimeseason],' file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  else:
+    raise Exception('Season definition not in ProcTimeseason_map file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if(ProcTimeseason_broadcast_override and ProcTimeseason_broadcast[ProcTimeseason]): 
+    raise Exception('ProcTimeseason_broadcast and chosen season already broadcast, perhaps set ProcTimeseason_broadcast_override=False :'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if(ProcTimeseason_broadcast_override and not ProcTimeseason_broadcast[ProcTimeseason]): #this must occur after previous test.
+    print('Overriding default ProcTimeseason_broadcast setting, i.e. broadcasting seasonal values rather than this season\'s normal averaging.')
+    ProcTimeseason_broadcast[ProcTimeseason]=True
+
+
+  if(ProcTimeseason_broadcast[ProcTimeseason] and ProcTimeseason=='ANN'):
+    raise Exception('Doesn\'t make sense to broadcast season ANN, use season MON instead file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  print('ProcTimeseason_brodcast=',ProcTimeseason_broadcast)
+  
+  ProcTimemonth_indices=ProcTimeseason_map[ProcTimeseason]
+  ProcTimenpmonth_indices=np.array(ProcTimemonth_indices)
+
+  if('ProcTimembeg_season_process' in locals()):
+    if(ProcTimembeg_season_process<1 or ProcTimembeg_season_process>12 or ProcTimemend_season_process<1 or ProcTimemend_season_process>12):
+      raise Exception('Processing months must be between 1 and 12.')
+
+  if(ProcTimeseason_broadcast[ProcTimeseason] and (len(ProcTimeseason_map[ProcTimeseason])>1 and len(ProcTimeseason_map[ProcTimeseason])<12)):
+    raise Exception('Note that cmor will not easily write out b/w 2 and 11 months out due to time_axis restrictions, however, might be something we can do in the future.')
+    #print(len(ProcTimeseason_map[ProcTimeseason]))
+
+  if(Diagnostic):
+    print('Using month indices=',ProcTimemonth_indices)
+
+  if('ProcTimeybeg_season_process' in locals()):
+    if(ProcTimeybeg_season_process>ProcTimeyend_season_process):
+      raise Exception('ProcTimeybeg_season>ProcTimeyend_season file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+###############################################################################
+
+  ProcTimeifhN=netCDF4.MFDataset(ProcTimeinput_files)
+  ProcTimetime=ProcTimeifhN.variables['time'] #note that time-stamp appears to be last time in the month which has the next month ID.
+  ProcTimenum_stamps=netCDF4.num2date(ProcTimetime[:],ProcTimetime.units,ProcTimetime.calendar) - datetime.timedelta(hours=ProcTimehours) #take away 360 hours, 15 days which is a time approximately in the middle of the month to enable proper year/month determination.
+  
+  #ProcTimeifhN.close() #would not close if within cafepp.
+  
+  ProcTimeyears=[]
+  ProcTimemonths=[]
+  ProcTimeis=[]
+  ProcTimeisp1=[]
+  ProcTimeMonfromStart=[]
+  
+  for ProcTimei,ProcTimenum_stamp in enumerate(ProcTimenum_stamps):
+    ProcTimeyears.append(ProcTimenum_stamp.year)
+    ProcTimemonths.append(ProcTimenum_stamp.month)
+    ProcTimeMonfromStart.append(ProcTimenum_stamps[0].month+ProcTimei)
+    ProcTimeis.append(ProcTimei)
+    ProcTimeisp1.append(ProcTimei+1)
+    
+  if(not Diagnostic): #get rid of not.
+    for ProcTimei,ProcTimenum_stamp in enumerate(ProcTimenum_stamps):
+      print('ProcTimei,ProcTimei+1,ProcTimeMonfromStart,ProcTimeyear,ProcTimemonth,ProcTimenum_stamp=',ProcTimei,ProcTimei+1,ProcTimeMonfromStart[ProcTimei],ProcTimeyears[ProcTimei],ProcTimemonths[ProcTimei],ProcTimenum_stamps[ProcTimei])
+  
+  ProcTimenpyears=np.array(ProcTimeyears)
+  ProcTimenpmonths=np.array(ProcTimemonths)
+  #print(ProcTimenpmonths)
+  #exit()
+  
+  ProcTimeybeg_min=np.min(ProcTimenpyears) #first year in the original time-series
+  ProcTimeyend_max=np.max(ProcTimenpyears) #last year in the original time-series
+  
+  ProcTimeindex_mbeg_min=np.argmin(ProcTimenpyears)
+  ProcTimeindex_mend_max=np.argmax(ProcTimenpyears[::-1])
+  
+  ProcTimenpmonths_reverse=ProcTimenpmonths[::-1]
+  ProcTimembeg_min=ProcTimenpmonths[ProcTimeindex_mbeg_min] #minimum month in first year of the original time-series.
+  ProcTimemend_max=ProcTimenpmonths_reverse[ProcTimeindex_mend_max] #maximum month in last year of the original time-series.
+  
+  #print(npmonth_indices.size)
+  
+  if(ProcTimenpmonth_indices.size>1 and any(np.gradient(ProcTimenpmonth_indices)<0)):
+    ProcTimeSeasonCrossDecJan=True
+  else:
+    ProcTimeSeasonCrossDecJan=False
+  
+  if(ProcTimeSeasonCrossDecJan):
+    if(Diagnostic): print('Season definition includes December/January and so one year is lost cf. to the total number of years present.')
+    ProcTimeybeg_season_min=ProcTimeybeg_min+1
+  else:
+    ProcTimeybeg_season_min=ProcTimeybeg_min
+
+  if('ProcTimeybeg_season_process' not in locals()):
+    ProcTimeybeg_season_process=ProcTimeybeg_min
+    ProcTimeyend_season_process=ProcTimeyend_max
+    ProcTimembeg_season_process=ProcTimembeg_min
+    ProcTimemend_season_process=ProcTimemend_max
+  
+  if(not Diagnostic):
+    print('ProcTimeybeg_min,ProcTimeyend_max,ProcTimembeg_min,ProcTimemend_max,ProcTimeybeg_season_min=',ProcTimeybeg_min,ProcTimeyend_max,ProcTimembeg_min,ProcTimemend_max,ProcTimeybeg_season_min)
+  
+  if(not Diagnostic):
+    print('ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=',ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process)
+
+###############################################################################
+
+  if(not Diagnostic):
+    print('ProcTimeybeg_min,ProcTimeyend_max,ProcTimembeg_min,ProcTimemend_max,ProcTimeybeg_season_min=',ProcTimeybeg_min,ProcTimeyend_max,ProcTimembeg_min,ProcTimemend_max,ProcTimeybeg_season_min)
+  
+  if(not Diagnostic):
+    print('ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=',ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process)
+  
+  ProcTimelen_months=len(ProcTimemonths) #or years
+  ProcTimelen_month_indices=len(ProcTimemonth_indices)
+  
+  if(ProcTimeseason_broadcast[ProcTimeseason]):
+    print('Here we are broadcasting, for MON will print out all available months unless mbeg_season_process,mend_season_process defined otherwies.')
+  
+  print('ProcTimebroadcast=',ProcTimeseason_broadcast[ProcTimeseason])
+  print('ProcTimeseason=',ProcTimeseason)
+  
+  if(ProcTimeseason=='MON'):
+    print('Special case, print out all months unless restricted by mbeg_season_process,mend_season_process.')
+  
+    #modify monthly min/max to process, if appropriate:
+    if(ProcTimeybeg_season_process<ProcTimeybeg_min and ProcTimembeg_season_process<ProcTimembeg_min):
+      raise SystemExit('Processing year/month is less than what is available: '+__file__+' line number: '+str(inspect.stack()[0][2]))
+      
+    if(ProcTimeyend_season_process>ProcTimeyend_max and ProcTimemend_season_process>ProcTimemend_max):
+      raise SystemExit('Processing year/month is greater than what is available: '+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+    if(ProcTimeybeg_season_process==ProcTimeybeg_min and ProcTimembeg_season_process<ProcTimembeg_min):
+      print('First year to be processed is less that available, setting to be same.')
+      ProcTimembeg_season_process=ProcTimembeg_min
+    
+    if(ProcTimeyend_season_process==ProcTimeyend_max and ProcTimemend_season_process>ProcTimemend_max):
+      print('Last year to be processed is more than available, setting to be same.')
+      ProcTimemend_season_process=ProcTimemend_max
+      
+    if(not Diagnostic):
+      print('ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=',ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process)
+  
+    #raise Exception('STOP!')
+      
+    #ProcTimembeg_season_process=ProcTimembeg_min
+    #if(ProcTimeyend_season_process<=ProcTimeyend_max): ProcTimemend_season_process=ProcTimemend_max
+    
+    ProcTimejjj=np.where(ProcTimenpyears==ProcTimeybeg_season_process,1,0)
+    ProcTimekkk=np.where(ProcTimenpmonths==ProcTimembeg_season_process,1,0)
+    ProcTimelll=ProcTimejjj+ProcTimekkk
+    ProcTimebegpos=np.argmax(ProcTimelll)
+    #print('ProcTimejjj=',ProcTimejjj)
+    #print('len(ProcTimejjj)=',len(ProcTimejjj))
+    #print('ProcTimekkk=',ProcTimekkk)
+    #print('len(ProcTimekkk)=',len(ProcTimekkk))
+    print('ProcTimelll=',ProcTimelll)
+    
+    ProcTimejjj=np.where(ProcTimenpyears==ProcTimeyend_season_process,1,0)
+    ProcTimekkk=np.where(ProcTimenpmonths==ProcTimemend_season_process,1,0)
+    ProcTimelll=ProcTimejjj+ProcTimekkk
+    ProcTimeendpos=np.argmax(ProcTimelll)
+    #print('ProcTimejjj=',ProcTimejjj)
+    #print('len(ProcTimejjj)=',len(ProcTimejjj))
+    #print('ProcTimekkk=',ProcTimekkk)
+    #print('len(ProcTimekkk)=',len(ProcTimekkk))
+    print('ProcTimelll=',ProcTimelll)
+    
+    print('ProcTimebegpos,ProcTimeendpos=',ProcTimebegpos,ProcTimeendpos)
+    
+    ProcTimeyears_defined=sorted(set(ProcTimenpyears[ProcTimebegpos:ProcTimeendpos+1]))
+    print('ProcTimeyears_defined=',ProcTimeyears_defined)
+    #print(ProcTimenpyears[ProcTimebegpos:ProcTimeendpos+1],ProcTimenpmonths[ProcTimebegpos:ProcTimeendpos+1],ProcTimeMonfromStart[ProcTimebegpos:ProcTimeendpos+1])
+    
+    ProcTimelistA,ProcTimelistB=[],[]
+    ProcTimeseason_indices_defined=[]
+    ProcTimeseason_month_indices_defined=[]
+    
+    yearNow=ProcTimenpyears[ProcTimebegpos]
+    #print('yearNow=',yearNow)
+    for ProcTimeiii,ProcTimeppp in enumerate(range(ProcTimebegpos,ProcTimeendpos+1)): #loop over the years & months of interest only with ProcTimebegpos & ProcTimeendpos
+      print('ProcTimeiii,ProcTimenpyears[ProcTimeppp],ProcTimenpmonths[ProcTimeppp],ProcTimeMonfromStart[ProcTimeppp]',ProcTimeppp,ProcTimenpyears[ProcTimeppp],ProcTimenpmonths[ProcTimeppp],ProcTimeMonfromStart[ProcTimeppp])
+  
+      #yearNow=ProcTimenpyears[ProcTimeppp]
+      #print('ProcTimelistA,ProcTimelistB=',ProcTimelistA,ProcTimelistB)
+      #raise Exception('XXX!')
+      
+      #print(type(ProcTimenpyears[ProcTimeppp]),type(yearNow))
+      if(ProcTimenpyears[ProcTimeppp]!=yearNow):
+        #print('ProcTimelistA,ProcTimelistB=',ProcTimelistA,ProcTimelistB)
+        ProcTimeseason_indices_defined.append(ProcTimelistA)
+        ProcTimeseason_month_indices_defined.append(ProcTimelistB)
+        ProcTimelistA,ProcTimelistB=[],[]
+        ProcTimelistA.append(ProcTimenpmonths[ProcTimeppp])
+        ProcTimelistB.append(ProcTimeMonfromStart[ProcTimeppp])
+        yearNow=ProcTimenpyears[ProcTimeppp]
       else:
-        if(n==ttt-1): #last one special
-          month_index_end=month_index_ntims[ind_end-1]+1+1
-          year_index_end=year_index_ntims[ind_end-1]
-        else:
-          month_index_end=month_index_ntims[ind_end]+1
-          year_index_end=year_index_ntims[ind_end]
+        #raise Exception('XXX!')
+        ProcTimelistA.append(ProcTimenpmonths[ProcTimeppp])
+        ProcTimelistB.append(ProcTimeMonfromStart[ProcTimeppp])
   
-      if(month_index_end>nmy):
-         month_index_end=month_index_end-nmy
-         year_index_end+=1
+    #last ones are not picked up by if/else, need to do here or change logic above a bit.
+    ProcTimeseason_indices_defined.append(ProcTimelistA)
+    ProcTimeseason_month_indices_defined.append(ProcTimelistB)
   
-      print('n=',n,' ind_beg=',ind_beg,' ind_end=',ind_end,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end,file=fh_printfile)
+        #yearNow=ProcTimenpyears[ProcTimeiii]
+        #print('listA,listB=',listA,listB)
+      #raise Exception('XXX!')
+    #print('ProcTimeseason_indices_defined (#'+str(len(ProcTimeseason_indices_defined))+') =',ProcTimeseason_indices_defined)
+    #print('ProcTimeseason_month_indices_defined (#'+str(len(ProcTimeseason_month_indices_defined))+') =',ProcTimeseason_month_indices_defined)
+    #raise Exception('STOP!')
+    
+  else: #seasons!='MON'
   
-      tdelta=1.0
-      tdelta=0.0
+    ProcTimeseason_indices_defined = []
+    ProcTimeseason_month_indices_defined = [] #new
+    ProcTimeyears_defined = [] #based on success of season indice matching.
   
-      #tdelta=0
-      #tdelta=1
+    for ProcTimei in range(ProcTimelen_months): #maybe use xrange
+      ProcTimesegment=ProcTimenpmonths[ProcTimei:ProcTimei+ProcTimelen_month_indices]
+      #print('type(segment)=',type(segment))
+      #jjj=set(segment)
+      #kkk=set(npmonth_indices)
+      #print('jjj,kkk=',jjj,kkk)
+      
+      if (np.array_equal(ProcTimesegment,ProcTimenpmonth_indices)):
+        #print('yes')
+        ProcTimeseason_month_indices_defined.append((range(ProcTimei+1, ProcTimei+ProcTimelen_month_indices+1)))
+        ProcTimeseason_indices_defined.append(ProcTimemonths[ProcTimei:ProcTimei+ProcTimelen_month_indices]) #new, this will be used to work out monthly weights in cafepp.
+        ProcTimeyears_defined.append(ProcTimeyears[ProcTimei])
+        
+    if(Diagnostic):   
+      print('ProcTimeseason_indices_defined=',ProcTimeseason_indices_defined)
+      print('ProcTimeseason_month_indices_defined=',ProcTimeseason_month_indices_defined)
+      print('ProcTimeyears_defined=',ProcTimeyears_defined)
+    
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      
+    ProcTimeyears_season_valid=[] #can use this to determine if a valid minimum or maximum year is selected, the default would be all years.
+    
+    for ProcTimeyear in range(ProcTimeybeg_season_min,ProcTimeyend_max+1):
+      ProcTimeyears_season_valid.append(ProcTimeyear)
   
-      tend.append(cdtime.comptime(year_index_end,month_index_end,day1).torel(refString).value-tdelta) #assume in days, -1 gets numer of days of wanted month (ie. prior month without having to know number of days in month)
-      #print('tbeg,tend=',tbeg,tend,file=fh_printfile)
+  if(not ProcTimeSeasonCrossDecJan):
+    ProcTimeabc_beg=ProcTimeyears_defined.index(ProcTimeybeg_season_process)
+    ProcTimeabc_end=ProcTimeyears_defined.index(ProcTimeyend_season_process)
   
+    if(Diagnostic):
+      print('ProcTimeabc_beg,end=',ProcTimeabc_beg,ProcTimeabc_end)
+  
+    #overwrite if necessary based on processed years indices ProcTimeabc_beg,end found above:
+    ProcTimeseason_indices_defined=ProcTimeseason_indices_defined[ProcTimeabc_beg:ProcTimeabc_end+1]
+    ProcTimeseason_month_indices_defined=ProcTimeseason_month_indices_defined[ProcTimeabc_beg:ProcTimeabc_end+1]
+    ProcTimeyears_defined=ProcTimeyears_defined[ProcTimeabc_beg:ProcTimeabc_end+1]
+  
+    if(Diagnostic):
+      print('ProcTimeseason_indices_defined (#'+str(len(ProcTimeseason_indices_defined))+') =',ProcTimeseason_indices_defined)
+      print('ProcTimeseason_month_indices_defined (#'+str(len(ProcTimeseason_month_indices_defined))+') =',ProcTimeseason_month_indices_defined)
+      print('ProcTimeyears_defined (#'+str(len(ProcTimeyears_defined))+') =',ProcTimeyears_defined)
+    
       #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-      ind_beg=ind_end+1
-      if(season=='MON'):
-        ind_beg=ind_end+1
+    
+  elif(ProcTimeSeasonCrossDecJan): #need to add one for seasons that cross the Dec/Jan divide.
+    ProcTimenparray_years_defined=np.array(ProcTimeyears_defined)
+    ProcTimenparray_years_defined+=1
+    ProcTimeyears_defined = []
+    for ProcTimei,ProcTimeyear in enumerate(ProcTimenparray_years_defined): #the reassign back to year_defined, nparray_years not needed anymore.
+      ProcTimeyears_defined.append(ProcTimeyear)
+    del(ProcTimenparray_years_defined)
+  
+    ProcTimeabc_beg=ProcTimeyears_defined.index(ProcTimeybeg_season_process)
+    ProcTimeabc_end=ProcTimeyears_defined.index(ProcTimeyend_season_process)
+  
+    ProcTimeseason_indices_defined=ProcTimeseason_indices_defined[ProcTimeabc_beg:ProcTimeabc_end+1]
+    ProcTimeseason_month_indices_defined=ProcTimeseason_month_indices_defined[ProcTimeabc_beg:ProcTimeabc_end+1]
+    ProcTimeyears_defined=ProcTimeyears_defined[ProcTimeabc_beg:ProcTimeabc_end+1]
+    
+  if(not Diagnostic):
+    #print('ProcTimenparray_years_defined=',ProcTimenparray_years_defined)
+    if('ProcTimeyears_season_valid' in locals()): print('ProcTimeyears_season_valid (#'+str(len(ProcTimeyears_season_valid))+') =',ProcTimeyears_season_valid) #can't trust this b/c although might have final year, all months may not be present.
+    print('ProcTimeseason_indices_defined (#'+str(len(ProcTimeseason_indices_defined))+') =',ProcTimeseason_indices_defined)
+    print('ProcTimeseason_month_indices_defined (#'+str(len(ProcTimeseason_month_indices_defined))+') =',ProcTimeseason_month_indices_defined)
+    print('ProcTimeyears_defined (#'+str(len(ProcTimeyears_defined))+') =',ProcTimeyears_defined)
+  
+  if(ProcTimeseason != 'MON' and (ProcTimeybeg_season_process not in ProcTimeyears_season_valid or ProcTimeyend_season_process not in ProcTimeyears_season_valid)):
+    raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  print('ProcTimemonth_indices=',ProcTimemonth_indices)
+  
+  print(' So now we could loop over years_defined, each vector of season_indices_defined can be used then be used to broadcast/average.')
+
+###############################################################################
+
+  #for ProcTimei,ProcTimeyear in enumerate(ProcTimeyears_defined):
+  #  print('ProcTimei,ProcTimeyear,ProcTimeseason_indices_defined[ProcTimei]=',ProcTimei,ProcTimeyear,ProcTimeseason_indices_defined[ProcTimei])
+  print('ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process=',ProcTimeybeg_season_process,ProcTimeyend_season_process,ProcTimembeg_season_process,ProcTimemend_season_process)
+  #print('ProcTimeyears_defined.index(ProcTimeybeg_season_process=',ProcTimeyears_defined.index(ProcTimeybeg_season_process))
+
+  for ProcTimei,ProcTimeyear in enumerate(range(ProcTimeybeg_season_process,ProcTimeyend_season_process+1)):
+    #print(ProcTimeseason_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)])
+    ProcTimevalues=ProcTimeseason_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)]
+    print('ProcTimei,ProcTimeyear,values=',ProcTimei,ProcTimeyear,ProcTimevalues)
+  
+###############################################################################
+
+#!  tbeg,tend=[],[]
+
+#  time_stamp_beg=datetime.datetime(this_year,1,1) + datetime.timedelta(hours=0.0)
+#  time_beg=netCDF4.date2num(time_stamp_beg,time_string,calendar)
+
+  ProcTimetime_stamp_beg,ProcTimetime_stamp_end=[],[]
+  
+  if(ProcTimeseason_broadcast[ProcTimeseason]): #broadcast 
+    for ProcTimei,ProcTimeyear in enumerate(range(ProcTimeybeg_season_process,ProcTimeyend_season_process+1)):
+      #print('ProcTimeyear=',ProcTimeyear)
+      ProcTimenpvalues=np.array(ProcTimeseason_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)])-1
+      ProcTimenpvalues2=np.array(ProcTimeseason_month_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)])-1
+      #print('ProcTimenpvalues=',ProcTimenpvalues)
+      #print('ProcTimenpvalues2=',ProcTimenpvalues2)
+      #print(ProcTimenum_stamps[ProcTimenpvalues])
+      #print('ProcTimenpyears[ProcTimenpvalues]',ProcTimenpyears[ProcTimenpvalues2])
+      #print('ProcTimenpmonths[ProcTimenpvalues]=',ProcTimenpmonths[ProcTimenpvalues2])
+    
+      #print('ProcTimenpyears=',ProcTimenpyears)
+      #if(ProcTimei==1): raise SystemExit('STOP!')
+    
+      for ProcTimej,ProcTimenpyear in enumerate(ProcTimenpyears[ProcTimenpvalues2]):
+        #print('ProcTimej,ProcTimenpyear,ProcTimenpmonths[ProcTimenpvalues2][ProcTimej]=',ProcTimej,ProcTimenpyear,ProcTimenpmonths[ProcTimenpvalues][ProcTimej])
+        ProcTimetime_stamp_beg.append(datetime.datetime(ProcTimenpyear,ProcTimenpmonths[ProcTimenpvalues][ProcTimej],1) + datetime.timedelta(hours=0.0))
+  
+        #raise SystemExit('STOP!')
+        
+        ProcTimemmm=ProcTimenpmonths[ProcTimenpvalues][ProcTimej]+1
+        if(ProcTimemmm>12):
+          ProcTimemmm=1
+          ProcTimeyyy=ProcTimenpyear+1
+        else:
+          ProcTimeyyy=ProcTimenpyear
+          
+        ProcTimetime_stamp_end.append(datetime.datetime(ProcTimeyyy,ProcTimemmm,1) + datetime.timedelta(hours=0.0))
+  
+    #raise SystemExit('STOP!')
+  
+  #  for ProcTimek,dummy in enumerate(ProcTimetime_stamp_beg):                       
+  #    print('ProcTimek,ProcTimetime_stamp_beg[ProcTimek],ProcTimetime_stamp_end[ProcTimek]=',ProcTimek,ProcTimetime_stamp_beg[ProcTimek],ProcTimetime_stamp_end[ProcTimek])
+                         
+  else: #not broadcast=seasonal average
+    for ProcTimei,ProcTimeyear in enumerate(range(ProcTimeybeg_season_process,ProcTimeyend_season_process+1)):
+      ProcTimenpvalues=np.array(ProcTimeseason_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)])-1
+      ProcTimenpvalues2=np.array(ProcTimeseason_month_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)])-1
+      
+      print('ProcTimenpvalues,ProcTimenpvalues2,ProcTimenpyears[ProcTimenpvalues],ProcTimenpmonths[ProcTimenpvalues]=',ProcTimenpvalues,ProcTimenpvalues2,ProcTimenpyears[ProcTimenpvalues2],ProcTimenpmonths[ProcTimenpvalues])
+  
+      ProcTimetime_stamp_beg.append(datetime.datetime(ProcTimenpyears[ProcTimenpvalues2[0]],ProcTimenpmonths[ProcTimenpvalues[0]],1) + datetime.timedelta(hours=0.0))
+  
+      ProcTimemmm=ProcTimenpmonths[ProcTimenpvalues[-1]]+1
+      if(ProcTimemmm>12):
+        ProcTimemmm=1
+        ProcTimeyyy=ProcTimenpyears[ProcTimenpvalues2[-1]]+1
       else:
-        ind_beg=ind_end+1
+        ProcTimeyyy=ProcTimenpyears[ProcTimenpvalues2[-1]]
+      
+      ProcTimetime_stamp_end.append(datetime.datetime(ProcTimeyyy,ProcTimemmm,1) + datetime.timedelta(hours=0.0))
   
-    tbeg=np.array(tbeg)
-    tend=np.array(tend)
-    tavg=(tbeg+tend)/2.0
-    tval_bounds=np.column_stack((tbeg,tend))
+  #continue on
+  ProcTimetime_beg=netCDF4.date2num(ProcTimetime_stamp_beg,ProcTimetime.units,ProcTimetime.calendar)
+  ProcTimetime_end=netCDF4.date2num(ProcTimetime_stamp_end,ProcTimetime.units,ProcTimetime.calendar)
   
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  #I could do an average of the year/month stamp rather than an aveage of beg/end, might be same.
   
-    #print('tbeg,tend,tavg=',tbeg,tend,tavg)
-    timestamp_avg=netCDF4.num2date(tavg,units=refString,calendar=calendar)
-    timestamp_beg=netCDF4.num2date(tbeg,units=refString,calendar=calendar)
-    timestamp_end=netCDF4.num2date(tend,units=refString,calendar=calendar)
+  ProcTimetime_avg=(ProcTimetime_beg+ProcTimetime_end)/2.0
   
-    print('timestamp_avg,beg,end:',file=fh_printfile)
-    for n in range(0,ttt):
-      print(timestamp_avg[n],timestamp_beg[n],timestamp_end[n],file=fh_printfile)
+  ProcTimetime_bounds=np.column_stack((ProcTimetime_beg,ProcTimetime_end))
   
-    #print('timestamp_avg=',timestamp_avg,timestamp_beg)
-  
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-    #tables[0]=cmor.load_table('cmor/Tables/CMIP6_Amon.json')
-    cmor.set_table(tables[0])
-    #itime=cmor.axis(table_entry= 'time', length=5, units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:], interval=None)
-    #itime=cmor.axis(table_entry= 'time', length=5, units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:])
-    #itime=cmor.axis('time', units=refString, coord_vals=tavg[:], cell_bounds=tval_bounds[:])
-  
-    #print('tavg=',tavg,file=fh_printfile)
-    #print('tval_bounds=',tval_bounds,file=fh_printfile)
-  
-    time_axis_id=cmor.axis('time', units=refString, coord_vals=tavg, cell_bounds=tval_bounds)
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
+  ProcTimetime_stamp_avg=netCDF4.num2date(ProcTimetime_avg,ProcTimetime.units,ProcTimetime.calendar)
+  if(not Diagnostic):
+    for dummyi,dummy in enumerate(ProcTimetime_stamp_beg):
+      print('i,ProcTimetime_stamp_beg,avg,end=',dummyi,ProcTimetime_stamp_beg[dummyi],ProcTimetime_stamp_avg[dummyi],ProcTimetime_stamp_end[dummyi])
+
+###############################################################################
+
+  cmor.set_table(tables[0])
+
+  #print('aaa')
+  time_axis_id=cmor.axis('time', units=ProcTimetime.units, coord_vals=ProcTimetime_avg, cell_bounds=ProcTimetime_bounds)
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  #print('ProcTimetime_beg=',ProcTimetime_beg)
+  #print('ProcTimetime_stamp_beg=',ProcTimetime_stamp_beg)
+   #time_stamp_beg=datetime.datetime(ProcTimeyear,1,1) + datetime.timedelta(hours=0.0) 
+
   cmor.set_table(tables[1])
   
   if(realm=='ocean' and ( OutputVarStructure=='time_lat_lon' or OutputVarStructure=='time_depth_lat_lon' or OutputVarStructure=='depth_lat_lon')):
@@ -1811,19 +2348,65 @@ def main(json_input_instructions):
   #  data_id.append(cmor.variable(dvar, ounits, axis_ids=axis_ids, missing_value=-1e20))
   #  data_id.append(cmor.variable('GHGS','1.0',axis_ids=axis_ids, missing_value=-1e20))
   #  data_id.append(cmor.variable('GHGN','1.0',axis_ids=axis_ids, missing_value=-1e20))
+
+  print(ProcTimeyears_defined)
+  print(ProcTimeyears_defined[0])
+  print(type(ProcTimeyears_defined[0]))
+
+  print(ProcTimeyears_defined[-1])
+  print(type(ProcTimeyears_defined[-1]))
+
+  print(ProcTimeseason_month_indices_defined)
+  print(ProcTimeseason_month_indices_defined[0][0])
+  print(ProcTimeseason_month_indices_defined[-1][-1])
+
+  #print(ProcTimenparray_months_defined[ProcTimeseason_month_indices_defined[0][0]])
+  #print(ProcTimenparray_months_defined[ProcTimeseason_month_indices_defined[-1][-1]])
+
+  print(ProcTimenpmonths[ProcTimeseason_month_indices_defined[0][0]-1])
+  print(ProcTimenpmonths[ProcTimeseason_month_indices_defined[-1][-1]-1])
+
+#ProcTimenpmonths
+
+#  exit()
+
+  odir=[]
+  ofil=[]
+  ofil_modified=[]
+
+  odir.append('CMIP6/CMIP'+'/'+institution_id+'/'+source_id+'/'+experiment_id+'/'+ripf+'/'+table+'/'+ovars[0]+'/'+grid_label+'/'+version)
+
+  ybeg_ofil=str('{0:04d}'.format(ProcTimeyears_defined[0]))
+  yend_ofil=str('{0:04d}'.format(ProcTimeyears_defined[-1]))
+
+  print('yend_ofil=',yend_ofil)
+
+  if(season=='MON'):
+    mbeg_ofil=str('{0:02d}'.format(ProcTimenpmonths[ProcTimeseason_month_indices_defined[0][0]-1]))
+    mend_ofil=str('{0:02d}'.format(ProcTimenpmonths[ProcTimeseason_month_indices_defined[-1][-1]-1]))
+
+    ofil.append(ovars[0]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+ybeg_ofil+mbeg_ofil+'-'+yend_ofil+mend_ofil+'.nc')
+    ofil_modified.append(ovars[0]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+ybeg_ofil+mbeg_ofil+'-'+yend_ofil+mend_ofil+'.nc')
+
+    #print(ofil_modified)
+    #exit()
+
+  else:
+    ofil.append(ovars[0]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+ybeg_ofil+'-'+yend_ofil+'.nc')
+    ofil_modified.append(ovars[0]+'_'+table+'_'+experiment_id+'_'+source_id+'_'+ripf+'_'+grid_label+'_'+ybeg_ofil+'-'+yend_ofil+'_'+season+'.nc')
+
+  #print(odir_ofil+'/'+ofil_ofil)
   
-  ofil,ofil_modified=create_ofils(season,table,ovars,experiment_id,source_id,ripf,grid_label,ybeg,yend,mbeg,mend,0,0) #don't need to worry about dbeg,dend, always monthly data input.
+  #ofil,ofil_modified=create_ofils(season,table,ovars,experiment_id,source_id,ripf,grid_label,ybeg,yend,mbeg,mend,0,0) #don't need to worry about dbeg,dend, always monthly data input.
   
-  print('odir=',odir,file=fh_printfile)
-  print('ofil=',ofil,file=fh_printfile)
-  print('ofil_modified=',ofil_modified,file=fh_printfile)
-  print('ovars=',ovars,file=fh_printfile)
+  #print('odir=',odir,file=fh_printfile)
+  #print('ofil=',ofil,file=fh_printfile)
+  #print('ofil_modified=',ofil_modified,file=fh_printfile)
+  #print('ovars=',ovars,file=fh_printfile)
   
   print('len(ovars)=',len(ovars),file=fh_printfile)
   for o in range(0,len(ovars)):
     print('Output CMIP6 file:',odir[o]+'/'+ofil_modified[o],file=fh_printfile)
-  
-  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   for o in range(0,len(ovars)):
     if(os.path.exists(odir[o]+'/'+ofil_modified[o]) and NoClobber):
@@ -1834,8 +2417,10 @@ def main(json_input_instructions):
   for o in range(0,len(ovars)):
     if(os.path.exists(odir[o]+'/'+ofil[o]) and NoClobber):
       #raise SystemExit('No Clobber set and ',odir[o]+'/'+ofil_modified[o],' exist.')
-      print('No Clobber set and ',odir[o]+'/'+ofil_modified[o],' exist.')
+      print('No Clobber set and ',odir[o]+'/'+ofil[o],' exist.')
       return(0)
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   #  if(dvar=='volcello'):
   #    area=np.tile(np.expand_dims(xfh.variables['area_T'],0), (len(zt),1,1))
@@ -1860,47 +2445,67 @@ def main(json_input_instructions):
   #    data=np.ma.array(input_fhs[0].variables[inputs[0]][0,:,:,:]/input_fhs[0].variables[inputs[0]][0,:,:,:]) * depths
   #    data=np.sum(data,axis=0)
   #
-  icnt=0
-  ibeg=0
-  ind_beg=0
-  for n in range(0,ttt): #this code is copy from one above (need to add in icnt,ind_beg)
-  
-    if(season=='MON'):
-      ind_end=ind_beg #always 1 month at a time for MON
-    else:
-      ind_end=ind_beg+times_in_season-1
-  
-    month_index_beg=month_index_ntims[ind_beg]+1
-    year_index_beg=year_index_ntims[ind_beg]
-  
-    if(season=='MON'):
-      if(n==0):
-        month_index_end=month_index_beg+1
-        year_index_end=year_index_beg
-      else:
-        month_index_end=month_index_beg+1
-        year_index_end=year_index_end
-    elif(season=='ANN'):
-      if(n==ttt-1): #last one special
-        month_index_end=month_index_ntims[ind_end-1]+1+1+1
-        year_index_end=year_index_ntims[ind_end-1]
-      else:
-        month_index_end=month_index_ntims[ind_end]+1+1
-        year_index_end=year_index_ntims[ind_end]
-    else:
-      if(n==ttt-1): #last one special
-        month_index_end=month_index_ntims[ind_end-1]+1+1
-        year_index_end=year_index_ntims[ind_end-1]
-      else:
-        month_index_end=month_index_ntims[ind_end]+1
-        year_index_end=year_index_ntims[ind_end]
-  
-    if(month_index_end>12):
-       month_index_end=month_index_end-nmy
-       year_index_end+=1
-  
-    print('n=',n,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end,' ind_beg,end=',ind_beg,ind_end,file=fh_printfile)
-  
+
+  for ProcTimei,ProcTimeyear in enumerate(range(ProcTimeybeg_season_process,ProcTimeyend_season_process+1)):
+    icnt=ProcTimei
+
+    ProcTimevalues=ProcTimeseason_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)]
+    ProcTimenpvalues=np.array(ProcTimeseason_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)])-1
+    ProcTimenvalues=len(ProcTimevalues)
+    ProcTimennpvalues=len(ProcTimenpvalues)
+
+    ProcTimevalues2=ProcTimeseason_month_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)]
+    ProcTimenpvalues2=np.array(ProcTimeseason_month_indices_defined[ProcTimeyears_defined.index(ProcTimeyear)])-1
+    ProcTimenvalues2=len(ProcTimevalues2)
+    ProcTimennpvalues2=len(ProcTimenpvalues2)
+
+    #print(ProcTimevalues)
+    #print(ProcTimevalues2)
+
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#!  icnt=0
+#!  ibeg=0
+#!  ind_beg=0
+#!  for n in range(0,ttt): #this code is copy from one above (need to add in icnt,ind_beg)
+#!  
+#!    if(season=='MON'):
+#!      ind_end=ind_beg #always 1 month at a time for MON
+#!    else:
+#!      ind_end=ind_beg+times_in_season-1
+#!  
+#!    month_index_beg=month_index_ntims[ind_beg]+1
+#!    year_index_beg=year_index_ntims[ind_beg]
+#!  
+#!    if(season=='MON'):
+#!      if(n==0):
+#!        month_index_end=month_index_beg+1
+#!        year_index_end=year_index_beg
+#!      else:
+#!        month_index_end=month_index_beg+1
+#!        year_index_end=year_index_end
+#!    elif(season=='ANN'):
+#!      if(n==ttt-1): #last one special
+#!        month_index_end=month_index_ntims[ind_end-1]+1+1+1
+#!        year_index_end=year_index_ntims[ind_end-1]
+#!      else:
+#!        month_index_end=month_index_ntims[ind_end]+1+1
+#!        year_index_end=year_index_ntims[ind_end]
+#!    else:
+#!      if(n==ttt-1): #last one special
+#!        month_index_end=month_index_ntims[ind_end-1]+1+1
+#!        year_index_end=year_index_ntims[ind_end-1]
+#!      else:
+#!        month_index_end=month_index_ntims[ind_end]+1
+#!        year_index_end=year_index_ntims[ind_end]
+#!  
+#!    if(month_index_end>12):
+#!       month_index_end=month_index_end-nmy
+#!       year_index_end+=1
+#!  
+#!    print('n=',n,' year_index_beg=',year_index_beg,' month_index_beg=',month_index_beg,' year_index_end=',year_index_end,' month_index_end=',month_index_end,' ind_beg,end=',ind_beg,ind_end,file=fh_printfile)
+# 
+
     if(len(inputs)>=2):
       #print('levels=',levels,file=fh_printfile)
       #print('nlev=',nlev,file=fh_printfile)
@@ -1938,18 +2543,26 @@ def main(json_input_instructions):
       #print('data2.shape=',data2.shape,file=fh_printfile)
       #if(len(inputs)>=3):
         #print('data3.shape=',data3.shape,file=fh_printfile)
-      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
     else:
       #levels=[0]
       #nlev=1
-      data=data_wavg(inputs[0],input_fhs,locate_file_index_Ntimes_b1_nominus1s_flat,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,nlev,MonthlyWeights,month_index_ntims,fh_printfile,var_size)
+      #data=np.zeros((ProcTimenvalues,300,360),dtype='f')
+      #print(ProcTimennpvalues)
+      #data=ProcTimeifhN.variables[inputs[0]][ProcTimenpvalues,]
+
+      data=data_wavg_ProcTime(inputs[0],ProcTimeifhN,ProcTimenpvalues,ProcTimenpvalues2,ProcTimeseason_broadcast[ProcTimeseason])
+
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      #print('data.shape=',data.shape)
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#!      data=data_wavg(inputs[0],input_fhs,locate_file_index_Ntimes_b1_nominus1s_flat,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,nlev,MonthlyWeights,month_index_ntims,fh_printfile,var_size)
   
     print('levels=',levels,file=fh_printfile)
     print('nlev=',nlev,file=fh_printfile)
   
     #print('data.shape=',data.shape)
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
     if(output_type=='diagnostic'):
   
@@ -2080,7 +2693,12 @@ def main(json_input_instructions):
   #  if(season=='MON'):
   #    ntimes_passed=np.shape(data)[0]
   #  else:
-    ntimes_passed=1
+#!    ntimes_passed=1
+
+    if(ProcTimeseason_broadcast[ProcTimeseason]):
+      ntimes_passed=ProcTimenvalues
+    else:
+      ntimes_passed=1
   
     if(OutputVarStructure=='time'):
       newdata=np.zeros((1,1),dtype='f')
@@ -2097,13 +2715,28 @@ def main(json_input_instructions):
         if('outputs_string' in locals() and len(outputs_string)!=1):
           cmor.write(var_id=data_id[o], data=data[0], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]]) #tuple, multiple outputs.
         else:
-          cmor.write(var_id=data_id[o], data=data, ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
+          #print(ProcTimetime_bounds)
+          #print(ProcTimetime_bounds.shape)
+          #cmor.write(var_id=data_id[o], data=data, ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
+          #print('data.shape=',data.shape)
+          #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+          if(ProcTimeseason_broadcast[ProcTimeseason]):
+            cmor.write(var_id=data_id[o], data=data, ntimes_passed=ntimes_passed, time_bnds=ProcTimetime_bounds[ProcTimennpvalues])
+          else:
+            cmor.write(var_id=data_id[o], data=data, ntimes_passed=ntimes_passed, time_bnds=ProcTimetime_bounds[icnt])
+
+          #file_name=[]
+          #print('ovars=',ovars)
+          #for o in range(0,len(ovars)):
+          #  print('o=',o,file=fh_printfile)
+          #  file_name.append(cmor.close(var_id=data_id[o], file_name=True))
+          #  print('file_name=',file_name[o],file=fh_printfile)
         #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   #  elif(realm=='ocean' and (OutputVarStructure=='time_depth_lat_lon' or OutputVarStructure=='time_lat_lon')):
   #    for o in range(0,len(ovars)):
   #      cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
-  
   
     elif(realm=='atmos' and (OutputVarStructure=='time_plev_lat_lon' or OutputVarStructure=='time_lat_lon' or OutputVarStructure=='time_reducedplev_lat_lon' or OutputVarStructure=='time_lon') ):
     #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -2129,9 +2762,9 @@ def main(json_input_instructions):
   #    data=newdata
   #    for o in range(0,len(ovars)):
   #      cmor.write(var_id=data_id[o], data=data[:], ntimes_passed=ntimes_passed, time_bnds=[tbeg[icnt],tend[icnt]])
-    icnt+=1
-    ibeg=iend+1
-    ind_beg=ind_end+1
+#!    icnt+=1
+#!    ibeg=iend+1
+#!    ind_beg=ind_end+1
   
   #print('ovars=',ovars,file=fh_printfile)
   #print('len(ovars)=',len(ovars),file=fh_printfile)
@@ -2144,7 +2777,7 @@ def main(json_input_instructions):
     print('file_name=',file_name[o],file=fh_printfile)
   
   for o in range(0,len(ovars)):
-    finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season,fh_printfile)
+    finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season,ProcTimeseason_broadcast[ProcTimeseason],fh_printfile)
   
   #raise SystemExit('Finished O.K.')
   print('Finished O.K.')

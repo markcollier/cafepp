@@ -1,12 +1,40 @@
 from __future__ import print_function #this is to allow print(,file=xxx) feature
 
-def finish(file_name,odir,ofil,ofil_modified,season,fh_printfile):
+def finish(file_name,odir,ofil,ofil_modified,season,broadcast,fh_printfile):
   '''
   Do final processing, reporting and tidying up.
   '''
   import os
+  import inspect
 
-  print('Output: ',file_name,file=fh_printfile)
+  items=os.path.basename(file_name).strip().split('_')
+  items2=items[-1].split('.nc')
+  items3=items2[0].split('-')
+
+  print(items)
+  print(items2)
+  print(items3)
+
+  ybeg=int(items3[0][0:4])
+  mbeg=int(items3[0][5:6])
+  yend=int(items3[1][0:4])
+  mend=int(items3[1][5:6])
+
+  print('ybeg,yend,mbeg,mend=',str('{0:04d}'.format(ybeg)),str('{0:04d}'.format(yend)),str('{0:02d}'.format(mbeg)),str('{0:02d}'.format(mend)))
+
+  print(type(items))
+  try_this='_'.join(items[0:6])+'_'+str('{0:04d}'.format(ybeg))+'-'+str('{0:04d}'.format(yend))+'_'+season+'.nc'
+  print(try_this)
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+
+  print('file_name: ',file_name,file=fh_printfile)
+  print('odir: ',odir,file=fh_printfile)
+  print('ofil: ',ofil,file=fh_printfile)
+  print('ofil_modified: ',ofil_modified,file=fh_printfile)
+  print('season: ',season,file=fh_printfile)
+  print('broadcast: ',broadcast,file=fh_printfile)
+
   print('Will need to put in "importance flag", perhaps it can go in another standard metadata tag?',file=fh_printfile)
   if(season!='ANN' or season!='MON'):
     print('Will need to move this CMIP6 file to slightly different name to clearly specify that it is a special season where the time axis is not continguous.',file=fh_printfile)
@@ -14,11 +42,16 @@ def finish(file_name,odir,ofil,ofil_modified,season,fh_printfile):
   #if(tdir != odir):
   #  os.rename(tdir+'/'+ofil,odir+'/'+ofil)
   #print('Output file: '+odir+'/'+ofil,file=fh_printfile)
+  #if(os.path.exists(odir+'/'+ofil) and season != 'MON'):
+  if(os.path.exists(file_name) and season != 'MON'):
 
-  if(os.path.exists(odir+'/'+ofil) and season != 'MON'):
-    print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified,file=fh_printfile)
-    print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified) #print to screen too...
-    os.rename(odir+'/'+ofil,odir+'/'+ofil_modified)
+    #print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified,file=fh_printfile)
+    #print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified) #print to screen too...
+    #print('Output frequency not standard moving', file_name,' to ',odir+'/'+ofil_modified) #print to screen too...
+    print('Output frequency not standard moving', file_name,' to ',odir+'/'+try_this) #print to screen too...
+
+    #os.rename(file_name,odir+'/'+ofil_modified)
+    os.rename(file_name,odir+'/'+try_this)
   elif(season=='MON'):
     print('Output: ',file_name)
     pass
@@ -255,8 +288,42 @@ def time_avg(var,input_fhs,file_index,month_index,weights_values,ibeg,iend,seaso
   #raise SystemExit('Forced exit.')
   return(time)
 
-#def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season,Forecast,icnt,month_in_file,fh_printfile):
+def data_wavg_ProcTime(ivar,ifhN,ProcTimenpvalues,ProcTimenpvalues2,broadcast):
+  '''
+  New version utilising ProcTime variables...
+  ProcTimenpvalues are indices relative to the original files read in (0 is time 1).
+  ProcTimenpvalues is used to extract data from the original files.
+  ProcTimenpvalues2 are indices relative to the original files b/w 0 and 11 read in (0 is time 1).
+  ProcTimenpvalues2 is used to provide number of months in a year for weighting.
+  '''
+  import numpy as np
+  import numpy.ma as ma
+  import inspect
+  nmy=12
+  npdays_in_month=np.array([31,28,31,30,31,30,31,31,30,31,30,31]) #approx (ignoring leap years).
+
+  #print(days_in_month[])
+
+  print('ProcTimenpvalues=',ProcTimenpvalues)
+  print('ProcTimenpvalues2=',ProcTimenpvalues2)
+  data=ifhN.variables[ivar][ProcTimenpvalues2,]
+
+  #ma.masked_values(data[:,0:100,:],-1e20)
+  #data=ma.masked_equal(data,-1e20)
+  #data=ma.masked_values(data,-1e20)
+  data=ma.masked_where(data==-1e20,data)
+  #print(data.view(ma.MaskedArray))
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if(not broadcast):
+    weights=npdays_in_month[ProcTimenpvalues]
+    #print('weights=',weights)
+    data=ma.expand_dims(ma.average(data,axis=0,weights=weights),0) #apply weights later...
+  #print('data.shape=',data.shape)
+  return(data)
+
 def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,nlev,MonthlyWeights,month_index_ntims,fh_printfile,var_size):
+#def data_wavg(ivarSnow,input_fhs,file_index,month_index,weights_values,levels,nlev,ibeg,iend,season,Forecast,icnt,month_in_file,fh_printfile):
   #from __future__ import print_function
   '''
   '''
@@ -320,8 +387,8 @@ def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_
   #raise SystemExit('Forced exit.')
   return(tdata)
 
-#def diag_nhblocking_index(data,lat,lon):
 def diag_nhblocking_index(data,*argv):
+#def diag_nhblocking_index(data,lat,lon):
   '''
   http://www.cpc.ncep.noaa.gov/products/precip/CWlink/blocking/index/index.nh.shtml
 
@@ -4369,3 +4436,63 @@ def restrict_input_files(input_files):
     else:
       print('Removing ',f,' from list.')
   return(data)
+
+def modify_json(input,output,str_number,clobber):
+  '''
+  Perform minor modifications to json file.
+  '''
+  import os
+  import inspect
+  ifh=open(input)
+
+  if(os.path.exists(output) and not clobber):
+    raise SystemExit('Output exists and clobber=False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  else:
+    if(os.path.exists(output)):
+      os.remove(output)
+    ofh=open(output,'w')
+
+  for i,line in enumerate(ifh):
+    token1=[str(x) for x in line.split(':')]
+    token2=(token1[0].replace(' ',''))
+    token3=(token2.replace('"',''))
+    if(token3=='approx_interval'):
+      line='        "approx_interval": "'+str_number+'",\n'
+    print(line,file=ofh,end='')
+  ifh.close()
+  ofh.close()
+
+  return()
+
+def get_timestamp_number(ybeg,yend,units_now,calendar_now):
+  '''
+  from a ybeg,yend and calendar generate timestamp vector as well as date number vector
+  '''
+  import calendar
+  import numpy as np
+  import netCDF4
+  import datetime
+
+  nmy=12
+  ts_beg,ts_end=[],[]
+  dt_beg,dt_end=[],[]
+  icnt=-1
+  for ynow in range(ybeg,yend+1):
+    if(not calendar.isleap(ynow) or calendar_now=='noleap'):
+      days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31]
+    else:
+      days_in_month=[31,29,31,30,31,30,31,31,30,31,30,31]
+      
+    for mnow in range(1,nmy+1):
+      icnt+=1
+      #print('icnt,ynow,mnow=',icnt,ynow,mnow)
+      ts_beg.append(datetime.datetime(ynow,mnow,1) + datetime.timedelta(hours=0.0))
+      ts_end.append(datetime.datetime(ynow,mnow,days_in_month[mnow-1]) + datetime.timedelta(hours=24.0))
+      
+      dt_beg.append(netCDF4.date2num(ts_beg[icnt],units_now,calendar_now))
+      dt_end.append(netCDF4.date2num(ts_end[icnt],units_now,calendar_now))
+
+  dt_avg=(np.array(dt_beg)+np.array(dt_end))/2.0
+  ts_avg=netCDF4.num2date(dt_avg,units_now,calendar_now)
+
+  return(ts_beg,ts_end,ts_avg,dt_beg,dt_end,dt_avg)
