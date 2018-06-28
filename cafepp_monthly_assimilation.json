@@ -26,8 +26,11 @@
           },
 #
     "options_with_arguments":{
-    "cafe_experiment":"v1", #experiment to process, see file cafepp_experimentrs.json for the current list.
-    "cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",
+    #"num_months_truncate":"120000",
+    #"cafe_experiment":"v1", #experiment to process, see file cafepp_experimentrs.json for the current list.
+    #"cafe_experiment":"v1_forecast",
+    #"cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",
+    "cafe_experiment":"dummy",
     "info":"last modified today",
     "force_hostname":"raijin", #force hostname to ensure idir is correct (e.g. when submitting to raijin, the batch machine name is very hard to match.
     "name":"options_with_arguments_cafepp.json",
@@ -35,16 +38,17 @@
     "version":"v20171025", #cmor defaults to current date, sometimes want output to go into a specific directory.
 #
     "dvar":"tos",
+    #"dvar":"pr",
 #
     "ybeg":2002, #beg year to process (no default).
-    "yend":2015, #end year to process (no default). 2016
+    "yend":2016, #end year to process (no default). 2016
     "mbeg":1, #beg month to process (default 1).
-    "mend":1, #end month to process (default 12). 6
+    "mend":12, #end month to process (default 12). 6
 
-    #"season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
+    "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     #"season":"MAM", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     #"season":"Jan", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
-    "season":"ANN", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
+    #"season":"ANN", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     #"season":"JunJul", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     #"season":"DecJan", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     #"season":"JJAS", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.

@@ -6,6 +6,27 @@
     "area_u":"None"
                },
 #
+    "siconc":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"CN",
+    "realm":"ice",
+    "ounits":"%",
+    "table":"SImon,SIday",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+    #"positive":"None",
+    #"output_type":"broadcast",
+    "output_type":"diagnostic",
+    "plev_type":"None",
+    "lat_lon_type":"y_T,x_T",
+    "aaa_newlevs_type":"int",
+    "interp_fill_options":"griddata_scipy",
+    "diagnostic_args_string":"100.0,fh_printfile",
+    "diagnostic_function_name":"siconc"
+    },
+#
     "tos":{
     "info":"None",
     "area_t":"True",
@@ -24,7 +45,7 @@
     "plev_type":"None", #whether pfull or phalf (atmospheric plev variables).
     "lat_lon_type":"y_T,x_T", #labels used for lat/lon definitions.
     "aaa_newlevs_type":"int", #must appear before levels.
-    "newlevs":"0",
+    #"newlevs":"0",
     #"interp_fill_options":"poisson_fill,dot_weighting_regrid,apply_ls_mask_regrid"
     "interp_fill_options":"griddata_scipy"
     },
@@ -159,6 +180,23 @@
     "newlevs":"0,1,2,3,4,5,6,7,8,9"
     },
 #
+    "so":{
+    "info":"None",
+    "area_t":"True",
+    "inputs":"salt",
+    "realm":"ocean",
+#    "diag_dims":"time st_ocean yt_ocean xt_ocean",
+    "ounits":"0.001",
+    "table":"Omon,Oday",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_depth_lat_lon",
+    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "lat_lon_type":"y_T,x_T"
+    },
+#
     "psl":{
     "info":"None",
     "area_t":"False",
@@ -175,6 +213,24 @@
     "plev_type":"None",
     "diagnostic_args_string":"100.0,fh_printfile",
     "diagnostic_function_name":"psl"
+    },
+#
+    "ts":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"t_surf",
+    "realm":"atmos",
+#    "diag_dims":"time lat lon",
+    "ounits":"K",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+#    "positive":"None",
+    "output_type":"broadcast",
+    "plev_type":"None"
+#    "diagnostic_args_string":"100.0,fh_printfile",
+#    "diagnostic_function_name":"psl"
     },
 #
     "zg500":{
@@ -510,7 +566,8 @@
     "positive":"None"
     },
 #
-    "tslsi":{
+#    "tslsi":{
+    "tas":{
     "info":"None",
     "area_t":"False",
     "inputs":"t_ref",
@@ -1315,7 +1372,7 @@
     "diagnostic_args_string":"z,nlats,nlons,fh_printfile"
     },
 #
-    "msftyyz":{
+    "msftyz":{ #was called msftyyz
     "inputs":"ty_trans,ty_trans_gm",
     "realm":"ocean",
     "ounits":"kg s-1",
@@ -1324,7 +1381,7 @@
     "ovars":"dvar",
     "OutputVarStructure":"time_basin_depth_lat",
     "output_type":"diagnostic",
-    "diagnostic_function_name":"msftyyz",
+    "diagnostic_function_name":"msftyz", #msftyyz
     "diagnostic_args_string":"atlantic_arctic_mask,indoPac_mask,global_mask,nbasins,nzb,nlats",
     "define_basin_mask":"True"
     },
@@ -1482,7 +1539,7 @@
     "diagnostic_args_string":"zt,lat_vals,lon_vals_360,nlats,nlons,fh_printfile",
     "lat_lon_type":"y_T,x_T"
     },
-    "msftyz":{
+    "msftyz_old":{
     "inputs":"ty_trans,ty_trans_gm",
     "info":"None",
     "inputs":"ucomp,ucomp",

@@ -23,10 +23,12 @@ def finish(file_name,odir,ofil,ofil_modified,season,broadcast,fh_printfile):
   print('ybeg,yend,mbeg,mend=',str('{0:04d}'.format(ybeg)),str('{0:04d}'.format(yend)),str('{0:02d}'.format(mbeg)),str('{0:02d}'.format(mend)))
 
   print(type(items))
-  try_this='_'.join(items[0:6])+'_'+str('{0:04d}'.format(ybeg))+'-'+str('{0:04d}'.format(yend))+'_'+season+'.nc'
+  if(type(season) != type(None)):
+    try_this='_'.join(items[0:6])+'_'+str('{0:04d}'.format(ybeg))+'-'+str('{0:04d}'.format(yend))+'_'+season+'.nc'
+  else:
+    try_this='_'.join(items[0:6])+'_'+str('{0:04d}'.format(ybeg))+'-'+str('{0:04d}'.format(yend))+'.nc'
   print(try_this)
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-
 
   print('file_name: ',file_name,file=fh_printfile)
   print('odir: ',odir,file=fh_printfile)
@@ -43,7 +45,7 @@ def finish(file_name,odir,ofil,ofil_modified,season,broadcast,fh_printfile):
   #  os.rename(tdir+'/'+ofil,odir+'/'+ofil)
   #print('Output file: '+odir+'/'+ofil,file=fh_printfile)
   #if(os.path.exists(odir+'/'+ofil) and season != 'MON'):
-  if(os.path.exists(file_name) and season != 'MON'):
+  if(os.path.exists(file_name) and season != 'MON' and type(season) != type(None)):
 
     #print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified,file=fh_printfile)
     #print('Output frequency not standard moving', odir+'/'+ofil,' to ',odir+'/'+ofil_modified) #print to screen too...
@@ -52,7 +54,7 @@ def finish(file_name,odir,ofil,ofil_modified,season,broadcast,fh_printfile):
 
     #os.rename(file_name,odir+'/'+ofil_modified)
     os.rename(file_name,odir+'/'+try_this)
-  elif(season=='MON'):
+  elif(season=='MON' or type(season) == type(None)):
     print('Output: ',file_name)
     pass
   else:
@@ -288,7 +290,7 @@ def time_avg(var,input_fhs,file_index,month_index,weights_values,ibeg,iend,seaso
   #raise SystemExit('Forced exit.')
   return(time)
 
-def data_wavg_ProcTime(ivar,ifhN,ProcTimenpvalues,ProcTimenpvalues2,broadcast):
+def data_wavg_ProcTime(ivar,ifhN,ProcTimenpvalues,ProcTimenpvalues2,broadcast,levels):
   '''
   New version utilising ProcTime variables...
   ProcTimenpvalues are indices relative to the original files read in (0 is time 1).
@@ -303,23 +305,39 @@ def data_wavg_ProcTime(ivar,ifhN,ProcTimenpvalues,ProcTimenpvalues2,broadcast):
   npdays_in_month=np.array([31,28,31,30,31,30,31,31,30,31,30,31]) #approx (ignoring leap years).
 
   #print(days_in_month[])
+  #levels=None
 
-  print('ProcTimenpvalues=',ProcTimenpvalues)
-  print('ProcTimenpvalues2=',ProcTimenpvalues2)
-  data=ifhN.variables[ivar][ProcTimenpvalues2,]
+  #print('levels=',levels)
+
+  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  print('data_wavg_Proctime:ProcTimenpvalues=',ProcTimenpvalues)
+  print('data_wavg_Proctime:ProcTimenpvalues2=',ProcTimenpvalues2)
+  if(type(levels)==type(None)):
+    data=ifhN.variables[ivar][ProcTimenpvalues2-1,]
+  else:
+    #j=ifhN.variables[ivar][ProcTimenpvalues2-1,levels,]
+    #print('j.shape=',j.shape)
+    try:
+      #data=ma.squeeze(ifhN.variables[ivar][ProcTimenpvalues2-1,levels,],axis=1) #had this for long while, think didn't need to take -1 as done in cafepp.py already.
+
+      data=ma.squeeze(ifhN.variables[ivar][ProcTimenpvalues2,levels,],axis=1)
+    except ValueError:
+      data=ifhN.variables[ivar][ProcTimenpvalues2-1,levels,]
+
+  print('data_wavg_Proctime:data.shape=',data.shape)
+  print('data_wavg_Proctime:levels=',levels)
 
   #ma.masked_values(data[:,0:100,:],-1e20)
   #data=ma.masked_equal(data,-1e20)
   #data=ma.masked_values(data,-1e20)
   data=ma.masked_where(data==-1e20,data)
   #print(data.view(ma.MaskedArray))
-  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   if(not broadcast):
     weights=npdays_in_month[ProcTimenpvalues]
-    #print('weights=',weights)
+    #print('data_wavg_Proctime:weights=',weights)
     data=ma.expand_dims(ma.average(data,axis=0,weights=weights),0) #apply weights later...
-  #print('data.shape=',data.shape)
   return(data)
 
 def data_wavg(ivarSnow,input_fhs,locate_file_index_Ntimes_b1_flat_nominus1s,ind_beg,ind_end,month_in_file_total_months_beg_to_end,levels,nlev,MonthlyWeights,month_index_ntims,fh_printfile,var_size):
@@ -706,6 +724,7 @@ def make_mask3D(data,nbasins,nzb,nlats):
   import numpy.ma as ma
   import cdms2
   import inspect
+  import os
 
   #print('msftyyz data.shape=',data.shape)
   #print(np.shape(data))
@@ -716,7 +735,11 @@ def make_mask3D(data,nbasins,nzb,nlats):
   tmpdata=np.ma.zeros((1,nbasins,nzb,nlats),dtype='f')
   #print('tmpdata.shape=',tmpdata.shape)
   landMask=np.where( np.array(data,dtype=bool) ,0,1)
-  mask_vals=cdms2.open('/home/599/mac599/decadal/CMIP5/ancillary_files/lsmask_20110618.nc','r').variables['mask_ttcell'][:,:,:]
+
+  if os.path.exists('CMIP5/ancillary_files/lsmask_20110618.nc'):
+    mask_vals=cdms2.open('CMIP5/ancillary_files/lsmask_20110618.nc','r').variables['mask_ttcell'][:,:,:]
+  else:
+    mask_vals=cdms2.open('/home/599/mac599/decadal/CMIP5/ancillary_files/lsmask_20110618.nc','r').variables['mask_ttcell'][:,:,:]
 
   mask=np.zeros(np.shape(data),dtype=float)
 
@@ -740,7 +763,8 @@ def make_mask3D(data,nbasins,nzb,nlats):
   return atlantic_arctic_mask,indoPac_mask,global_mask
 
 #def diag_msftyyz(data1,data2,atlantic_arctic_mask,indoPac_mask,global_mask,nbasins,nzb,nlats):
-def diag_msftyyz(data1,data2,*argv):
+#def diag_msftyyz(data1,data2,*argv):
+def diag_msftyz(data1,data2,*argv):
   '''
   '''
   import numpy as np
@@ -753,8 +777,16 @@ def diag_msftyyz(data1,data2,*argv):
 #  else:
 #    t0=np.shape(data)[0]
   #print('t0=',t0)
+
+ 
   data=data1+data2
-  tmpdata=np.ma.zeros((1,nbasins,nzb,nlats),dtype='f')
+
+  data1=None
+  data2=None
+
+  data_shape=data.shape
+
+  tmpdata=np.ma.zeros((data_shape[0],nbasins,nzb,nlats),dtype='f')
   tmpdata[:,0,:,:]=np.cumsum( np.sum( data*np.where(atlantic_arctic_mask==1,1,1e20) ,axis=-1) ,axis=-2)
   tmpdata[:,1,:,:]=np.cumsum( np.sum( data*np.where(indoPac_mask==1,1,1e20) ,axis=-1) ,axis=-2)
   tmpdata[:,2,:,:]=np.cumsum( np.sum( data*np.where(global_mask==1,1,1e20) ,axis=-1) ,axis=-2)
@@ -3497,6 +3529,13 @@ def grab_var_meta(dvar,frequency):
     #exit
   return realm,table,inputs,units,ovars,area_t,area_u,diag_dims,grid_label,grid,vertical_interpolation_method,varStructure
 
+def diag_siconc(data,*argv):
+  '''
+  '''
+  import numpy as np
+  onehundred,fh_printfile=argv
+  return data*onehundred #just use first level to defined areal sea ice concentration.
+
 def diag_psl(data,*argv):
   '''
   '''
@@ -3601,6 +3640,7 @@ def shade_2d_simple(data):
   plot a 2d array and save to a file.
   '''
   import matplotlib.pyplot as plt
+  import inspect
 
   fn='test.png'
   cs=plt.contourf(data)
@@ -3614,35 +3654,83 @@ def shade_2d_simple(data):
 
   return()
 
-def shade_2d_latlon(data,lats,lons,clevs):
-    """
-    """
-    import cartopy.crs as ccrs
-    from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-    from cartopy.util import add_cyclic_point
-    import matplotlib as mpl
-    mpl.rcParams['mathtext.default'] = 'regular'
-    import matplotlib.pyplot as plt
+def shade_2d_latlon(data,lats,lons,clevs,**kwargs):
+  """
+  """
+  import inspect
+  Diag=add_contours=palette_check=title_check=units_check=extend_check=False
+  xsize,ysize=6.0,4.0
 
-    ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=180))
-    #clevs = [0,50,100,150,200,250,300,10000]
-    #clevs = [0,50,100,150,200,250,300]
-    if('clevs' in locals()):
-      fill = ax.contourf(lons, lats, data , clevs, cmap=plt.cm.RdBu_r, transform=ccrs.PlateCarree(), extend='both')
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      Diag=bool(value)
+    elif(key=='xsize'):
+      xsize=value
+    elif(key=='ysize'):
+      ysize=value
+    elif(key=='palette'):
+      palette=value
+      palette_check=True
+    elif(key=='title'):
+      title=value
+      title_check=True
+    elif(key=='units'):
+      units=value
+      units_check=True
+    elif(key=='add_contours'):
+      add_contours=bool(value)
+    elif(key=='extend'):
+      extend=value
+      units_check=True
     else:
-      fill = ax.contourf(lons, lats, data, cmap=plt.cm.RdBu_r, transform=ccrs.PlateCarree(), extend='both')
-    ax.coastlines()
-    ax.gridlines()
-    ax.set_xticks([0, 60, 120, 180, 240, 300, 359.99], crs=ccrs.PlateCarree())
-    ax.set_yticks([-90, -60, -30, 0, 30, 60, 90], crs=ccrs.PlateCarree())
-    lon_formatter = LongitudeFormatter(zero_direction_label=True, number_format='.0f')
-    lat_formatter = LatitudeFormatter()
-    ax.xaxis.set_major_formatter(lon_formatter)
-    ax.yaxis.set_major_formatter(lat_formatter)
-    plt.colorbar(fill, orientation='horizontal')
-    plt.title('data($units$)', fontsize=16)
-    plt.savefig('test.png')
-    #plt.show()
+      raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+
+  #print('len(clevs)=',len(clevs))
+  if(len(clevs)==0): del(clevs)
+
+  if(not palette_check): palette='rainbow'
+  if(not title_check): title='data'
+  if(not units_check): units='units'
+  if(not extend_check): extend='both'
+    
+  import cartopy.crs as ccrs
+  from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+  from cartopy.util import add_cyclic_point
+  import matplotlib as mpl
+  mpl.rcParams['mathtext.default'] = 'regular'
+  import matplotlib.pyplot as plt
+
+  fig = plt.gcf()
+  fig.set_size_inches(xsize, ysize) #default 6.0,4.0
+
+  ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=180))
+  #clevs = [0,50,100,150,200,250,300,10000]
+  #clevs = [0,50,100,150,200,250,300]
+  if('clevs' in locals()):
+    fill = ax.contourf(lons, lats, data , clevs, cmap=palette, transform=ccrs.PlateCarree(), extend='both')
+  else:
+    fill = ax.contourf(lons, lats, data, cmap=palette, transform=ccrs.PlateCarree(), extend='both')
+  if(add_contours): plt.contour(data,colors='black')
+  ax.coastlines()
+  ax.gridlines()
+  ax.set_xticks([0, 60, 120, 180, 240, 300, 359.99], crs=ccrs.PlateCarree())
+  ax.set_yticks([-90, -60, -30, 0, 30, 60, 90], crs=ccrs.PlateCarree())
+  lon_formatter = LongitudeFormatter(zero_direction_label=True, number_format='.0f')
+  lat_formatter = LatitudeFormatter()
+  ax.xaxis.set_major_formatter(lon_formatter)
+  ax.yaxis.set_major_formatter(lat_formatter)
+  plt.colorbar(fill, orientation='horizontal',extend=extend)
+  if(type(units)==type(None)):
+    plt.title(title, fontsize=16)
+  else:
+    plt.title(title+' ('+units+')', fontsize=16)
+  #plt.savefig('test.png')
+  if('output' in locals()):
+    plt.savefig(output+'.png')
+    print('Image saved to ',output+'.png')
+  else:
+    plt.show()
 
 def diag_zmld_boyer(temp,salt,*argv):
     """
@@ -4378,6 +4466,8 @@ def fractional_year_from_num2date(stamps,calendar):
 
 def get_daily_indices_for_monthlyave(time,stamp,calendar):
   '''
+  This is effectively obsoleted by generate_daily_month_indices, the later can cope with parital months of daily data at beg/end of series, and perform some integrity checks.
+
   Calculate the indices of time that correspond to the month, allowing monthly averages of some quantity to be calculated.
   Might need to consider other kinds of calendars e.g. 365_day etc.
   '''
@@ -4397,7 +4487,7 @@ def get_daily_indices_for_monthlyave(time,stamp,calendar):
     for mnow in range(0,12):
       #print('ynow,mnow=',ynow,mnow)
       dates=[datetime.datetime(ynow,mnow+1,1,12)+n*datetime.timedelta(hours=24) for n in range(days_in_month[mnow])]
-      #print('dates=',dates)
+      print('dates=',dates)
       indices.append(netCDF4.date2index(dates,time,select='exact'))
   return(indices)
 
@@ -4420,7 +4510,7 @@ def new_monthly_array_shape(data_shape,a,b):
         value[i+1]=d
   return(value)
 
-def restrict_input_files(input_files):
+def restrict_input_files(input_files,smallest,biggest):
   '''
   get rid of files that have less than normal number of days in a month.
   '''
@@ -4431,7 +4521,7 @@ def restrict_input_files(input_files):
     time=fh.variables['time']
     time_size=time.size
     #print(time_size)
-    if(time_size>=28 and time_size<=31):
+    if(time_size>=smallest and time_size<=biggest):
       data.append(f)
     else:
       print('Removing ',f,' from list.')
@@ -4464,7 +4554,7 @@ def modify_json(input,output,str_number,clobber):
 
   return()
 
-def get_timestamp_number(ybeg,yend,units_now,calendar_now):
+def get_timestamp_number(ybeg,yend,mbeg_first,mend_last,units_now,calendar_now):
   '''
   from a ybeg,yend and calendar generate timestamp vector as well as date number vector
   '''
@@ -4482,13 +4572,19 @@ def get_timestamp_number(ybeg,yend,units_now,calendar_now):
       days_in_month=[31,28,31,30,31,30,31,31,30,31,30,31]
     else:
       days_in_month=[31,29,31,30,31,30,31,31,30,31,30,31]
-      
-    for mnow in range(1,nmy+1):
+
+    mbeg,mend=1,nmy
+    if(ynow==ybeg):
+      mbeg=mbeg_first
+    elif(ynow==yend):
+      mend=mend_last
+
+    for mnow in range(mbeg,mend+1):
       icnt+=1
       #print('icnt,ynow,mnow=',icnt,ynow,mnow)
       ts_beg.append(datetime.datetime(ynow,mnow,1) + datetime.timedelta(hours=0.0))
       ts_end.append(datetime.datetime(ynow,mnow,days_in_month[mnow-1]) + datetime.timedelta(hours=24.0))
-      
+
       dt_beg.append(netCDF4.date2num(ts_beg[icnt],units_now,calendar_now))
       dt_end.append(netCDF4.date2num(ts_end[icnt],units_now,calendar_now))
 
@@ -4496,3 +4592,1080 @@ def get_timestamp_number(ybeg,yend,units_now,calendar_now):
   ts_avg=netCDF4.num2date(dt_avg,units_now,calendar_now)
 
   return(ts_beg,ts_end,ts_avg,dt_beg,dt_end,dt_avg)
+
+def cmor_file_parts(text):
+  import string
+  #print('cmor_file_parts:text=',text)
+  parts=string.split(text,sep="_")
+  var,table,experiment,model,ripf,grid,datetime=parts[0],parts[1],parts[2],parts[3],parts[4],parts[5],string.split(parts[6],sep=".")[0]
+  #print('var,table,experiment,model,ripf,grid,datetime=',var,table,experiment,model,ripf,grid,datetime)
+  #raise Exception('STOP!')
+  return(var,table,experiment,model,ripf,grid,datetime)
+
+def cmor_directory_parts(text):
+  import string
+  #print('cmor_directory_parts:text=',text)
+  parts=string.split(string.rstrip(text,"/"),sep="/")
+  #print(parts)
+  #raise Exception('STOP!')
+  version=parts[-1]
+  grid=parts[-2]
+  var=parts[-3]
+  table=parts[-4]
+  ripf=parts[-5]
+  experiment=parts[-6]
+  model=parts[-7]
+  institution=parts[-8]
+  activity=parts[-9]
+  cmip=parts[-10]
+  #print('version,grid,var,table,ripf,experiment,model,institution,activity,cmip=',version,grid,var,table,ripf,experiment,model,institution,activity,cmip)
+  #raise Exception('STOP!')
+  return(version,grid,var,table,ripf,experiment,model,institution,activity,cmip)
+
+def cmor_ripf_parts(text):
+  import string
+  #print('cmor_ripf_parts:text=',text)
+  rval=string.split(text,sep="i")[0][1:]
+  ival=string.split(string.split(text,sep="p")[0],sep="i")[1]
+  pval=string.split(string.split(text,sep="p")[1],sep="f")[1]
+  fval=string.split(text,sep="f")[1]
+  return(int(rval),int(ival),int(pval),int(fval))
+
+def generate_daily_month_indices(date_time_stamp,time_units,time_calendar,increment):
+  '''
+  Code to determine how to calculate monthly averages from daily data. This algorithm can be used by cafepp_daily to generate monthly outputs.
+  An example of this application is when data is only available in daily format but not monthly format, but monthly outputs are required.
+  Will need to add metadata in the output file to show that this operation has occured.
+
+  Thinking of 4 options, assuming that the time-series is continuous and increasing:
+
+  1. exclude any partial months at beginning and end of time-series
+  2. include partial months at beginning of time-series
+  3. include partial months at end of time-series
+  4. include partial months at beginning and end of time-series.
+  
+  Maybe check that time series is continuous and increasing + that time delta between each element is 1 day. #done
+  
+  Does this work across all calendar types? I rely on datetime.datetime, perhaps an issue there.
+  
+  '''
+  import netCDF4
+  import datetime
+  import inspect
+  import numpy as np
+  
+  #__file__='jupyter_notebook' #this can be deleted when written to a python script and loaded as module.
+
+  #np.set_printoptions(suppress=False)
+
+  beg_month_partial,end_month_partial=True,True
+  
+  #print('date_time_stamp[-1]=',date_time_stamp[-1])
+  
+  #np.set_printoptions(threshold='nan') #will print out whole array
+  
+  #a couple of integrity checks:
+  
+  date_nums=netCDF4.date2num(date_time_stamp,time_units,time_calendar)
+  
+  date_nums_grad=np.gradient(date_nums)
+  #print('date_nums_grad=',date_nums_grad)
+
+  if(np.any(date_nums_grad<0)): raise SystemExit('Time variable not continuous and increasing:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  if(np.all(date_nums_grad!=increment)): raise SystemExit('Time variable elements not separated by a day as required:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  #raise Exception('STOP!')
+  
+  if(date_time_stamp[0].day==1): beg_month_partial=False #begin month easy to test, end month little harder as need to test for what actual number of days is.
+
+  last_year=date_time_stamp[-1].year
+  last_month=date_time_stamp[-1].month
+  last_day=date_time_stamp[-1].day
+  last_hour=date_time_stamp[-1].hour
+  
+  #print('last_year,last_month,last_day,last_hour=',last_year,last_month,last_day,last_hour)
+  
+  #last_month_p1=last_month+1
+  #if(last_month>12):
+  #  last_month_p1=1
+   # last_year_p1=last_year+1
+    
+  last_date=datetime.datetime(last_year,last_month,last_day)+datetime.timedelta(hours=last_hour) #is this OK and works with all calendar types?
+  
+  #print('last_date=',last_date)
+  
+  last_date_num=netCDF4.date2num(last_date,time_units,time_calendar)
+  
+  #print('last_date_num=',last_date_num)
+  
+  last_date_p1=netCDF4.num2date(last_date_num+increment,time_units,time_calendar)
+  
+  #print('last_date_p1,last_date_p1.month=',last_date_p1,last_date_p1.month)
+  
+  if(last_date_p1.month!=last_month): end_month_partial=False #last date plus one day forms a new month => last day is final possible day of the month.
+  
+  #raise Exception('STOP!')
+  
+  daily_month_indice_beg,daily_month_indice_end=[],[]
+  daily_year_beg,daily_year_end=[],[]
+  daily_month_beg,daily_month_end=[],[]
+  daily_day_beg,daily_day_end=[],[]
+  
+  month_now=date_time_stamp[0].month
+  day_beg_now=0 #date_time_stamp[0].day
+  
+  for ttt in range(0,len(date_time_stamp)-1):
+    #print('ttt,date_time_stamp[ttt].day,month_now=',ttt,date_time_stamp[ttt].day,month_now)
+    
+    #if need to stop early for quick check:
+    #if(ttt==65):
+    #  raise Exception('STOP!')
+    
+    month_now_p1=month_now+1
+    if(month_now_p1>12):
+      month_now_p1=1
+    
+    if(month_now_p1==date_time_stamp[ttt+1].month):
+      day_end_now=ttt #date_time_stamp[ttt].day
+      daily_month_indice_beg.append(day_beg_now)
+      daily_month_indice_end.append(day_end_now)
+      daily_year_beg.append(date_time_stamp[day_beg_now].year)
+      daily_year_end.append(date_time_stamp[day_end_now].year)
+      daily_month_beg.append(date_time_stamp[day_beg_now].month)
+      daily_month_end.append(date_time_stamp[day_end_now].month)
+      daily_day_beg.append(date_time_stamp[day_beg_now].day)
+      daily_day_end.append(date_time_stamp[day_end_now].day)
+      #print('LOOP: change of month,day_beg_now,day_end_now',day_beg_now,day_end_now)
+      day_beg_now=day_end_now+1
+      month_now=date_time_stamp[ttt+1].month
+
+  day_end_now=len(date_time_stamp)-1
+  daily_month_indice_beg.append(day_beg_now)
+  daily_month_indice_end.append(day_end_now)
+  daily_year_beg.append(date_time_stamp[day_beg_now].year)
+  daily_year_end.append(date_time_stamp[day_end_now].year)
+  daily_month_beg.append(date_time_stamp[day_beg_now].month)
+  daily_month_end.append(date_time_stamp[day_end_now].month)
+  daily_day_beg.append(date_time_stamp[day_beg_now].day)
+  daily_day_end.append(date_time_stamp[day_end_now].day)
+  ttt+=1
+  #print('ttt,date_time_stamp[ttt].day,month_now=',ttt,date_time_stamp[ttt].day,month_now)
+  #print('END: change of month,day_beg_now,day_end_now',day_beg_now,day_end_now)
+  
+  return(daily_month_indice_beg,daily_month_indice_end,daily_year_beg,daily_year_end,daily_month_beg,daily_month_end,daily_day_beg,daily_day_end,beg_month_partial,end_month_partial)
+
+def file_spec_summary(files,diag):
+  '''
+  This will generate a summary of the unique list of datetime's & ripf's and their count for diagnosing file issues.
+  '''
+  import os
+  import numpy as np
+  import string
+  
+  datetime,ripf=[],[]
+
+  for i,input_file in enumerate(files):
+    #print('i,input_file=',i,input_file)
+
+    input_file_tail=os.path.basename(input_file)
+    var,table,experiment,model,ripf_i,grid,datetime_i=cmor_file_parts(input_file_tail)
+    rval,ival,pval,fval=cmor_ripf_parts(ripf_i)
+    input_file_head=string.split(input_file,sep=input_file_tail)[0]
+    version,grid,var,table,ripf_i,experiment,model,institution,activity,cmip=cmor_directory_parts(input_file_head)
+
+    datetime.append(datetime_i)
+    ripf.append(ripf_i)
+
+  datetime_uniq=sorted(list(set(datetime)))
+  ripf_uniq=sorted(list(set(ripf)))
+
+  #print('datetime_uniq=',datetime_uniq)
+  if(diag):
+    print('len(datetime)=',len(datetime))
+    print('len(datetime_uniq)=',len(datetime_uniq))
+
+    print('len(ripf)=',len(ripf))
+    print('len(ripf_uniq)=',len(ripf_uniq))
+
+  datetime_uniq_cnt=np.zeros(len(datetime_uniq),dtype=int)
+  for i,datetime_i in enumerate(datetime):
+    datetime_uniq_cnt[datetime_uniq.index(datetime_i)]+=1
+  if(diag):
+    print('# datetime count:')
+    for i,datetime_i in enumerate(datetime_uniq):
+      print(i,datetime_i,datetime_uniq_cnt[i])
+
+  ripf_uniq_cnt=np.zeros(len(datetime_uniq),dtype=int)
+  for i,ripf_i in enumerate(ripf):
+    ripf_uniq_cnt[ripf_uniq.index(ripf_i)]+=1
+  if(diag):
+    print('# ripf count:')
+    for i,ripf_i in enumerate(ripf_uniq):
+      print(i,ripf_i,ripf_uniq_cnt[i])  
+
+  if(len(datetime)!=(len(datetime_uniq)*len(ripf_uniq))):
+    print('Possible issue with datetime_uniq,ripf_uniq.')
+  
+  if(len(datetime)!=len(ripf)):
+    print('Possible issue with datetime/ripf.')
+
+  return(datetime,datetime_uniq,ripf,ripf_uniq)
+
+def calculate_monthly_climatology_anomaly_from_monthly(input):
+  import numpy as np
+  nmy=12
+  #print('input.shape=',input.shape)
+  ydiff=input.shape[0]/nmy
+  
+  split_shape_climatology=[ydiff,nmy]
+  for sss in input.shape[1::]:
+    split_shape_climatology.append(sss)
+
+  input_reshaped=np.reshape(input,split_shape_climatology)
+
+  climatology=np.average(input_reshaped,axis=0)
+
+  climatology_step2 = np.expand_dims(climatology,-1)
+
+  climatology_step1 = np.tile(climatology_step2,(ydiff))
+
+  climatology_step0 = np.moveaxis(climatology_step1,-1,0)
+
+  join_shape_climatology=[ydiff*nmy]
+  for sss in input.shape[1::]:
+    join_shape_climatology.append(sss)
+
+  climatology_flat=np.reshape(climatology_step0,join_shape_climatology)
+
+  anomaly=input-climatology_flat
+
+  return(climatology,anomaly)
+
+def plot_map_box(ind,indices_label,indices_nino,lats_nino,lons_nino):
+  import matplotlib.pyplot as plt
+  from mpl_toolkits.basemap import Basemap
+  
+  colors=['black','red','green','blue','orange','brown','purple','pink']
+
+  ind_list=[]
+  for f,ff in enumerate(ind):
+    ind_list.append(indices_nino.index(ind[f])) 
+  
+  map = Basemap(projection='cyl', 
+  llcrnrlat=-30, llcrnrlon=100, 
+  urcrnrlat=30, urcrnrlon=320,
+  lat_0=0, lon_0=180)
+
+  map.drawmapboundary() #fill_color='aqua'
+  map.fillcontinents() #color='coral',lake_color='aqua'
+  map.drawcoastlines()
+
+  #print('len(lons_nino)=',len(lons_nino))
+
+  for i,ii in enumerate(ind_list):
+    x,y = map(lons_nino[ii], lats_nino[ii])
+    map.plot(x, y, marker=None,color=colors[i],linewidth=1)
+    xmid,ymid = map((lons_nino[ii][0]+lons_nino[ii][1])/2,(lats_nino[ii][0]+lats_nino[ii][2])/2)
+    plt.text(xmid,ymid,indices_nino[ii],fontsize=6,horizontalalignment='left',verticalalignment='center')  
+
+  plt.show()
+
+def plot_xy_climatology(ind,obs,mod,nino,clim,indices_label,obs_toggle):
+
+  import matplotlib.pyplot as plt
+  from mpl_toolkits.basemap import Basemap
+
+  colors=['black','red','green','blue','orange','brown','purple','pink']
+
+  #print(dir(nino))
+  
+  ind_list=[]
+  for f,ff in enumerate(ind):
+    ind_list.append(nino.indices_nino.index(ind[f])) 
+
+  #print('indices_label=',indices_label)
+  #print('ind=',ind)
+  #print('ind_list=',ind_list)
+  
+  fix,ax=plt.subplots()
+  if(obs_toggle):
+    plt.title('Monthly climatology (obs:dashed)')
+  else:
+    plt.title('Monthly climatology')
+
+  plt.xlabel('Month')
+  plt.ylabel('$^o$C')
+  plt.xticks(range(12), ['J','F','M','A','M','J','J','A','S','O','N','D'], rotation='horizontal')
+
+  for j in ind_list:
+    ax.plot(range(12),mod[:,j,clim],color=colors[j],label=indices_label[j])
+    if(obs_toggle):
+      ax.plot(range(12),obs[:,j]-273.15,color=colors[j],linestyle=':')
+  plt.grid(True,linestyle='-')
+  legend=ax.legend(loc='lower right',shadow=False,fontsize='small',title='model indice')
+  plt.show()
+  
+def plot_xy_ensemble(mod_month,mod_anom,mod_time,obs_month,obs_anom,obs_time,indices_nino,ensembles,ind,ens,forc,clim,indices_label,forc_beg,forc_end,forc_beg_cnt,forc_end_cnt,files,anom_toggle,ensemble_average_toggle,obs_toggle,print_file):
+
+  import matplotlib.pyplot as plt
+  from mpl_toolkits.basemap import Basemap
+  import numpy as np
+
+  #print('data.shape=',data.shape)
+  #print('ind,indices_nino=',ind,indices_nino)
+  #print('ens,ensembles=',ens,ensembles)
+  #x=range(len(data[0,0,0,:]))
+  #print('data.shape=',data.shape)
+  #print('forc_beg=',forc_beg)
+  #print('x=',x)
+  #plt.plot(time,data[ind,ens,0,0:24])
+  
+  colors=['black','red','green','blue','orange','brown','purple','pink']
+
+  #print('Current Working Directory=',os.getcwd())
+  
+  #print('ensemble_average_toggle=',ensemble_average_toggle)
+
+  #if(print_file==None):
+  #  print('No print file.')
+  #else:
+  #  print('print_file=',print_file)
+  #print('jjj=',jjj)
+  if(anom_toggle):
+    mod_data=mod_anom[:,:,:,:,clim]
+    obs_data=obs_anom
+  else:
+    mod_data=mod_month
+    obs_data=obs_month-273.15
+  #print('obs_data=',obs_data)
+  
+  ens_list=[]
+  for e,ee in enumerate(ens):
+    ens_list.append(ensembles.index(ens[e]))
+    
+  ind_list=[]
+  for f,ff in enumerate(ind):
+    ind_list.append(indices_nino.index(ind[f])) 
+    
+  fix,ax=plt.subplots()
+  #for i in range(len(files)/len(ensembles)):
+  for i in forc:
+    #print('i=',i)
+    ival=int(i.split(':')[0])
+    #print('ival=',ival)
+    #time_now=time[forc_beg[i]:forc_end[i]+1]
+    for j in ind_list:
+      #print('i,j,k=',i,j,k)
+      for k in ens_list:
+          mod_time_now_test=mod_time[forc_beg_cnt[k,ival]:forc_end_cnt[k,ival]+1]
+      #print('time_now=',time_now)
+          if(i==forc[0] and j==ind_list[0]):
+            legend_label=str(k+1)
+          else:
+            legend_label=None
+          ax.plot(mod_time_now_test,mod_data[forc_beg_cnt[k,ival]:forc_end_cnt[k,ival]+1,j,k,ival],color=colors[k],label=legend_label) #indice, ensemble, forecast, date/time
+          if(k==ens_list[-1] and ensemble_average_toggle):
+            #xxx=np.average(data[j,ens_list,ival,forc_beg_cnt[k,ival]:forc_end_cnt[k,ival]+1],axis=0)
+            #print(xxx.shape)
+            #print('mod_time_now_test.shape=',mod_time_now_test.shape)
+            #print('mod_data.shape=',mod_data.shape)
+            #print('forc_beg_cnt[k,ival]:forc_end_cnt[k,ival]+1=',forc_beg_cnt[k,ival],forc_end_cnt[k,ival]+1)
+            #print('j=',j)
+            #print('ens_list=',ens_list)
+            #print('ival=',ival)
+            #print('mod_time_now_test=',mod_time_now_test.shape)
+            #print(mod_data[forc_beg_cnt[k,ival]:forc_end_cnt[k,ival]+1,j,ens_list,ival].shape)
+            ax.plot(mod_time_now_test,np.average(mod_data[forc_beg_cnt[k,ival]:forc_end_cnt[k,ival]+1,j,ens_list,ival],axis=1),color='pink',linewidth=5,label='EA')
+          if(k==ens_list[-1] and i==forc[-1] and obs_toggle):
+            #print('hello')
+            ax.plot(obs_time,obs_data[:,j],color='lightblue',label='ncep2')
+  legend=ax.legend(loc='lower right',shadow=False,fontsize='small',title='ensemble')
+  if(anom_toggle):
+    plt.title('Monthly anomalies')
+    plt.ylim([-6,6])
+  else:
+    plt.title('Monthly values')
+  plt.xlabel('Year')
+  #plt.ylabel(indices_label[ind]+' ($^o$C)')
+  plt.ylabel('$^o$C')
+  #plt.ylim([-6,6])
+  #plt.xlim([x[0],x[-1]])
+  plt.xlim([mod_time[0],mod_time[-1]])
+  plt.grid(True,linestyle='-')
+  if(anom_toggle):
+   cont_zero=np.zeros(len(mod_time))
+   plt.plot(mod_time,cont_zero,color='black',linestyle=':')
+  
+  if(print_file==None or print_file==''):
+    None
+  else:
+    print('Print to file ',os.getcwd()+'/'+print_file+'.png')
+    dummy=plt.savefig(print_file)
+    print_file=None
+  #return()
+  plt.show()
+
+def demonstrate_widgets_cafe():
+    
+  #print('datetime_uniq=',datetime_uniq+range(24))
+  datetime_uniq_xtra=[str(i)+': '+datetime_uniq[i] for i,x in enumerate(datetime_uniq)]
+  #print('datetime_uniq_xtra=',datetime_uniq_xtra)
+  #print('len(datetime_uniq_xtra)=',len(datetime_uniq_xtra))
+
+  #print(len(cont_files))
+
+  cont_nexps=len(cont_files)
+
+  clim_list=[int(i) for i in range(cont_nexps)]
+
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  ensembles=[str(x) for x in forc_files_var.npens]
+  indice_nino_multi = widgets.SelectMultiple(description='nino indice',options=forc_nino_indices.indices_nino,value=forc_nino_indices.indices_nino)
+  ensemble_multi = widgets.SelectMultiple(description='ensemble',options=ensembles,value=ensembles)
+  forecast_multi = widgets.SelectMultiple(description='forecast',options=datetime_uniq_xtra,value=datetime_uniq_xtra,rows=10)
+  climatology_select = widgets.Select(description='climatology',options=clim_list,value=clim_list[0])
+  anom_toggle=widgets.ToggleButton(description='Show Anoms.',value=False,button_style='danger')
+
+  obs_toggle=widgets.ToggleButton(description='Show Obs.',value=False,button_style='danger')
+
+  ensemble_average_toggle=widgets.ToggleButton(description='Show E.A.',value=False,button_style='danger')
+  style = {'description_width': 'initial'}
+  print_file=widgets.Text(value=None,placeholder='Print file name (delete to stop printing it):',continuous_update=False,style=style)
+
+  #container=widgets.HBox([indice_nino_multi,ensemble_multi,forecast_multi,anom_toggle])
+  #display(container)
+  
+  #raise Exception('STOP!')
+  #print(print_file.keys)
+  #print(anom_toggle.keys)
+
+  mod_month_to_plot=forc_nino_monthly.copy()
+  mod_anom_to_plot=forc_nino_monthly_anomaly.copy()
+
+  obs_month_to_plot=ncep2_nino_monthly.copy()
+  obs_anom_to_plot=ncep2_nino_monthly_anomaly.copy()
+
+  dummy1=widgets.interact(plot_xy_ensemble, mod_time=widgets.fixed(forc_files_var.year_fraction_monthly), mod_month=widgets.fixed(mod_month_to_plot), mod_anom=widgets.fixed(mod_anom_to_plot), \
+    obs_time=widgets.fixed(ncep2_files_var.year_fraction_monthly), obs_month=widgets.fixed(obs_month_to_plot), obs_anom=widgets.fixed(obs_anom_to_plot), \
+    indices_label=widgets.fixed(ncep2_nino_indices.indices_label), forc_beg=widgets.fixed(forc_files_var.beg), forc_end=widgets.fixed(forc_files_var.end), \
+    forc_beg_cnt=widgets.fixed(forc_files_var.beg_cnt), forc_end_cnt=widgets.fixed(forc_files_var.end_cnt), files=widgets.fixed(forc_files_var.input_files), \
+    ensembles=widgets.fixed(ensembles), indices_nino=widgets.fixed(ncep2_nino_indices.indices_nino), \
+    ind=indice_nino_multi, ens=ensemble_multi, forc=forecast_multi, clim=climatology_select, anom_toggle=anom_toggle, ensemble_average_toggle=ensemble_average_toggle, obs_toggle=obs_toggle, print_file=print_file)
+
+  dummy2=widgets.interact(plot_xy_climatology, \
+    obs=widgets.fixed(ncep2_nino_monthly_climatology), mod=widgets.fixed(cont_nino_monthly_climatology), nino=widgets.fixed(ncep2_nino_indices), \
+    indices_label=widgets.fixed(ncep2_nino_indices.indices_label), \
+    ind=indice_nino_multi, clim=climatology_select, obs_toggle=obs_toggle)
+
+  dummy3=widgets.interact(plot_map_box, indices_label=widgets.fixed(ncep2_nino_indices.indices_label), indices_nino=widgets.fixed(ncep2_nino_indices.indices_nino), lats_nino=widgets.fixed(ncep2_nino_indices.lats_nino), lons_nino=widgets.fixed(ncep2_nino_indices.lons_nino), \
+    ind=indice_nino_multi, obs_toggle=obs_toggle)
+  return()
+
+class nino_indices:
+  def __init__(self,select,**kwargs):
+    
+    '''
+    selection:
+    0=first inice only
+    -1=last_indice_only
+    ALL=all indices
+    '''
+    #selection=*kwargs
+    
+    for key, value in kwargs.items():
+      #print('key,value=',key,value)
+      if(key=='selection'):
+        selection=kwargs[key]
+      
+    #selection='ALL'
+    
+    self.lons_nino = [[190, 240, 240, 190, 190], [210, 270, 270, 210, 210], [160, 210, 210, 160, 160], [270, 280, 280, 270, 270]] # indices_nino=['nino34','nino3','nino4','nino1+2']
+    self.lats_nino = [[-5, -5, 5, 5, -5], [-5.1, -5.1, 5.1, 5.1, -5.1], [-5, -5, 5, 5, -5], [-10, -10, 0, 0, -10]] # 170W-120W:190-240, 150W-90W:210-270, 160E-150W:160-210, 90W-80W:270-280 (10S-0 latitude, others all 5S to 5N)
+    self.indices_nino=['nino34','nino3','nino4','nino1+2'] # 170W-120W:190-240, 150W-90W:210-270, 160E-150W:160-210, 90W-80W:270-280 (10S-0 latitude, others all 5S to 5N)
+    self.indices_label=['Ni$\~{n}$o3.4','Ni$\~{n}$o3','Ni$\~{n}$o4','Ni$\~{n}$o1+2']
+  
+    if(select=='gn'):
+      self.indices_i,self.indices_j=[[110,159],[130,189],[80,129],[190,199]],[[122,151],[122,151],[122,151],[107,136]] #check this, whether I need +1 also...what about fractional cells?
+    elif(select=='gr2'):
+      self.indices_i,self.indices_j=[[190,239],[210,269],[150,209],[270,280]],[[85,94],[85,94],[85,94],[80,89]] #check this, whether I need +1 also...what about fractional cells?
+    elif(select=='ncep2'):
+      self.indices_i,self.indices_j=[[102,128],[112,144],[86,112],[144,149]], [[45,50],[45,50],[45,50],[42,46]]
+    else:
+      raise SystemExit('grid specificatin unknown:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    if(selection!='ALL'):
+      self.indices_nino=[self.indices_nino[eval(selection)]]
+      self.indices_label=[self.indices_label[eval(selection)]]
+      self.indices_i=[self.indices_i[eval(selection)]]
+      self.indices_j=[elf.indices_j[eval(selection)]]
+
+    self.nindices_nino=len(self.indices_nino)
+    
+#del(n_data_funcs)
+
+class n_data_funcs:
+  #import netCDF4
+  import math
+  nmy=12
+  rad = 4.0*math.atan(1.0)/180.0
+  
+  def __init__(self, input_files, input_var_name):
+
+    #setattr(self, input_files, input_files)
+    #setattr(self, input_var_name, input_var_name)
+
+    self.input_files = input_files
+    self.input_var_name = input_var_name
+    self.rad = 4.0*math.atan(1.0)/180.0
+    self.nmy = 12
+    
+  def calculate_filedatetime_info_multiforc(self,nino,**kwargs):
+    
+    #print(nino.nindices_nino)
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))      
+    
+    self.nfiles=len(self.input_files)
+    self.ens=[]
+    self.ifhs=[]
+    
+    self.date_time_stamps=[]
+    self.times=[]
+    self.mins=[]
+    self.maxs=[]
+    for cnt_i,input_file in enumerate(self.input_files):
+      input_file_tail=os.path.basename(input_file)
+      input_file_head=string.split(input_file,sep=input_file_tail)[0]
+      var,table,experiment,model,ripf,grid,datetime=cmor_file_parts(input_file_tail)
+      rval,ival,pval,fval=cmor_ripf_parts(ripf)
+      version,grid,var,table,ripf,experiment,model,institution,activity,cmip=cmor_directory_parts(input_file_head)
+      self.ens.append(rval)
+      self.ifhs.append(netCDF4.Dataset(input_file))
+      self.times.append(self.ifhs[cnt_i].variables['time'])        
+
+      if(cnt_i>0):  #check that same calendar/units are in use, otherwise would need to convert to common one.
+        if(self.times[cnt_i].calendar!=self.times[cnt_i-1].calendar): raise SystemExit('calendars not matching:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        if(self.times[cnt_i].units!=self.times[cnt_i-1].units): raise SystemExit('units not matching:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      self.mins.append(min(self.times[cnt_i]))
+      self.maxs.append(max(self.times[cnt_i]))
+      self.date_time_stamps.append(netCDF4.num2date(self.times[cnt_i][:],self.times[cnt_i].units,self.times[cnt_i].calendar))
+      if(cnt_i==0):
+        self.npdate_time_stamps=netCDF4.num2date(self.times[cnt_i][:],self.times[cnt_i].units,self.times[cnt_i].calendar)
+      else:
+        self.npdate_time_stamps=np.append(self.npdate_time_stamps,netCDF4.num2date(self.times[cnt_i][:],self.times[cnt_i].units,self.times[cnt_i].calendar))
+    
+    self.nptimes=np.array(self.times)
+
+    self.npftimes=self.nptimes.flatten()
+
+    self.year_min=netCDF4.num2date(min(self.mins),self.times[0].units,self.times[0].calendar)
+    self.year_max=netCDF4.num2date(max(self.maxs),self.times[0].units,self.times[0].calendar) #not year maximum as need to consider end of each experiment.
+
+    print('Forecast start times go from ',min(self.mins),'to',max(self.maxs),'or',self.year_min,'to',self.year_max)
+    print('Ensembles go from ',min(self.ens),'to',max(self.ens)) #later on restrict to only valid ensembles to keep arrays compact eg 1,2,3,11 but not 1-11.
+
+    self.npens=np.array(list(set(self.ens)))
+
+    self.nens=len(self.npens)
+
+    self.ybeg,self.yend=netCDF4.num2date(min(self.mins),self.times[0].units,self.times[0].calendar).year,netCDF4.num2date(max(self.maxs),self.times[0].units,self.times[0].calendar).year
+    self.mbeg,self.mend=netCDF4.num2date(min(self.mins),self.times[0].units,self.times[0].calendar).month,netCDF4.num2date(max(self.maxs),self.times[0].units,self.times[0].calendar).month
+
+    self.j,self.k,self.date,self.m,self.n,self.time=get_timestamp_number(self.ybeg,self.yend,self.mbeg,self.mend,self.times[0].units,self.times[0].calendar)
+
+    self.ntime=len(self.time)
+
+    self.year_fraction_monthly=fractional_year_from_num2date(self.date,self.times[0].calendar)
+
+    self.beg,self.end=np.zeros(self.nfiles,dtype=int),np.zeros(self.nfiles,dtype=int) #these indices define beg/end time indices.
+
+    self.beg_cnt,self.end_cnt=np.zeros((self.nens,(self.nfiles/self.nens)),dtype=int),np.zeros((self.nens,(self.nfiles/self.nens)),dtype=int) #these indices define beg/end time indices.
+
+    self.lat=self.ifhs[0].variables['latitude'][:,0]
+    self.lon=self.ifhs[0].variables['longitude'][0,:]
+
+    self.clat=np.cos(self.lat[:]*self.rad)
+    self.nlat=len(self.lat)
+    self.nlon=len(self.lon)
+
+  def calculate_quantity_multiforc(self,dvar,nino,**kwargs):
+    self.ens_cnt=np.zeros(self.nens,dtype=int)
+    
+    nino_monthly=ma.masked_equal( np.zeros((self.ntime,nino.nindices_nino,self.nens,(self.nfiles/self.nens)),dtype=float), 0.0) #set them all to missing value, then assign the forecasts to the various segments in the array.\\
+
+    self.check=ma.zeros((nino.nindices_nino,self.nens,self.nfiles),dtype=int) #can use this to see how the arrays are being populated or not.
+    
+    for i,input_file in enumerate(self.input_files):
+
+      self.beg_date=self.date_time_stamps[i][0]
+      self.end_date=self.date_time_stamps[i][-1]
+
+      self.begend_time=[netCDF4.date2num(self.beg_date,self.times[i].units,self.times[i].calendar), netCDF4.date2num(self.end_date,self.times[i].units,self.times[i].calendar)]
+      self.loc_beg,self.loc_end=np.where(self.time[:]==self.begend_time[0],1,0),np.where(self.time[:]==self.begend_time[1],1,0)
+  
+      self.beg[i],self.end[i]=np.argmax(self.loc_beg),np.argmax(self.loc_end)
+
+      self.ens_cnt[self.ens[i]-1]+=1 #this is used to put each forecast in a unique ensemble slot in the array, the array should end up with equal values if the experiment is consistent & complete.
+
+      self.beg_cnt[self.ens[i]-1,self.ens_cnt[self.ens[i]-1]-1], self.end_cnt[self.ens[i]-1,self.ens_cnt[self.ens[i]-1]-1]=np.argmax(self.loc_beg),np.argmax(self.loc_end)
+
+      for k,indice in enumerate(nino.indices_nino):
+
+        imin,imax=nino.indices_i[k][0],nino.indices_i[k][1]
+        jmin,jmax=nino.indices_j[k][0],nino.indices_j[k][1]
+
+        self.check[k,self.ens[i]-1,i] = self.check[k,self.ens[i]-1,i] + 1 #can use this for checking. For example, onece an array is set to 1 it should not be set/reset again (no overlap).
+
+        nino_monthly[self.beg[i]:self.end[i]+1,k,self.ens[i]-1,self.ens_cnt[self.ens[i]-1]-1]=np.average(np.average(self.ifhs[i].variables[dvar][:,jmin:jmax+1,imin:imax+1],axis=1,weights=self.clat[jmin:jmax+1]),axis=1)
+
+    return(nino_monthly)
+
+  def monthly_clim_anom_multiforc(self,nino,**kwargs):
+    for key, value in kwargs.items():
+      if(key=='input_monthly'):
+        input_monthly=value
+      if(key=='input_monthly_climatology'):
+        input_monthly_climatology=value
+        
+    #print('input_monthly.shape=',input_monthly.shape)
+    #print('input_monthly_climatology.shape=',input_monthly_climatology.shape)
+    
+    self.nexps=input_monthly_climatology.shape[-1] #perhaps a better solution can be found for this.
+    
+    nino_anomaly_step1=np.expand_dims(input_monthly,-1)
+
+    nino_anomaly=np.tile(nino_anomaly_step1,(self.nexps))
+
+    #print('nino_anomaly.shape=',nino_anomaly.shape)
+
+    self.years,self.months,self.days,self.hours=[],[],[],[]
+    self.yearsM1,self.monthsM1,self.daysM1,self.hoursM1=[],[],[],[]
+    for i,self.date_now in enumerate(self.date):
+      self.years.append(self.date_now.year)
+      self.months.append(self.date_now.month)
+      self.days.append(self.date_now.day)
+      self.hours.append(self.date_now.hour)
+      self.yearsM1.append(self.date_now.year-1)
+      self.monthsM1.append(self.date_now.month-1)
+      self.daysM1.append(self.date_now.day-1)
+      self.hoursM1.append(self.date_now.hour-1)
+
+    self.ens_cnt=np.zeros(self.nens,dtype=int)
+
+    for i,input_file in enumerate(self.input_files):
+
+      self.year_beg,self.year_end=self.years[self.beg[i]],self.years[self.end[i]]
+      self.month_beg,self.month_end=self.months[self.beg[i]],self.months[self.end[i]]
+      self.mbeg,self.mend=1,12
+      self.ybeg,self.yend=self.year_beg,self.year_end
+      if(self.month_beg!=1): self.ybeg,self.mbeg=self.year_beg+1,1
+      if(self.month_end!=12): self.yend,self.mbeg=self.year_end-1,12
+      self.ens_cnt[self.ens[i]-1]+=1
+  
+      for k,indice in enumerate(nino.indices_nino):
+        for clim_cnt in range(self.nexps):
+          nino_anomaly[self.beg[i]:self.end[i]+1,k,self.ens[i]-1,self.ens_cnt[self.ens[i]-1]-1,clim_cnt] = \
+          nino_anomaly[self.beg[i]:self.end[i]+1,k,self.ens[i]-1,self.ens_cnt[self.ens[i]-1]-1,clim_cnt] - input_monthly_climatology[self.monthsM1[self.beg[i]:self.end[i]+1],k,clim_cnt]
+  
+    return(nino_anomaly)
+        
+  def calculate_filedatetime_info(self,**kwargs):
+  #def calculate(self, **kwargs):
+    calendar_check=False
+    
+    for key, value in kwargs.items():
+      #print('key,value=',key,value)
+      if(key=='calendar'):
+        self.time_tfreq_calendar=kwargs[key]
+        calendar_check=True
+        
+    if(not calendar_check):
+      print('Setting to default calendar: julian')
+      self.time_tfreq_calendar='julian'
+          
+    print('self.input_files=',self.input_files)
+    
+    self.nfiles=len(self.input_files)
+    
+    #print('self.nfiles=',self.nfiles)
+    
+    if(self.nfiles>1):
+      self.ifhN=netCDF4.MFDataset(self.input_files)
+      self.ifh0=netCDF4.Dataset(self.input_files[0])
+    else:
+      self.ifh0=netCDF4.Dataset(self.input_files[0])
+      self.ifhN=self.ifh0
+    
+    self.time_tfreq=self.ifhN.variables['time']
+    self.ntime_tfreq=len(self.time_tfreq)
+    #self.time_tfreq_calendar='proleptic_gregorian'
+    self.date_time_stamp_tfreq=netCDF4.num2date(self.time_tfreq[:],self.time_tfreq.units,self.time_tfreq_calendar)
+    self.year_fraction_tfreq=fractional_year_from_num2date(self.date_time_stamp_tfreq,self.time_tfreq_calendar)
+    #print(self.ifhN)
+
+  def get_latlon_info(self,**kwargs):
+    lat_check,lon_check=False,False
+    for key, value in kwargs.items():
+      if(key=='lat'):
+        lat=self.ifh0.variables[value][:]
+        lat_check=True
+      elif(key=='lon'):
+        lon=self.ifh0.variables[value][:]    
+        lon_check=True
+        
+    if(not lat_check):        
+        lat=self.ifh0.variables['lat'][:]
+    if(not lon_check):        
+        lon=self.ifh0.variables['lon'][:]
+        
+    if(len(lat.shape)>1):
+      self.lat=lat[:,0]
+    else:
+      self.lat=lat
+      
+    if(len(lon.shape)>1):
+      self.lon=lon[0,:]
+    else:
+      self.lon=lon
+      
+    self.clat=np.cos(self.lat[:]*self.rad)
+    self.nlat=len(self.lat)
+    self.nlon=len(self.lon)
+  
+  def calculate_quantity(self,instance_string,**kwargs):
+    for key, value in kwargs.items():
+      #print('key,value=',key,value)
+      if(key=='quantity'):
+        if(value=='nino'):
+          self.output_tfreq=ma.zeros((self.ntime_tfreq,eval(instance_string).nindices_nino),dtype=float)
+          print('self.output_tfreq.shape=',self.output_tfreq.shape)
+          #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))          
+          for k,indice in enumerate(eval(instance_string).indices_nino):
+            #print('k=',k)
+            imin,imax=eval(instance_string).indices_i[eval(instance_string).indices_nino.index(indice)][0],eval(instance_string).indices_i[eval(instance_string).indices_nino.index(indice)][1]
+            jmin,jmax=eval(instance_string).indices_j[eval(instance_string).indices_nino.index(indice)][0],eval(instance_string).indices_j[eval(instance_string).indices_nino.index(indice)][1]
+            self.output_tfreq[:,k]=np.average(np.average(self.ifhN.variables[self.input_var_name][:,jmin:jmax,imin:imax],axis=1,weights=self.clat[jmin:jmax]),axis=1)
+          #return(self.timeseries_tfreq)
+        elif(value=='pacific_region'): #test/dummy case.
+          indice='nino34'
+          imin,imax=eval(instance_string).indices_i[eval(instance_string).indices_nino.index(indice)][0],eval(instance_string).indices_i[eval(instance_string).indices_nino.index(indice)][1]
+          jmin,jmax=eval(instance_string).indices_j[eval(instance_string).indices_nino.index(indice)][0],eval(instance_string).indices_j[eval(instance_string).indices_nino.index(indice)][1]
+          #self.output_tfreq=ma.zeros((self.ntime_tfreq(jmax-jmin+0),(imax-imin+0)),dtype=float)
+          #self.output_tfreq[:,:,:]=self.ifhN.variables[self.input_var_name][:,jmin:jmax,imin:imax]
+          #45 50 102 128
+          #print('jmin,jmax,imin,imax=',jmin,jmax,imin,imax)
+          jmin,jmax,imin,imax=30,65,50,140
+          self.output_tfreq=self.ifhN.variables[self.input_var_name][:,jmin:jmax,imin:imax]
+          #return(self.time_xyreg_tfreq)
+        elif(value=='equatorial'): #test/dummy case.
+          indice='nino34'
+          imin,imax=eval(instance_string).indices_i[eval(instance_string).indices_nino.index(indice)][0],eval(instance_string).indices_i[eval(instance_string).indices_nino.index(indice)][1]
+          jmin,jmax=eval(instance_string).indices_j[eval(instance_string).indices_nino.index(indice)][0],eval(instance_string).indices_j[eval(instance_string).indices_nino.index(indice)][1]
+          self.output_tfreq=np.average(self.ifhN.variables[self.input_var_name][:,46:47+1,:],axis=1)
+        else:
+          raise SystemExit('Index type '+value+'not known:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      return(self.output_tfreq)
+          
+  def modify_timeseries_4testing(self,**kwargs):
+    '''
+    This is for testing the implications of removing a day (month etc.) at begin/end or both or none of a time-series. But as tfreq is focusing on daily revision might be required for other frequencies.
+    '''
+    for key, value in kwargs.items():
+      if(key=='what_to_keep'):
+        if(value=='all_times'):
+          self.year_fraction_tfreq=self.year_fraction_tfreq
+          self.date_time_stamp_tfreq=self.date_time_stamp_tfreq
+          self.output_tfreq=self.output_tfreq
+        elif(value=='all_but_first'):
+          self.year_fraction_tfreq=self.year_fraction_tfreq[1::]
+          self.date_time_stamp_tfreq=self.date_time_stamp_tfreq[1::]
+          self.output_tfreq=self.output_tfreq[:,1::]
+        elif(value=='all_but_last'):
+          self.year_fraction_tfreq=self.year_fraction_tfreq[0:-1]
+          self.date_time_stamp_tfreq=self.date_time_stamp_tfreq[0:-1]
+          self.output_tfreq=self.output_tfreq[:,0:-1]
+        elif(value=='all_but_first_and_last'):
+          self.year_fraction_tfreq=self.year_fraction_tfreq[1:-1]
+          self.date_time_stamp_tfreq=self.date_time_stamp_tfreq[1:-1]
+          self.output_tfreq=self.output_tfreq[:,1:-1]
+    #return year_fraction_tfreq,date_time_stamp_tfreq,nino_tfreq
+    
+  def daily_monthly_indices_info(self,**kwargs):
+    timesep_check=False
+    for key, value in kwargs.items():
+      if(key=='timesep'):
+        timesep=value
+        timesep_check=True  
+
+    if(not timesep_check):
+      print('Setting to default timesep: 1')
+      
+    print('timesep=',timesep)
+
+    self.daily_month_indice_beg,self.daily_month_indice_end,self.daily_year_beg,self.daily_year_end,self.daily_month_beg,self.daily_month_end,self.daily_day_beg,self.daily_day_end,self.beg_month_partial,self.end_month_partial = \
+      generate_daily_month_indices(self.date_time_stamp_tfreq,self.time_tfreq.units,self.time_tfreq_calendar,timesep)
+      
+  def daily_to_monthly(self,**kwargs):
+    EndOption_check=False
+
+    for key, value in kwargs.items():
+      if(key=='EndOption'):
+        EndOption=value
+        EndOption_check=True
+      elif(key=='input'):
+        input=value
+        
+    if(not EndOption_check):
+      print('Setting to default EndOption: 1')
+      EndOption=1
+
+    #print('input=',input)
+    #print('input.shape=',input.shape)
+    #print('input.ndim=',input.ndim)
+
+    output_shape=[len(self.daily_month_indice_beg)]                     
+    if(input.ndim>1):
+      for sss in input.shape[1::]:
+        output_shape.append(sss)
+             
+    #print('output_shape=',output_shape)
+
+    self.output=ma.zeros(output_shape,dtype=float)
+            
+    #print('self.output.shape=',self.output.shape)
+
+    for month in range(0,len(self.daily_month_indice_beg)):
+      self.output[month,:]=np.average(input[self.daily_month_indice_beg[month]:self.daily_month_indice_end[month]+1,],axis=0)
+
+    self.year_fraction_monthly=ma.zeros(len(self.daily_month_indice_beg))
+    for month in range(0,len(self.daily_month_indice_beg)):
+      self.year_fraction_monthly[month]=np.average(self.year_fraction_tfreq[self.daily_month_indice_beg[month]:self.daily_month_indice_end[month]+1])
+
+    self.num_stamp=netCDF4.date2num(self.date_time_stamp_tfreq,self.time_tfreq.units,self.time_tfreq_calendar)
+
+    self.num_stamp_monthly=np.zeros(len(self.daily_month_indice_beg))
+    #print('num_stamp_monthly.shape=',num_stamp_monthly.shape)
+
+    for month in range(0,len(self.daily_month_indice_beg)):
+      self.num_stamp_monthly[month]=np.average(self.num_stamp[self.daily_month_indice_beg[month]:self.daily_month_indice_end[month]+1])
+
+    self.date_time_stamp_monthly=netCDF4.num2date(self.num_stamp_monthly,self.time_tfreq.units,self.time_tfreq_calendar)
+
+    #print('beg,end_month_partial=',self.beg_month_partial,self.end_month_partial)
+
+    if(EndOption==1):
+      print('Discarding beg&/end month if they exist.')
+      if(self.beg_month_partial or self.end_month_partial):
+        if(self.beg_month_partial and self.end_month_partial):
+          print('type#1')
+          self.output=self.output[:,1:-1]
+          self.year_fraction_monthly=self.year_fraction_monthly[1:-1]
+          self.date_time_stamp_monthly=self.date_time_stamp_monthly[1:-1]
+      
+        elif(not self.beg_month_partial and self.end_month_partial):
+          print('type#2')
+          self.output=self.output[:,0:-1]
+          self.year_fraction_monthly=self.year_fraction_monthly[0:-1]
+          self.date_time_stamp_monthly=self.date_time_stamp_monthly[0:-1]
+
+        elif(self.beg_month_partial and not self.end_month_partial):
+          print('type#3')
+          self.output=self.output[:,1::]
+          self.year_fraction_monthly=self.year_fraction_monthly[1::]
+          self.date_time_stamp_monthly=self.date_time_stamp_monthly[1::]
+
+        else:
+          raise SystemExit('Shouldnt get here:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      else:
+        print('type#4')
+        self.output=self.output
+        self.year_fraction_monthly=self.year_fraction_monthly
+        self.date_time_stamp_monthly=self.date_time_stamp_monthly
+    
+    elif(EndOption==2):
+      print('Keeping beg/end month or both.')
+      self.output=self.output
+      self.year_fraction_monthly=self.year_fraction_monthly
+      self.date_time_stamp_monthly=self.date_time_stamp_monthly
+  
+    else:
+      raise SystemExit('EndOption can be only 1 or 2:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+    return(self.output)
+
+  def monthly_clim_anom(self,**kwargs):
+    for key, value in kwargs.items():
+      if(key=='input'):
+        input=value
+
+    #print(self.date_time_stamp_tfreq)
+
+    try:
+      ybeg=self.date_time_stamp_monthly[0].year
+    except AttributeError:
+      ybeg=self.date_time_stamp_tfreq[0].year
+      
+    try:
+      yend=self.date_time_stamp_monthly[-1].year
+    except AttributeError:
+      yend=self.date_time_stamp_tfreq[-1].year
+
+    ydiff_monthly=yend-ybeg+1
+
+    MissingMonths=False
+
+    try:
+      first_month=self.date_time_stamp_monthly[0].month
+    except AttributeError:
+      first_month=self.date_time_stamp_tfreq[0].month
+      
+    try:
+      last_month=self.date_time_stamp_monthly[-1].month
+    except AttributeError:
+      last_month=self.date_time_stamp_tfreq[-1].month
+      
+    #first_month=self.date_time_stamp_monthly[0].month
+    #last_month=self.date_time_stamp_monthly[-1].month
+
+    #print('ybeg,yend=',ybeg,yend)
+    #print('first,last_month=',first_month,last_month)
+
+    missing_months_beg,missing_months_end=0,0
+
+    cyear_beg_skip,cyear_end_skip=0,1
+
+    if(first_month!=1):
+      missing_months_beg=12-first_month
+      cyear_beg_skip=1
+      MissingMonths=True
+
+    if(last_month!=12):
+      missing_months_end=12-last_month
+      cyear_end_skip=2
+      MissingMonths=True
+  
+    if(MissingMonths):
+      print('There are missing months in the set. '+str(missing_months_beg)+' at beginning and '+str(missing_months_end)+' at end.')
+      print('Currently years with missing months are not used in generating long term monthly climatology.')
+      print('And missing months will be set to missing in the final time-series.')
+      self.ts_beg,self.ts_end,self.ts_avg,self.dt_beg,self.dt_end,self.dt_avg=get_timestamp_number(ybeg,yend,1,12,self.time_tfreq.units,self.time_tfreq_calendar)
+      year_fraction_monthly_full=fractional_year_from_num2date(self.ts_avg,self.time_tfreq_calendar)
+  
+      timeseries_monthly_full=ma.masked_all((ncep_nino_indices.nindices_nino,ydiff_monthly*self.nmy),dtype=float) #ensure missing months are masked out.
+      last_month_index=ydiff_monthly*self.nmy-last_month
+      timeseries_monthly_full[:,first_month-1:last_month_index]=self.timeseries_monthly
+    else:
+      print('All years have 12 months.')
+  
+      #timeseries_monthly_full=self.timeseries_monthly.copy()
+      input_full=input.copy()
+      
+      year_fraction_monthly_full=self.year_fraction_tfreq.copy()
+
+    output_shape_climatology=[self.nmy]
+    if(input.ndim>1):
+      for sss in input.shape[1::]:
+        output_shape_climatology.append(sss)
+    #print('output_shape_climatology=',output_shape_climatology)
+    
+    output_shape_anomaly=[ydiff_monthly*self.nmy]
+    if(input.ndim>1):
+      for sss in input.shape[1::]:
+        output_shape_anomaly.append(sss)
+    #print('output_shape_anomaly=',output_shape_anomaly)
+
+    #print('input_full.shape=',input_full.shape)
+    
+    to_shape_monthly=[ydiff_monthly,self.nmy]
+    if(input.ndim>1):
+      for sss in output_shape_anomaly[1::]:
+        to_shape_monthly.append(sss)
+        
+    #print('to_shape_monthly=',to_shape_monthly)
+
+    monthly_data_reshaped=np.reshape(input_full,to_shape_monthly)
+
+    #print('monthly_data_reshaped.shape=',monthly_data_reshaped.shape)
+    
+    self.monthly_climatology = np.average(monthly_data_reshaped,axis=0)
+    monthly_climatology_repeat1 = np.expand_dims(self.monthly_climatology,-1)
+    monthly_climatology_repeat2 = np.tile(monthly_climatology_repeat1,(ydiff_monthly))
+    monthly_climatology_repeat = np.moveaxis(monthly_climatology_repeat2,-1,0)
+
+    #print('self.monthly_climatology.shape=',self.monthly_climatology.shape)
+
+    #print('monthly_climatology_repeat1.shape=',monthly_climatology_repeat1.shape)
+    #print('monthly_climatology_repeat2.shape=',monthly_climatology_repeat2.shape)
+    #print('monthly_climatology_repeat.shape=',monthly_climatology_repeat.shape)
+
+    to_shape_climatology=[ydiff_monthly*self.nmy]
+    if(input.ndim>1):
+      for sss in output_shape_climatology[1::]:
+        to_shape_climatology.append(sss)
+        
+    #print('to_shape_climatology=',to_shape_climatology)
+    
+    monthly_climatology_flat=np.reshape(monthly_climatology_repeat,to_shape_climatology)
+
+    #print('monthly_climatology_flat.shape=',monthly_climatology_flat.shape)
+
+    self.monthly_anomaly = input_full - monthly_climatology_flat
+
+    #print('self.monthly_anomaly.shape=',self.monthly_anomaly.shape)
+   
+    return(self.monthly_climatology,self.monthly_anomaly)
+
+#https://stackoverflow.com/questions/3279560/invert-colormap-in-matplotlib
+def reverse_colourmap(cmap, name = 'my_cmap_r'):
+    """
+    In: 
+    cmap, name 
+    Out:
+    my_cmap_r
+
+    Explanation:
+    t[0] goes from 0 to 1
+    row i:   x  y0  y1 -> t[0] t[1] t[2]
+                   /
+                  /
+    row i+1: x  y0  y1 -> t[n] t[1] t[2]
+
+    so the inverse should do the same:
+    row i+1: x  y1  y0 -> 1-t[0] t[2] t[1]
+                   /
+                  /
+    row i:   x  y1  y0 -> 1-t[n] t[2] t[1]
+    """        
+    import matplotlib as mpl
+    reverse = []
+    k = []   
+
+    for key in cmap._segmentdata:    
+        k.append(key)
+        channel = cmap._segmentdata[key]
+        data = []
+
+        for t in channel:                    
+            data.append((1-t[0],t[2],t[1]))            
+        reverse.append(sorted(data))    
+
+    LinearL = dict(zip(k,reverse))
+    my_cmap_r = mpl.colors.LinearSegmentedColormap(name, LinearL) 
+    return my_cmap_r
+
+def basic_stats(data):
+  '''
+  produce basic statistics of numpy array, similar to ferret stat command.
+  '''
+  import numpy as np
+  print('Basic statistics using unweighted data:')
+  print('min ',np.min(data))
+  print('max ',np.max(data))
+  print('avg ',np.mean(data))
+  print('Total Points ',data.size)
+  print('No. Missing ',data.count())
+  print('No. Good ',data.size-data.count())
+  print('STD ',np.std(data))      
+  return()
+

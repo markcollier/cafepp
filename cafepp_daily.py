@@ -30,7 +30,7 @@ import seawater
 #import sys
 import getopt
 import string
-from decadal_diag import MustHaveAllLevs,diag_acc_drake,diag_acc_africa,diag_mozmbq,diag_aabw,diag_nadw,diag_pp,diag_nflux,diag_ep,diag_ssh,diag_moc,diag_moc_atlantic,diag_moc_pacific,diag_moc_indian,diag_shice_cover,diag_nhice_cover,diag_nino34,xtra_nino34,init_data,sum_data,avg_data,filemonth_index,data_wavg,time_avg,diag_nhblocking_index,diag_rws5,finish,diag_msftyyz,make_mask3D,diag_mfo,transPort,diag_rws500,create_odirs,create_ofils,diag_iod,diag_iod,xtra_iod,atmos_vertical_interpolate,diag_isothetaoNc,calc_iso_surface,calc_isoN,grab_var_meta,diag_psl,diag_hfls,diag_heat_content,diag_salt_content,diag_north_heat_trans,diag_north_salt_trans,ocean_vertical_interpolate,diag_thetao0to80m,diag_varNl,uncomment_json,process_json,get_daily_indices_for_monthlyave
+from decadal_diag import MustHaveAllLevs,diag_acc_drake,diag_acc_africa,diag_mozmbq,diag_aabw,diag_nadw,diag_pp,diag_nflux,diag_ep,diag_ssh,diag_moc,diag_moc_atlantic,diag_moc_pacific,diag_moc_indian,diag_shice_cover,diag_nhice_cover,diag_nino34,xtra_nino34,init_data,sum_data,avg_data,filemonth_index,data_wavg,time_avg,diag_nhblocking_index,diag_rws5,finish,diag_msftyz,make_mask3D,diag_mfo,transPort,diag_rws500,create_odirs,create_ofils,diag_iod,diag_iod,xtra_iod,atmos_vertical_interpolate,diag_isothetaoNc,calc_iso_surface,calc_isoN,grab_var_meta,diag_psl,diag_hfls,diag_heat_content,diag_salt_content,diag_north_heat_trans,diag_north_salt_trans,ocean_vertical_interpolate,diag_thetao0to80m,diag_varNl,uncomment_json,process_json,get_daily_indices_for_monthlyave
 
 from decadal_diag import diag_maxdTbydz,diag_depmaxdTbydz,diag_dTbydz,shade_2d_simple,shade_2d_latlon,diag_zmld_boyer,zmld_boyer,sigmatheta,diag_zmld_so,zmld_so,diag_spice,spice,diag_bigthetao,diag_soabs,diag_spiciness,diag_potrho
 #,diag_thetao10l,diag_so5l
@@ -100,6 +100,7 @@ def main(json_input_instructions):
   NoClobber=False
   ProcessFileList=False
   ProcessFileTxtTF=False
+  DailytoMonthlyOutput=False
   importance=5
   
   cafepp_defs='cafepp_csiro-gfdl.json'
@@ -110,74 +111,6 @@ def main(json_input_instructions):
   cafepp_machine='raijin.nci.org.au'
   
   cmorlogfile='log'
-  
-  #for o, a in opts:
-  #    #print(o,file=fh_printfile)
-  #    if o in ('-h', '--help'):
-  #        usage(os.path.realpath(__file__))
-  #        sys.exit()
-  #    elif o == '-x':
-  #        NoClobber=True
-  #    elif o == '-i':
-  #        importance=int(a)
-  #    elif o == '-l':
-  #         printfile=a
-  #         fh_printfile=open(printfile,"w")
-  #    elif o == '-v':
-  #         dvar=a
-  #    elif o == '--ybeg':
-  #        ybeg=int(a)
-  #    elif o == '--yend':
-  #        yend=int(a)
-  #    elif o == '--mbeg':
-  #        mbeg=int(a)
-  #    elif o == '--mend':
-  #        mend=int(a)
-  #    elif o == '--dbeg':
-  #        dbeg=int(a)
-  #    elif o == '--dend':
-  #        dend=int(a)
-  #    elif o == '--ybeg_min':
-  #        ybeg_min=int(a)
-  #    elif o == '--yend_max':
-  #        yend_max=int(a)
-  #    elif o == '--mbeg_min':
-  #        mbeg_min=int(a)
-  #    elif o == '--mend_max':
-  #        mend_max=int(a)
-  #    elif o == '--dbeg_min':
-  #        dbeg_min=int(a)
-  #    elif o == '--dend_max':
-  #        dend_max=int(a)
-  #    elif o == '--cbeg':
-  #        cbeg=int(a)
-  #    elif o == '--cend':
-  #        cend=int(a)
-  #    elif o == '--realisation':
-  #        #erange=[str(x) for x in a.split(',')]
-  #        realisation=int(a)
-  #    elif o == '--initialisation':
-  #        initialisation=int(a)
-  #    elif o == '--physics':
-  #        physics=int(a)
-  #    elif o == '--forcings':
-  #        forcings=int(a)
-  #    elif o == '--idir':
-  #        idir=a
-  #    elif o == '--vertical_interpolation_method':
-  #        vertical_interpolation_method=a
-  #    elif o == '-r':
-  #        ReGrid=True
-  #    elif o == '--version':
-  #        version=a
-  #    elif o == '--cmorlogfile':
-  #        cmorlogfile=a
-  #    elif o == '--new_ovars':
-  #        new_ovars=[str(x) for x in a.split(',')]
-  #    elif o == '--new_units':
-  #        new_units=[str(x) for x in a.split(',')]
-  #    else:
-  #        assert False, 'unhandled option'
   
   if 'json_input_instructions' in locals():
     #os.system('awk -f ~mac599/decadal/uncomment_json.awk JsonTemplates/'+json_input_instructions+' > '+json_input_instructions)
@@ -249,6 +182,7 @@ def main(json_input_instructions):
             ProcessFileTxt=str(list_new[l])
             ProcessFileTxtTF=True
           elif(l=='cafepp_machine'): cafepp_machine=str(list_new[l])
+          elif(l=='dummy'): pass
           else: raise SystemExit('Unknown option_with_argument,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
       elif(key_now0=='options_no_arguments'):
         list_new=(json_input_instructions_data[key_now0])
@@ -263,8 +197,11 @@ def main(json_input_instructions):
   #          if(list_new[l]=='True'): MonthlyWeights=True
           elif(l=='NoClobber'): 
             if(list_new[l]=='True'): NoClobber=list_new[l]
+          elif(l=='DailytoMonthlyOutput'): 
+            if(list_new[l]=='True'): DailytoMonthlyOutput=True
           elif(l=='ProcessFileList'): 
             if(list_new[l]=='True'): ProcessFileList=list_new[l]
+          elif(l=='dummy'): pass
           else: raise SystemExit('Unknown option_no_argument,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
       elif(key_now0=='defaults'):
         list_new=(json_input_instructions_data[key_now0])
@@ -284,6 +221,7 @@ def main(json_input_instructions):
           elif(l=='cafepp_experiments_meta'): cafepp_experiments_meta=str(list_new[l])
           elif(l=='cafepp_defs'): cafepp_defs=str(list_new[l])
           elif(l=='json_input_var_meta'): json_input_var_meta=str(list_new[l])
+          elif(l=='dummy'): pass
           else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
       elif(key_now0=='daily_specific'):
         list_new=(json_input_instructions_data[key_now0])
@@ -291,6 +229,7 @@ def main(json_input_instructions):
           if(l=='name'): name=str(list_new[l])
           elif(l=='dbeg'): dbeg=int(list_new[l])
           elif(l=='dend'): dend=int(list_new[l])
+          elif(l=='dummy'): pass
           else: raise SystemExit('Unknown daily_specific,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
     if 'printfile' in locals():
@@ -389,6 +328,8 @@ def main(json_input_instructions):
         elif(l=='institution_id'): institution_id=str(list_new[l])
         elif(l=='source'): source=str(list_new[l])
         elif(l=='source_id'): source_id=str(list_new[l])
+        elif(l=='calendar'): calendar=str(list_new[l])
+        elif(l=='dummy'): pass
         else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     else:
       pass
@@ -479,6 +420,7 @@ def main(json_input_instructions):
         #elif(l=='grid'): grid=str(list_new[l])
         #elif(l=='grid_label'): grid_label=str(list_new[l])
         #elif(l=='vertical_interpolation_method'): vertical_interpolation_method=str(list_new[l])
+        elif(l=='dummy'): pass
         else: raise SystemExit('Unknown defaults,',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     elif(key_now0==dvar[0]):
       print('Found required output variable:',dvar[0],file=fh_printfile)
@@ -544,6 +486,7 @@ def main(json_input_instructions):
             if check not in ['griddata_scipy','poisson_fill','dot_weighting_regrid','apply_ls_mask_regrid']:
               raise SystemExit('Invalid choice with interp_fill options:'+__file__+' line number: '+str(inspect.stack()[0][2]))
           #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        elif(l=='dummy'): pass
         else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
     else:
@@ -609,6 +552,9 @@ def main(json_input_instructions):
     table=table_tmp[table_frequency.index(frequency)]
   else:
     raise SystemExit('Must choose valid table:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if(DailytoMonthlyOutput):
+    print('Producing monthly output from daily input (not yet operational).')
   
   #area_u=False
   #area_t=False
@@ -633,7 +579,7 @@ def main(json_input_instructions):
   if(daily_data_layout=='noleap_1fileperyear'):
     cdtime.DefaultCalendar=cdtime.NoLeapCalendar
     calendar='noleap'
-  elif(daily_data_layout=='leap_1fileperday' or daily_data_layout=='leap_1fileperyear'):
+  elif(daily_data_layout=='leap_1fileperday' or daily_data_layout=='leap_1fileperyear' or daily_data_layout=='julian_1fileperday' or daily_data_layout=='julian_1fileperyear'):
     cdtime.DefaultCalendar=cdtime.JulianCalendar
     calendar='julian'
   else:
@@ -659,7 +605,18 @@ def main(json_input_instructions):
   cafepp_data=json.loads(json_data)
   institution_id=cafepp_data['institution_id']
   source_id=cafepp_data['source_id']
-  experiment_id=cafepp_data['experiment_id']
+
+  if not 'institution_id' in locals():
+    institution_id=cafepp_data['institution_id']
+
+  if not 'source_id' in locals():
+    source_id=cafepp_data['source_id']
+
+  if not 'experiment_id' in locals():
+    experiment_id=cafepp_data['experiment_id']
+
+  if not 'experiment' in locals():
+    experiment=cafepp_data['experiment']
   
   cafe_experiment=os.environ.get('CAFE_EXPERIMENT')
   
@@ -672,7 +629,7 @@ def main(json_input_instructions):
   
   #grid_label='gn'
   #grid='native grid'
-  season='None'
+  season=None
   
   #if(dvar=='ta5' or dvar=='ua5' or dvar=='va5' or dvar=='zg5' or dvar=='hus5' or dvar=='rws5'):
   #  grid_label='gn5'
@@ -783,17 +740,17 @@ def main(json_input_instructions):
   cmor.set_cur_dataset_attribute('initialization_index',initialisation)
   cmor.set_cur_dataset_attribute('version',version)
   
-  #cmor.set_cur_dataset_attribute('experiment',experiment)
-  #cmor.set_cur_dataset_attribute('experiment_id',experiment_id)
+  cmor.set_cur_dataset_attribute('experiment',experiment)
+  cmor.set_cur_dataset_attribute('experiment_id',experiment_id)
   #cmor.set_cur_dataset_attribute('parent_experiment_id',parent_experiment_id)
   #cmor.set_cur_dataset_attribute('history',history)
   #cmor.set_cur_dataset_attribute('institution',institution)
   #cmor.set_cur_dataset_attribute('institution_id',institution_id)
-  
+
   cmor.set_cur_dataset_attribute('calendar',calendar)
-  
   cmor.set_cur_dataset_attribute('importance',importance)
-  cmor.set_cur_dataset_attribute('season',season)
+  if(type(season)!=type(None)):
+    cmor.set_cur_dataset_attribute('season',season)
   
   if 'vertical_interpolation_method' in locals(): cmor.set_cur_dataset_attribute('vertical_interpolation_method',vertical_interpolation_method)
   if(cafe_experiment == 'v0'):
@@ -830,7 +787,6 @@ def main(json_input_instructions):
   tables=[]
   tables.append(cmor.load_table('cmip6-cmor-tables/Tables/CMIP6_'+table+'.json'))
   #tables.append(cmor.load_table('cmip6-cmor-tables/Tables/CMIP6_Oday.json'))
-  
   tables.append(cmor.load_table('cmip6-cmor-tables/Tables/CMIP6_grids.json'))
   tables.append(cmor.load_table('cmip6-cmor-tables/Tables/CMIP6_coordinate.json'))
   
@@ -849,7 +805,8 @@ def main(json_input_instructions):
   #print(ybeg,yend)
   
   if(ybeg<ybeg_min or ybeg>yend_max or yend<ybeg_min or yend>yend_max):
-    raise SystemExit('Problem with ybeg/yend ybeg_min/yend_max.')
+    print('ybeg,yend,ybeg_min,yend_max=',ybeg,yend,ybeg_min,yend_max)
+    raise SystemExit('Problem with ybeg/yend ybeg_min/yend_max:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   cmor.set_table(tables[1]) #grids
   
@@ -864,7 +821,7 @@ def main(json_input_instructions):
   # you may also want to remove whitespace characters like `\n` at the end of each line
     #input_files = [x.strip() for x in input_files] 
     input_files = [x.strip().replace('REALM',realm) for x in input_files] 
-    print(input_files)
+    print('input_files=',input_files)
     #print(input_files.replace('REALM',realm))
     #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
@@ -874,7 +831,7 @@ def main(json_input_instructions):
     print('idir=',idir)
     input_files=sorted(glob.glob(idir+'/'+realm+'_daily_????_??_01.nc'))
   #  input_files=input_files[0:2] #limit number for testing purposes...
-    print(input_files)
+    print('input_files=',input_files)
     #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     #print(len(input_files))
   
@@ -900,9 +857,9 @@ def main(json_input_instructions):
   
     tval_bounds=np.array(input_fhsN.variables['time_bounds'][:])
   
-    print(tavg)
-    print(tavg[:].size)
-    print(tavg[:])
+    #print(tavg)
+    #print(tavg[:].size)
+    #print(tavg[:])
   
     timestamp_avg_beg=netCDF4.num2date(tavg[0],units=refString,calendar=calendar)
     timestamp_avg_end=netCDF4.num2date(tavg[-1],units=refString,calendar=calendar)
@@ -922,11 +879,13 @@ def main(json_input_instructions):
   
     for o in range(0,len(ovars)):
       if(os.path.exists(odir[o]+'/'+ofil_modified[o]) and NoClobber):
-        raise SystemExit('No Clobber set and ',odir[o]+'/'+ofil_modified[o],' exists')
+        print('No Clobber set and ',odir[o]+'/'+ofil_modified[o],' exists:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        return(0)
   
     for o in range(0,len(ovars)):
       if(os.path.exists(odir[o]+'/'+ofil[o]) and NoClobber):
-        raise SystemExit('No Clobber set and ',odir[o]+'/'+ofil_modified[o],' exists')
+        print('No Clobber set and ',odir[o]+'/'+ofil[o],' exists:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        return(0)
   
     #print(odir)
     #print(ofil)
@@ -1108,7 +1067,7 @@ def main(json_input_instructions):
             idir_extra='/'+str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+str('{0:02d}'.format(1))
           else:
             idir_extra=''
-          print(idir_extra)
+          print('idir_extra=',idir_extra)
           #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
           dbeg_now=1
@@ -1351,7 +1310,8 @@ def main(json_input_instructions):
        nlons=len(lon_vals)
     else:
        nlats=lat_vals[:,0].size
-       nlons=lon_vals_360[0,].size
+       #nlons=lon_vals_360[0,].size
+       nlons=lon_vals[0,].size
   
     #nlats=lat_vals.size
     #nlons=lon_vals_360.size
@@ -1596,7 +1556,7 @@ def main(json_input_instructions):
   #  for o in range(0,len(ovars)):
   #    data_id.append(cmor.variable(ovars[o], ounits[o], axis_ids=axis_ids, missing_value=-1e20))
   
-  print(input_files)
+  print('input_files=',input_files)
   #print(fh_number)
   
   if(ReGrid):
@@ -1786,6 +1746,7 @@ def main(json_input_instructions):
       if(len(inputs)==1):
         try:
           data=input_fhsN.variables[inputs[0]][fr_number[icnt],]
+          #print('icnt,data.shape,fr_number[icnt]=',icnt,data.shape,fr_number[icnt])
         except KeyError:
           data=input_fhsN.variables[inputs_alternative[0]][fr_number[icnt],]
       elif(len(inputs)==2):
@@ -2021,7 +1982,7 @@ def main(json_input_instructions):
     file_name.append(cmor.close(var_id=data_id[o], file_name=True))
   
   for o in range(0,len(ovars)):
-    finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season,fh_printfile)
+    finish(file_name[o],odir[o],ofil[o],ofil_modified[o],season,'dummy',fh_printfile)
   
   #raise SystemExit('Finished O.K.')
   print('Finished O.K.')

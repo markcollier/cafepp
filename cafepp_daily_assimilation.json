@@ -23,7 +23,8 @@
     "frequency":"daily", #input data daily.
     "cafepp_experiments_meta":"cafepp_experiments.json", #describes all known CAFE experiments.
     "cafepp_defs":"cafepp_csiro-gfdl.json", #input to CMOR3
-    "json_input_var_meta":"cafepp_vars.json" #describes all known CAFEPP variables/diagnostics.
+    "json_input_var_meta":"cafepp_vars.json", #describes all known CAFEPP variables/diagnostics.
+    "dummy":"dummy" #put at the end of group as don't need comma ","
              },
 #
     "options_no_arguments":{
@@ -33,10 +34,13 @@
 #    "Regrid":"False", #regridding data to other horizontal resolutions/domains (now obsolete).
 #    "MonthlyWeights":"False", #apply monthly weights, for calculating seasonal averages.
     "NoClobber":"True", #do not overwrite indeded output file, exit.
-    "ProcessFileList":"False" #process a list of files, assuming they are contiguous in time.
+    "DailytoMonthlyOutput":"False",
+    "ProcessFileList":"False", #process a list of files, assuming they are contiguous in time.
+    "dummy":"dummy" #put at the end of group as don't need comma ","
           },
 #
     "options_with_arguments":{
+    #"ProcessFileTxt":"cafepp_daily_control.txt",
     "cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",
     "info":"last modified today",
     "force_hostname":"raijin", #force hostname to ensure idir is correct (e.g. when submitting to raijin, the batch machine name is very hard to match.
@@ -97,15 +101,18 @@
     "cmorlogfile":"cmor_log.txt", #name of file for CMOR output.
 #    "printfile":"stdout.txt",
     "printDefinedDiagnostics":"False", #will print out curretly defined variables/diagnostics.
-    "cafepp_machine":"raijin.nci.org.au" #name of machine running CAFEPP on.
+    "cafepp_machine":"raijin.nci.org.au", #name of machine running CAFEPP on.
+    "dummy":"dummy" #put at the end of group as don't need comma ","
           },
     "daily_specific":{
     "name":"daily_specific",
     "dbeg":DBEG_MIN, #beg day to process (daily processing only).
-    "dend":DEND_MAX #end day to process (daily processing only). careful...depends on month end... 30
+    "dend":DEND_MAX, #end day to process (daily processing only). careful...depends on month end... 30
+    "dummy":"dummy" #put at the end of group as don't need comma ","
           },
     "monthly_specific":{
-    "name":"monthly_specific"
+    "name":"monthly_specific",
+    "dummy":"dummy" #put at the end of group as don't need comma ","
           }
 }
 #EOF

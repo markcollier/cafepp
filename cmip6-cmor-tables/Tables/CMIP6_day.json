@@ -750,6 +750,24 @@
             "valid_max": "", 
             "ok_min_mean_abs": "", 
             "ok_max_mean_abs": ""
+        },
+        "ts": {
+            "frequency": "day", 
+            "modeling_realm": "atmos", 
+            "standard_name": "surface_temperature", 
+            "units": "K", 
+            "cell_methods": "area: time: mean", 
+            "cell_measures": "area: areacella", 
+            "long_name": "Surface Temperature", 
+            "comment": "Temperature of the lower boundary of the atmosphere",
+            "dimensions": "longitude latitude time", 
+            "out_name": "ts", 
+            "type": "real", 
+            "positive": "", 
+            "valid_min": "", 
+            "valid_max": "", 
+            "ok_min_mean_abs": "", 
+            "ok_max_mean_abs": ""
         }
     }
 }
