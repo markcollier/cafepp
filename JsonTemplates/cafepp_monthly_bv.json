@@ -1,0 +1,117 @@
+#BOF
+{
+    "defaults":{
+    "name":"defaults_cafepp.json",
+    "info":"None",
+    "area_t":"None",
+    "area_u":"None",
+    "grid":"native_grid", #description of grid (default native_grid).
+    "grid_label":"gn", #label for grid (default gn).
+#    "vertical_interpolation_method":"None", #default vertical interpolation method, currently used to interpolate 3d fields on atmospheric pressure levels.
+    "frequency":"month", #input data monthly.
+#    "frequency":"daily", #input data daily.
+    "cafepp_experiments_meta":"cafepp_experiments.json", #describes all known CAFE experiments.
+    "cafepp_defs":"cafepp_csiro-gfdl.json", #input to CMOR3
+    "json_input_var_meta":"cafepp_vars.json" #describes all known CAFEPP variables/diagnostics.
+             },
+#
+    "options_no_arguments":{
+    "info":"None",
+    "name":"options_no_arguments_cafepp.json",
+#    "Forecast":"False", #Forecast experiments have their daily/monthly data in a subdirectory using a YYYYMMDD naming system. (obsolte, now in experiments.json).
+    "Regrid":"False", #regridding data to other horizontal resolutions/domains.
+#    "MonthlyWeights":"False", #apply monthly weights, for calculating seasonal averages.
+    "NoClobber":"False", #do not overwrite indeded output file, exit.
+    "ProcessFileList":"False" #process a list of files, assuming they are contiguous in time.
+          },
+#
+    "options_with_arguments":{
+    "cafe_experiment":"v1", #experiment to process, see file cafepp_experimentrs.json for the current list.
+#    "cafe_experiment":"v0",
+#    "cafe_experiment":"v0_forecast",
+#    "cafe_experiment":"v0_multiyear_forecast",
+#    "cafe_experiment":"breed_da_twostep_carbon/MEMBERS/m.1/OUTPUT",
+#    "cafe_experiment":"v2",
+#    "cafe_experiment":"test_case",
+     "cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",
+    "info":"last modified today",
+    "force_hostname":"raijin", #force hostname to ensure idir is correct (e.g. when submitting to raijin, the batch machine name is very hard to match.
+    "name":"options_with_arguments_cafepp.json",
+    "importance":5, #a number between 1-5, the higher the number the less important it is in terms of keeping long term.
+    "version":"v20171025", #cmor defaults to current date, sometimes want output to go into a specific directory.
+#    "initialisation":1,
+#    "realisation":1,
+#    "physics":1,
+#    "forcings":1,
+#
+#    "dvar":"hfls",
+#    "dvar":"tslsi",
+    "dvar":"tos",
+#    "dvar":"zos",
+#    "dvar":"mlotst",
+#    "dvar":"nino34",
+#    "dvar":"iod",
+#    "dvar":"isothetao20c",
+#    "dvar":"thetao",
+#    "dvar":"thetao100m",
+#    "dvar":"tauu",
+#    "dvar":"psl",
+#    "dvar":"zg500",
+#    "dvar":"rlus",
+#    "dvar":"ta",
+#    "dvar":"ta5",
+#    "dvar":"ta19",
+#    "dvar":"ta10",
+#    "dvar":"ta5m", # 5 arbitrary model levels.
+#    "dvar":"rws500",
+#    "dvar":"rws",
+#    "dvar":"rws5",
+#    "dvar":"mfo",
+#    "dvar":"nhbi",
+#    "dvar":"volcello",
+#    "dvar":"umo",
+#    "dvar":"vmo",
+#    "dvar":"msftyyz",
+#    "dvar":"cl",
+#    "dvar":"thkcello", #untested
+#    "dvar":"areacello", #untested
+#    "dvar":"sftof", #untested
+#    "dvar":"deptho", #untested
+#
+#    "ybeg":2002, #beg year to process (no default).
+#    "yend":2003, #end year to process (no default).
+#    "mbeg":2, #beg imonth to process (default 1).
+#    "mend":12, #end month to process (default 12).
+#
+#    "ybeg":390, #beg year to process (no default).
+#    "yend":391, #end year to process (no default).
+#    "mbeg":1, #beg month to process (default 1).
+#    "mend":12, #end month to process (default 12).
+#
+    "ybeg":2002, #beg year to process (no default).
+    "yend":2012, #end year to process (no default). 2012
+    "mbeg":1, #beg month to process (default 1).
+    "mend":6, #end month to process (default 12). 6
+#
+#    "ybeg":2006, #beg year to process (no default).
+#    "yend":2007, #end year to process (no default). 2011
+#    "mbeg":1, #beg month to process (default 1).
+#    "mend":12, #end month to process (default 12).
+#
+     "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
+    "levs":"", #set of levels to extract, comma seperated, base 0 (e.g. 1,3,5,7).
+    "cmorlogfile":"cmor_log.txt", #name of file for CMOR output.
+#    "printfile":"stdout.txt",
+    "printDefinedDiagnostics":"False", #will print out curretly defined variables/diagnostics.
+    "cafepp_machine":"raijin.nci.org.au" #name of machine running CAFEPP on.
+          },
+    "daily_specific":{
+    "name":"daily_specific",
+    "dbeg":1, #beg day to process (daily processing only).
+    "dend":30 #end day to process (daily processing only). careful...depends on month end...
+          },
+    "monthly_specific":{
+    "name":"monthly_specific"
+          }
+}
+#EOF
