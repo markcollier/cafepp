@@ -5669,3 +5669,19 @@ def basic_stats(data):
   print('STD ',np.std(data))      
   return()
 
+def myfile_copy(inf,outf):
+  import filecmp
+  import shutil
+  import os
+  
+  CRED = '\033[91m'
+  CEND = '\033[0m'
+  #print(CRED + "Error, does not compute!" + CEND)
+
+  #print(filecmp.cmp(inf,outf))
+  if(not os.path.isfile(outf) or not filecmp.cmp(inf,outf)):
+    print(CRED +'Copying '+inf+' to '+outf +CEND)
+    shutil.copy(inf,outf)
+  else:
+    print('Not copying '+inf+' to '+outf)
+  return()
