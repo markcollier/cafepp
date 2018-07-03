@@ -1,3 +1,4 @@
+
 class ProcTime:
 
   '''
@@ -26,32 +27,38 @@ class ProcTime:
   #def __init__(self, season, experiment, realm, frequency):
   
   def __init__(self,**kwargs):
-    season_check= experiment_check = realm_check = frequency_check = False
+    season_check= experiment_check = realm_check = frequency_check = input_directory_check = False
     for key, value in kwargs.items():
       if(key=='experiment'):
         self.experiment=value
         experiment_check=True  
-      if(key=='season'):
+      elif(key=='season'):
         self.season=value
         season_check=True 
-      if(key=='realm'):
+      elif(key=='realm'):
         self.realm=value
         realm_check=True  
-      if(key=='frequency'):
+      elif(key=='frequency'):
         self.frequency=value
         frequency_check=True
-      if(key=='ybeg_season_process'):
+      elif(key=='ybeg_season_process'):
         self.ybeg_season_process=value
         ybeg_season_process_check=True
-      if(key=='yend_season_process'):
+      elif(key=='yend_season_process'):
         self.yend_season_process=value
         yend_season_process_check=True
-      if(key=='mbeg_season_process'):
+      elif(key=='mbeg_season_process'):
         self.mbeg_season_process=value
         mbeg_season_process_check=True
-      if(key=='mend_season_process'):
+      elif(key=='mend_season_process'):
         self.mend_season_process=value
         mend_season_process_check=True
+      elif(key=='input_directory'):
+        self.input_directory=value
+        input_directory_check=True
+      else:
+        raise SystemExit('key unknown:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        
         
     if '__file__' not in locals(): __file__='ProcTime'
       
@@ -147,19 +154,19 @@ class ProcTime:
       #self.ybeg_season_process,self.yend_season_process,self.mbeg_season_process,self.mend_season_process=2003,2004,1,12 #potential for 2002,2004
       self.input_directory='/g/data1/v14/forecast/v2/OUTPUT/2000/01/OUTPUT.01'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc')))
-
+      
     elif(self.experiment=='v0'):
 
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
       self.input_directory='/g/data1/v14/coupled_model/v0/OUTPUT'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
-
+      
     elif(self.experiment=='v1'):
 
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
-      self.input_directory='/g/data1/v14/coupled_model/v1/OUTPUT'
+      if(not input_directory_check):
+        self.input_directory='/g/data1/v14/coupled_model/v1/OUTPUT'
       #self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
-      #self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_?[4,5]??_??.nc'))) #all files
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_?47?_??.nc'))) #all files
       
     elif(self.experiment=='v2'):
@@ -171,7 +178,6 @@ class ProcTime:
       
       self.input_directory='/g/data1/v14/coupled_model/v2/OUTPUT'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
-      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_047[1,2]_??.nc'))) #all files
       #self.input_files=sorted(glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_049?_??.nc')+glob.glob(self.input_directory+'/'+realm+'_'+frequency+'_0500_??.nc')) #last 10 years.
   
       #print(type(input_files))
@@ -179,7 +185,7 @@ class ProcTime:
     elif(self.experiment=='v3'):
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
       self.input_directory='/g/data1/v14/coupled_model/v3/OUTPUT'
-      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_04??_??.nc'))) #all files
+      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_04??_??.nc'))) #netCDF4 MDFDatasret seemed to fail so restricted list.
     else:
       raise Exception('Don\'t know experiment '+self.experiment+' file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
@@ -207,53 +213,9 @@ class ProcTime:
     self.season_broadcast_override=False
     #self.season_broadcast_override=True #we might want to write out invididual months of a season rather than forming the seasonal average, override as this is not the usual.
 
-    self.season_map={\
-            'DJF':[12,1,2],\
-            'MAM':[3,4,5],\
-            'JJA':[6,7,8],\
-            'SON':[9,10,11],\
-            'JJAS':[6,7,8,9],\
-            'ANN':[1,2,3,4,5,6,7,8,9,10,11,12],\
-            'DecJan':[12,1],\
-            'JunJul':[6,7],\
-            'MON':[1,2,3,4,5,6,7,8,9,10,11,12],\
-            'Jan':[1],\
-            'Feb':[2],\
-            'Mar':[3],\
-            'Apr':[4],\
-            'May':[5],\
-            'Jun':[6],\
-            'Jul':[7],\
-            'Aug':[8],\
-            'Sep':[9],\
-            'Oct':[10],\
-            'Nov':[11],\
-            'Dec':[12],\
-            } #months required for each seasonal definition, avoid ambiguity by using lowercase letters where necessary.
+    self.season_map={            'DJF':[12,1,2],            'MAM':[3,4,5],            'JJA':[6,7,8],            'SON':[9,10,11],            'JJAS':[6,7,8,9],            'ANN':[1,2,3,4,5,6,7,8,9,10,11,12],            'DecJan':[12,1],            'JunJul':[6,7],            'MON':[1,2,3,4,5,6,7,8,9,10,11,12],            'Jan':[1],            'Feb':[2],            'Mar':[3],            'Apr':[4],            'May':[5],            'Jun':[6],            'Jul':[7],            'Aug':[8],            'Sep':[9],            'Oct':[10],            'Nov':[11],            'Dec':[12],            } #months required for each seasonal definition, avoid ambiguity by using lowercase letters where necessary.
 
-    self.season_broadcast={\
-            'DJF':False,\
-            'MAM':False,\
-            'JJA':False,\
-            'SON':False,\
-            'JJAS':False,\
-            'ANN':False,\
-            'DecJan':False,\
-            'JunJul':False,\
-            'MON':True,\
-            'Jan':True,\
-            'Feb':True,\
-            'Mar':True,\
-            'Apr':True,\
-            'May':True,\
-            'Jun':True,\
-            'Jul':True,\
-            'Aug':True,\
-            'Sep':True,\
-            'Oct':True,\
-            'Nov':True,\
-            'Dec':True,\
-            } #True means to broadcast all inputs times to the output, else it would be an average of all times.
+    self.season_broadcast={            'DJF':False,            'MAM':False,            'JJA':False,            'SON':False,            'JJAS':False,            'ANN':False,            'DecJan':False,            'JunJul':False,            'MON':True,            'Jan':True,            'Feb':True,            'Mar':True,            'Apr':True,            'May':True,            'Jun':True,            'Jul':True,            'Aug':True,            'Sep':True,            'Oct':True,            'Nov':True,            'Dec':True,            } #True means to broadcast all inputs times to the output, else it would be an average of all times.
 
     if(Diagnostic):
       print('self.season_map.keys()=',self.season_map.keys())
@@ -358,15 +320,12 @@ class ProcTime:
     import netCDF4
     import datetime
     import numpy as np
-    import inspect
     #Diagnostic=True
     Diagnostic=False
     #Diagnostic=True
 
-    #print('self.input_files=',self.input_files)
     self.ifhN=netCDF4.MFDataset(self.input_files)
     self.ifh0=netCDF4.Dataset(self.input_files[0])
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     self.time=self.ifhN.variables['time'] #note that time-stamp appears to be last time in the month which has the next month ID.
     self.time_units=self.time.units
     self.time_calendar=self.time.calendar

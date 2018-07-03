@@ -46,12 +46,19 @@
     "reference":"None",
     "integration_machine":"raijin.nci.org.au",
     "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", 
+#
     "storage_machine_no1":"raijin",
     "top_directory_no1":"/g/data1/v14/coupled_model/v1/OUTPUT",
     "active_disk_no1":"yes",
+#
     "storage_machine_no2":"tube-hba",
     "top_directory_no2":"None",
     "active_disk_no2":"no",
+#
+    "storage_machine_no3":"oa-32-cdc",
+    "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v1/OUTPUT",
+    "active_disk_no3":"yes",
+#
     "main_science_contact":"tok599",
     "main_technical_contact":"tok599",
     "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", 
