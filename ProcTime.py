@@ -158,7 +158,8 @@ class ProcTime:
     elif(self.experiment=='v0'):
 
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
-      self.input_directory='/g/data1/v14/coupled_model/v0/OUTPUT'
+      if(not input_directory_check):
+        self.input_directory='/g/data1/v14/coupled_model/v0/OUTPUT'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
       
     elif(self.experiment=='v1'):
@@ -176,7 +177,8 @@ class ProcTime:
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
       #self.ybeg_season_process,self.yend_season_process,self.mbeg_season_process,self.mend_season_process=496,500,1,12 #potential for 1,500,1,12
       
-      self.input_directory='/g/data1/v14/coupled_model/v2/OUTPUT'
+      if(not input_directory_check):
+        self.input_directory='/g/data1/v14/coupled_model/v2/OUTPUT'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
       #self.input_files=sorted(glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_049?_??.nc')+glob.glob(self.input_directory+'/'+realm+'_'+frequency+'_0500_??.nc')) #last 10 years.
   
