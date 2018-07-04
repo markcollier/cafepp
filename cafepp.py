@@ -312,6 +312,11 @@ def main(json_input_instructions):
           top_directory_no3=str(list_new[l])
           #idir=top_directory_no3 #temporary until disks sorted out...
         elif(l=='active_disk_no3'): active_disk_no3=str(list_new[l])
+
+        elif(l=='storage_machine_no4'): storage_machine_no4=str(list_new[l])
+        elif(l=='top_directory_no4'):
+          top_directory_no4=str(list_new[l])
+        elif(l=='active_disk_no4'): active_disk_no4=str(list_new[l])
   #tube-hba
   #raijin*
   #Snapper-as
@@ -371,6 +376,11 @@ def main(json_input_instructions):
     storage_machine_no3_split=storage_machine_no3.split('.')
     if re.match(storage_machine_no3_split[0],hostname):
       idir=top_directory_no3
+  
+  if 'storage_machine_no4' in locals() and active_disk_no4=='yes':
+    storage_machine_no4_split=storage_machine_no4.split('.')
+    if re.match(storage_machine_no4_split[0],hostname):
+      idir=top_directory_no4
   
   #print('hostname=',hostname)
   #print('storage_machine_no1=',storage_machine_no1)
