@@ -304,6 +304,8 @@ def data_wavg_ProcTime(ivar,ifhN,ProcTimenpvalues,ProcTimenpvalues2,broadcast,le
   nmy=12
   npdays_in_month=np.array([31,28,31,30,31,30,31,31,30,31,30,31]) #approx (ignoring leap years).
 
+  print('data_wavg_ProcTime: ivar=',ivar)
+
   #print(days_in_month[])
   #levels=None
 
@@ -726,15 +728,17 @@ def make_mask3D(data,nbasins,nzb,nlats):
   import inspect
   import os
 
+  from decadal_diag import shade_2d_simple,basic_stats
+
   #print('msftyyz data.shape=',data.shape)
   #print(np.shape(data))
   #if(len(np.shape(data))==3):
   #  t0=1
   #else:
   #  t0=np.shape(data)[0]
-  tmpdata=np.ma.zeros((1,nbasins,nzb,nlats),dtype='f')
+  #tmpdata=np.ma.zeros((1,nbasins,nzb,nlats),dtype='f')
   #print('tmpdata.shape=',tmpdata.shape)
-  landMask=np.where( np.array(data,dtype=bool) ,0,1)
+  #landMask=np.where( np.array(data,dtype=bool) ,0,1)
 
   if os.path.exists('CMIP5/ancillary_files/lsmask_20110618.nc'):
     mask_vals=cdms2.open('CMIP5/ancillary_files/lsmask_20110618.nc','r').variables['mask_ttcell'][:,:,:]
@@ -759,8 +763,21 @@ def make_mask3D(data,nbasins,nzb,nlats):
   mask=np.zeros(np.shape(data),dtype=float)
   mask=mask+np.where(np.expand_dims(mask_vals,axis=0)/np.expand_dims(mask_vals,axis=0)==1,1,0)
   global_mask=ma.masked_equal(mask,0)
+
+  #print('global_mask.shape=',global_mask.shape)
+
+  #shade_2d_simple(atlantic_arctic_mask[0,0,],title='mask',units='none',xysize=(10,5), cmap='jet')
+  #shade_2d_simple(atlantic_arctic_mask[5,0,],title='mask',units='none',xysize=(10,5), cmap='jet')
+  #shade_2d_simple(atlantic_arctic_mask[0,25,],title='mask',units='none',xysize=(10,5), cmap='jet')
+  #shade_2d_simple(atlantic_arctic_mask[5,25,],title='mask',units='none',xysize=(10,5), cmap='jet')
+
+  #np.set_printoptions(threshold='nan') #will print out whole array
+
+  #print('atlantic_arctic_mask[0,0,]=',atlantic_arctic_mask[0,0,])
+
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  return atlantic_arctic_mask,indoPac_mask,global_mask
+
+  return(atlantic_arctic_mask,indoPac_mask,global_mask)
 
 #def diag_msftyyz(data1,data2,atlantic_arctic_mask,indoPac_mask,global_mask,nbasins,nzb,nlats):
 #def diag_msftyyz(data1,data2,*argv):
@@ -771,26 +788,55 @@ def diag_msftyz(data1,data2,*argv):
   import numpy.ma as ma
   import cdms2
   import inspect
+
+  from decadal_diag import shade_2d_simple,basic_stats
+
   atlantic_arctic_mask,indoPac_mask,global_mask,nbasins,nzb,nlats=argv
+
+#  shade_2d_simple(atlantic_arctic_mask[0,0,],title='mask',units='none',xysize=(10,5), cmap='jet')
+#  shade_2d_simple(indoPac_mask[0,0,],title='mask',units='none',xysize=(10,5), cmap='jet')
+#  shade_2d_simple(global_mask[0,0,],title='mask',units='none',xysize=(10,5), cmap='jet')
+#
+#  basic_stats(atlantic_arctic_mask)
+#  basic_stats(indoPac_mask)
+#  basic_stats(global_mask)
+
+#  print('global_mask.shape=',global_mask.shape)
+
 #  if(len(np.shape(data))==3):
 #    t0=1
 #  else:
 #    t0=np.shape(data)[0]
   #print('t0=',t0)
 
- 
-  data=data1+data2
+#fuck
+  #salt=ma.masked_equal(salt,-1e20)
+  #data=data1+data2
+  #data=ma.masked_equal(data1,-1e20)
+  #data=ma.masked_where(data1==-1e20,data1)
+  #data=data1.copy()
+  #data=data1
 
-  data1=None
-  data2=None
+  #print('data=',data)
 
-  data_shape=data.shape
+  data_shape=data1.shape #assume data1/data2 have same shape
 
   tmpdata=np.ma.zeros((data_shape[0],nbasins,nzb,nlats),dtype='f')
-  tmpdata[:,0,:,:]=np.cumsum( np.sum( data*np.where(atlantic_arctic_mask==1,1,1e20) ,axis=-1) ,axis=-2)
-  tmpdata[:,1,:,:]=np.cumsum( np.sum( data*np.where(indoPac_mask==1,1,1e20) ,axis=-1) ,axis=-2)
-  tmpdata[:,2,:,:]=np.cumsum( np.sum( data*np.where(global_mask==1,1,1e20) ,axis=-1) ,axis=-2)
-  data=tmpdata*1e9
+
+  tmpdata[:,0,:,:]=np.cumsum( np.sum( data1*atlantic_arctic_mask, axis=-1) ,axis=-2) + np.sum( data2*atlantic_arctic_mask, axis=-1)
+  tmpdata[:,1,:,:]=np.cumsum( np.sum( data1*indoPac_mask, axis=-1) ,axis=-2) + np.sum( data2*indoPac_mask, axis=-1)
+  tmpdata[:,2,:,:]=np.cumsum( np.sum( data1*global_mask, axis=-1) ,axis=-2) + np.sum( data2*global_mask, axis=-1)
+
+  #data1=None
+  #data2=None
+
+#  tmpdata[:,0,:,:]=np.cumsum( np.sum( data*np.where(atlantic_arctic_mask==1,1,1e20) ,axis=-1) ,axis=-2)
+#  tmpdata[:,1,:,:]=np.cumsum( np.sum( data*np.where(indoPac_mask==1,1,1e20) ,axis=-1) ,axis=-2)
+#  tmpdata[:,2,:,:]=np.cumsum( np.sum( data*np.where(global_mask==1,1,1e20) ,axis=-1) ,axis=-2)
+
+  #tmpdata[:,2,:,:]=np.cumsum( np.sum( data ,axis=-1) ,axis=-2)
+
+  data=tmpdata*1e9 #in Sv (10^9 kg/s) therefore need to convert to kg/s by multiplying by 1e9.
 
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -3635,22 +3681,177 @@ def apply_weights(src, dest_shape, n_s, n_b, row, col, s):
 
     return dest.reshape(dest_shape)
 
-def shade_2d_simple(data):
+def shade_2d_simple(data,**kwargs):
   '''
-  plot a 2d array and save to a file.
+  plot a 2d array.
   '''
+    
+  import numpy as np
   import matplotlib.pyplot as plt
-  import inspect
+  #https://matplotlib.org/users/colormapnorms.html#custom-normalization-two-linear-ranges
+  #http://chris35wills.github.io/matplotlib_diverging_colorbar/
+  import matplotlib.colors as colors
 
-  fn='test.png'
-  cs=plt.contourf(data)
-  plt.contour(data,colors='black')
-  cb=plt.colorbar(cs)
-  cb.set_label('units')
-  plt.savefig('test.png')
-  print('Image saved to ',fn)
-  #pylab.show()
-  #plt.show()
+  # set the colormap and centre the colorbar
+  class MidpointNormalize(colors.Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+      self.midpoint = midpoint
+      colors.Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+      # I'm ignoring masked values and all kinds of edge cases to make a
+      # simple example...
+      x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+      return np.ma.masked_array(np.interp(value, x, y))
+
+#import branca.colormap as cm
+#https://stackoverflow.com/questions/47846744/create-an-asymmetric-colormap
+#colormap = cm.LinearColormap(colors=['red','lightblue','blue'], index=[-3,0,12],vmin=-3,vmax=12)
+#colormap
+
+  Diag = add_contours = title_check = units_check = extend_check = reverse_xaxis = reverse_yaxis = \
+    xyvals_check = xlim_check = ylim_check = grid = xtik_check = ytik_check = cmap_check = \
+    clevs_check = False
+  xsize,ysize=6.0,4.0
+  for key, value in kwargs.items():
+    if(Diag): print('key,value=',key,value)
+    if(key=='Diag'):
+      Diag=bool(value)
+    elif(key=='xysize'):
+      xsize,ysize=value
+    elif(key=='clevs'):
+      clevs=value
+      clevs_check=True
+    elif(key=='output'):
+      output=value
+    elif(key=='add_contours'):
+      add_contours=bool(value)
+    elif(key=='title'):
+      title=value
+      title_check=True
+    elif(key=='units'):
+      units=value
+      units_check=True
+    elif(key=='extend'):
+      extend=value
+      extend_check=True
+    elif(key=='reverse_xaxis'):
+      reverse_xaxis=bool(value)
+    elif(key=='reverse_yaxis'):
+      reverse_yaxis=bool(value)
+    elif(key=='xyvals'):
+      xvals,yvals=value
+      xyvals_check=True
+    elif(key=='xlim'):
+      xlim=value
+      xlim_check=True
+    elif(key=='ylim'):
+      ylim=value
+      ylim_check=True
+    elif(key=='xlab'):
+      xlab=value
+      xlab_check=True
+    elif(key=='ylab'):
+      ylab=value
+      ylab_check=True
+    elif(key=='xtik'):
+      xtik=value
+      xtik_check=True
+    elif(key=='ytik'):
+      ytik=value
+      ytik_check=True
+    elif(key=='grid'):
+      grid=bool(value)
+    elif(key=='cmap'):
+      cmap=value
+      cmap_check=True
+    else:
+      raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      
+  if(not title_check): title='data'
+  if(not units_check): units='units'  
+  if(not extend_check): extend='both'
+  if(not cmap_check): cmap='jet'
+    
+  #print('xvals=',xvals)
+  #print('yvals=',yvals)
+  
+  if(not xyvals_check):
+    xvals = np.linspace(0, data.shape[1]-1, data.shape[1])
+    yvals = np.linspace(0, data.shape[0]-1, data.shape[0])
+    
+  #print('len(xvals.shape)=',len(xvals.shape))
+  
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  if(len(xvals.shape)==2):
+    if(len(yvals.shape)!=2):
+      raise SystemExit('Problem with yvals.shape.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    X=xvals
+    Y=yvals
+  else:
+    (X, Y) = np.meshgrid(xvals, yvals)
+
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#   print('X.shape=',X.shape)
+#   print('Y.shape=',Y.shape)
+#   print('data.shape=',data.shape)
+  
+  fig = plt.gcf()
+  fig.set_size_inches(xsize, ysize) #default 6.0,4.0
+
+  #print('clevs=',clevs)
+  if(not clevs_check or type(clevs)==type(None)):
+    cs=plt.contourf(X, Y, data, extend=extend, cmap=cmap) #good
+#     cs=plt.pcolormesh(X, Y, data, cmap=cmap)
+  else:
+    cs=plt.contourf(X, Y, data, clevs, extend=extend, cmap=cmap) #good
+#     cs=plt.pcolormesh(X, Y, data, clevs, cmap=cmap)
+    #cs=plt.contourf(X, Y, data, extend=extend, norm=MidpointNormalize(midpoint=0.,vmin=-1,vmax=1), cmap=cmap)
+    #cs=plt.contourf(X, Y, data, extend=extend, norm=MidpointNormalize(midpoint=0.,vmin=-5,vmax=20), cmap=cmap)
+    #cs=plt.contourf(X, Y, data, extend=extend, norm=MidpointNormalize(midpoint=0.,vmin=np.min(data),vmax=np.max(data)), cmap=cmap)
+  
+  if(add_contours): plt.contour(data,colors='black')
+  cb=plt.colorbar(cs) #,extend=extend)
+  cb.set_label(units)
+  
+  if(type(units)==type(None)):
+    plt.title(title, fontsize=16)
+  else:
+    plt.title(title+' ('+units+')', fontsize=16)
+
+  if(xlim_check): plt.xlim(xlim)
+      
+  if(ylim_check): plt.ylim(ylim)
+          
+  if(reverse_xaxis): plt.gca().invert_xaxis()
+      
+  if(reverse_yaxis): plt.gca().invert_yaxis()
+    
+  if('xlab' in locals()): plt.xlabel(xlab)
+
+  if('ylab' in locals()): plt.ylabel(ylab)
+    
+  #plt.ylim((0,1000))
+  
+  if(grid): plt.grid(True,linestyle='-')
+  
+  locs, labels = plt.xticks()
+  
+  #plt.xticks(range(-90, 90, 30), fontsize=14)
+  if('xtik' in locals()): plt.xticks(xtik)  
+  if('ytik' in locals()): plt.yticks(ytik) 
+
+  #print('locs=',locs)
+  #print('labels=',labels[:])
+  
+  if('output' in locals()):
+    plt.savefig(output+'.png')
+    print('Image saved to ',output+'.png')
+  else:
+    #pylab.show()
+    plt.show()
 
   return()
 

@@ -141,12 +141,12 @@ def main(json_input_instructions):
     print('Running cafepp from JSON instructions: '+json_input_instructions)
     json_input_instructions_fh=open(json_input_instructions).read()
     json_input_instructions_data=json.loads(json_input_instructions_fh)
-    print('json_input_instructions_data=',json_input_instructions_data)
+    #print('json_input_instructions_data=',json_input_instructions_data)
   else:
     print('Running cafepp from command line input:')
   
   if 'json_input_instructions' in locals():
-    print("Summary of JSON instructions: ",json.dumps(json_input_instructions_data,indent=4,sort_keys=True))
+    #print("Summary of JSON instructions: ",json.dumps(json_input_instructions_data,indent=4,sort_keys=True))
   
     #print(type(json_input_instructions_data))
   
@@ -265,9 +265,9 @@ def main(json_input_instructions):
   cafepp_experiments_fh=open(cafepp_experiments_meta).read()
   print('cafepp_experiments_fh=',cafepp_experiments_fh,file=fh_printfile)
   cafepp_experiments_data=json.loads(cafepp_experiments_fh)
-  print('cafepp_experiments_data=',cafepp_experiments_data,file=fh_printfile)
+  #print('cafepp_experiments_data=',cafepp_experiments_data,file=fh_printfile)
   
-  print("Summary of JSON experiments input: ",json.dumps(cafepp_experiments_data,indent=4,sort_keys=True),file=fh_printfile)
+  #print("Summary of JSON experiments input: ",json.dumps(cafepp_experiments_data,indent=4,sort_keys=True),file=fh_printfile)
   
   top_level_keys=cafepp_experiments_data.keys()
   print('Top level JSON experiments keys=',top_level_keys,file=fh_printfile)
@@ -476,9 +476,9 @@ def main(json_input_instructions):
   json_input_var_fh=open(json_input_var_meta).read()
   print('json_input_var_fh=',json_input_var_fh,file=fh_printfile)
   json_input_var_data=json.loads(json_input_var_fh)
-  print('json_input_var_data=',json_input_var_data,file=fh_printfile)
+  #print('json_input_var_data=',json_input_var_data,file=fh_printfile)
   
-  print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True),file=fh_printfile)
+  #print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True),file=fh_printfile)
   
   top_level_keys=json_input_var_data.keys()
   print('Top level JSON variable keys=',top_level_keys,file=fh_printfile)
