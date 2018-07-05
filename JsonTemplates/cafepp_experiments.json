@@ -524,13 +524,23 @@
     "reference":"None",
     "integration_machine":"raijin.nci.org.au",
     "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", 
-    "storage_machine_no1":"tube-hba",
-    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da",
-    "active_disk_no1":"no",
-    "storage_machine_no2":"raijin",
-    #"top_directory_no2":"/g/data1/v14/forecast/v1/yr1/mn1/OUTPUT.1",
-    "top_directory_no2":"/g/data1/v14/forecast/v1/yr2002/mn2/OUTPUT.1",
-    "active_disk_no2":"yes",
+#
+    "storage_machine_no1":"raijin",
+    "top_directory_no1":"/g/data1/v14/forecast/v1/yr2002/mn2/OUTPUT.1",
+    "active_disk_no1":"yes",
+#
+    "storage_machine_no2":"tube-hba",
+    "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da",
+    "active_disk_no2":"no",
+#
+    "storage_machine_no3":"oa-32-cdc",
+    "top_directory_no3":"/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v1/yr2002/mn2/OUTPUT.1",
+    "active_disk_no3":"yes",
+#
+    "storage_machine_no4":"Snapper-as",
+    "top_directory_no4":"/Volumes/LaCieNo1/data/CAFEPP/g/data1/v14/coupled_model/v1/OUTPUT",
+    "active_disk_no4":"no",
+#
     "main_science_contact":"tok599",
     "main_technical_contact":"tok599",
     "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", 
