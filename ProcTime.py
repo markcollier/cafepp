@@ -1,4 +1,3 @@
-
 class ProcTime:
 
   '''
@@ -167,8 +166,8 @@ class ProcTime:
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
       if(not input_directory_check):
         self.input_directory='/g/data1/v14/coupled_model/v1/OUTPUT'
-      #self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
-      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_?47?_??.nc'))) #all files
+      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
+      #self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_?47?_??.nc'))) #all files
       
     elif(self.experiment=='v2'):
       #with this kind of experiment might want to supply just a subset of years to speed initialisatin of processing.
@@ -176,7 +175,6 @@ class ProcTime:
   
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
       #self.ybeg_season_process,self.yend_season_process,self.mbeg_season_process,self.mend_season_process=496,500,1,12 #potential for 1,500,1,12
-      
       if(not input_directory_check):
         self.input_directory='/g/data1/v14/coupled_model/v2/OUTPUT'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc'))) #all files
@@ -186,8 +184,10 @@ class ProcTime:
       #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     elif(self.experiment=='v3'):
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
-      self.input_directory='/g/data1/v14/coupled_model/v3/OUTPUT'
-      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_04??_??.nc'))) #netCDF4 MDFDatasret seemed to fail so restricted list.
+      if(not input_directory_check):
+        self.input_directory='/g/data1/v14/coupled_model/v3/OUTPUT'
+      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_0???_??.nc')))
+      #self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_04??_??.nc'))) #netCDF4 MDFDatasret seemed to fail so restricted list.
     else:
       raise Exception('Don\'t know experiment '+self.experiment+' file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
