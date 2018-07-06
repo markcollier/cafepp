@@ -154,7 +154,7 @@ def main(json_input_instructions):
   
     top_level_keys=json_input_instructions_data.keys()
   
-    print('Top level JSON instructions keys=',top_level_keys)
+    #print('Top level JSON instructions keys=',top_level_keys)
   #  print(json_input_instructions_data)
     for key_now in json_input_instructions_data.iteritems():
       #print('processing key_now[0]=',key_now[0])
@@ -272,7 +272,7 @@ def main(json_input_instructions):
   #print("Summary of JSON experiments input: ",json.dumps(cafepp_experiments_data,indent=4,sort_keys=True),file=fh_printfile)
   
   top_level_keys=cafepp_experiments_data.keys()
-  print('Top level JSON experiments keys=',top_level_keys,file=fh_printfile)
+  #print('Top level JSON experiments keys=',top_level_keys,file=fh_printfile)
   
   cafepp_experiment_found=False
   for key_now in cafepp_experiments_data.iteritems():
@@ -483,7 +483,7 @@ def main(json_input_instructions):
   #print("Summary of JSON variable input: ",json.dumps(json_input_var_data,indent=4,sort_keys=True),file=fh_printfile)
   
   top_level_keys=json_input_var_data.keys()
-  print('Top level JSON variable keys=',top_level_keys,file=fh_printfile)
+  #print('Top level JSON variable keys=',top_level_keys,file=fh_printfile)
   
   for key_now in json_input_var_data.iteritems():
     #print('processing key_now[0]=',key_now[0],file=fh_printfile)
