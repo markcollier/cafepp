@@ -26,7 +26,7 @@ class ProcTime:
   #def __init__(self, season, experiment, realm, frequency):
   
   def __init__(self,**kwargs):
-    season_check= experiment_check = realm_check = frequency_check = input_directory_check = False
+    season_check= experiment_check = realm_check = frequency_check = input_directory_check =       ybeg_season_process_check = yend_season_process_check =       mbeg_season_process_check = mend_season_process_check =       False
     for key, value in kwargs.items():
       if(key=='experiment'):
         self.experiment=value

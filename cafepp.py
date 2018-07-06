@@ -132,6 +132,8 @@ def main(json_input_instructions):
   cmorlogfile='log'
   mbeg=1
   mend=12
+
+  ybeg=yend=None
   
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   

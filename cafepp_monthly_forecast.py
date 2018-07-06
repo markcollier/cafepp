@@ -97,10 +97,18 @@ def main(**kwargs):
     token3=(token2.replace('"',''))
     if(token3=='dvar'):
       line='     "dvar":"'+dvar+'",\n'
-    if(token3=='num_months_truncate'):
+    elif(token3=='num_months_truncate'):
       line='     "num_months_truncate":"'+num_months_truncate+'",\n'
-    if(token3=='cafe_experiment'):
+    elif(token3=='cafe_experiment'):
       line='     "cafe_experiment":"'+cafe_experiment+'",\n'
+    elif(token3=='ybeg'): #these will ensure all data will be used from the input directory...
+      line='     #"ybeg":"2002",\n'
+    elif(token3=='yend'):
+      line='     #"yend":"2016",\n'
+    elif(token3=='mbeg'):
+      line='     #"mbeg":"1",\n'
+    elif(token3=='mend'):
+      line='     #"mend":"12",\n'
     print(line,file=ofh,end='')
   ifh.close()
   ofh.close()
@@ -129,7 +137,9 @@ def main(**kwargs):
           token3=(token2.replace('"',''))
           if(token3=='top_directory_no2'):
             line='     "top_directory_no2":"'+top_directory_no2+'",\n'
-          if(token3=='realisation'):
+          elif(token3=='top_directory_no3'):
+            line='     "top_directory_no3":"'+top_directory_no3+'",\n'
+          elif(token3=='realisation'):
             line='     "realisation":"'+str(enow)+'",\n'
           print(line,file=ofh,end='')
         ifh.close()
@@ -137,7 +147,7 @@ def main(**kwargs):
         shutil.move(rundir+'/'+'JsonTemplates/cafepp_experiments_tmp.json',rundir+'/'+'JsonTemplates/cafepp_experiments.json')
 
         test_ok=cafepp.main('cafepp.json')
-        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   return(0)
 
