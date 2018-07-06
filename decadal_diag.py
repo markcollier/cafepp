@@ -809,7 +809,6 @@ def diag_msftyz(data1,data2,*argv):
 #    t0=np.shape(data)[0]
   #print('t0=',t0)
 
-#fuck
   #salt=ma.masked_equal(salt,-1e20)
   #data=data1+data2
   #data=ma.masked_equal(data1,-1e20)
@@ -5279,6 +5278,206 @@ def demonstrate_widgets_cafe():
     ind=indice_nino_multi, obs_toggle=obs_toggle)
   return()
 
+#https://stackoverflow.com/questions/3279560/invert-colormap-in-matplotlib
+def reverse_colourmap(cmap, name = 'my_cmap_r'):
+    """
+    In: 
+    cmap, name 
+    Out:
+    my_cmap_r
+
+    Explanation:
+    t[0] goes from 0 to 1
+    row i:   x  y0  y1 -> t[0] t[1] t[2]
+                   /
+                  /
+    row i+1: x  y0  y1 -> t[n] t[1] t[2]
+
+    so the inverse should do the same:
+    row i+1: x  y1  y0 -> 1-t[0] t[2] t[1]
+                   /
+                  /
+    row i:   x  y1  y0 -> 1-t[n] t[2] t[1]
+    """        
+    import matplotlib as mpl
+    reverse = []
+    k = []   
+
+    for key in cmap._segmentdata:    
+        k.append(key)
+        channel = cmap._segmentdata[key]
+        data = []
+
+        for t in channel:                    
+            data.append((1-t[0],t[2],t[1]))            
+        reverse.append(sorted(data))    
+
+    LinearL = dict(zip(k,reverse))
+    my_cmap_r = mpl.colors.LinearSegmentedColormap(name, LinearL) 
+    return my_cmap_r
+
+def basic_stats(data):
+  '''
+  produce basic statistics of numpy array, similar to ferret stat command.
+  '''
+  import numpy as np
+  print('Basic statistics using unweighted data:')
+  print('min ',np.min(data))
+  print('max ',np.max(data))
+  print('avg ',np.mean(data))
+  print('Total Points ',data.size)
+  print('No. Missing ',data.count())
+  print('No. Good ',data.size-data.count())
+  print('STD ',np.std(data))      
+  return()
+
+def myfile_copy(inf,outf):
+  import filecmp
+  import shutil
+  import os
+  
+  CRED = '\033[91m'
+  CEND = '\033[0m'
+  #print(CRED + "Error, does not compute!" + CEND)
+
+  #print(filecmp.cmp(inf,outf))
+  if(not os.path.isfile(outf) or not filecmp.cmp(inf,outf)):
+    print(CRED +'Copying '+inf+' to '+outf +CEND)
+    shutil.copy(inf,outf)
+  else:
+    print('Not copying '+inf+' to '+outf)
+  return() #end basic_stats
+
+def shade_2d_curvilinear(data,**kwargs):
+  """
+  """
+  import matplotlib
+  import matplotlib.pyplot as plt
+  import numpy as np
+  #import netCDF4
+
+  import cartopy
+  import cartopy.crs as ccrs
+  import inspect
+  
+  Diag = add_contours = cmap_check = title_check = units_check = extend_check = \
+    xyvals_check = clevs_check = vminmax_check = False
+  xsize,ysize=6.0,4.0
+
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      Diag=bool(value)
+    elif(key=='xysize'):
+      xsize,ysize=value
+    elif(key=='cmap'):
+      cmap=value
+      cmap_check=True
+    elif(key=='title'):
+      title=value
+      title_check=True
+    elif(key=='units'):
+      units=value
+      units_check=True
+    elif(key=='add_contours'):
+      add_contours=bool(value)
+    elif(key=='extend'):
+      extend=value
+      extend_check=True
+    elif(key=='clevs'):
+      clevs=value
+      clevs_check=True
+    elif(key=='xyvals'):
+      xvals,yvals=value
+      xyvals_check=True
+    elif(key=='vminmax'):
+      vmin,vmax=value
+      vminmax_check=True
+    else:
+      raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  #print('len(clevs)=',len(clevs))
+  #if(len(clevs)==0): del(clevs)
+
+  if(not cmap_check): cmap='jet'
+  if(not title_check): title='data'
+  if(not units_check): units='units'
+  if(not extend_check): extend='both'
+
+  #import cartopy.crs as ccrs
+  from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
+  from cartopy.util import add_cyclic_point
+  import matplotlib as mpl
+  mpl.rcParams['mathtext.default'] = 'regular'
+  import matplotlib.pyplot as plt
+
+  fig = plt.gcf()
+  fig.set_size_inches(xsize, ysize) #default 6.0,4.0
+
+  ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=0)) #0 seems important otherwise cells all jumbled up. Could use Robinson rather than PlateCarree
+  
+  #clevs = [0,50,100,150,200,250,300,10000]
+  #clevs = [0,50,100,150,200,250,300]
+  
+  #print('extend=',extend)
+  
+  #ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
+  
+  ax.set_global()
+  
+  #z_min, z_max = -np.abs(data).max(), np.abs(data).max()
+  if(not vminmax_check):
+    vmin,vmax = data.min(),data.max()
+  
+  #print(vmin,vmax)
+  
+#see https://github.com/PBrockmann/cartopy_matplotlib_opa_nemo
+
+  if(not clevs_check or type(clevs)==type(None)):
+    fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap, transform=ccrs.PlateCarree())
+  else:
+    cmap_job=plt.get_cmap(cmap)
+    levels=np.array(clevs)
+    colors = cmap_job(np.linspace(0, 1, len(levels)+1))
+    cmap_job, norm = matplotlib.colors.from_levels_and_colors(levels, colors, extend=extend)
+    fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap_job, norm=norm, transform=ccrs.PlateCarree())
+    
+#   if(not clevs_check or type(clevs)==type(None)):
+#     fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap, vmin=vmin, vmax=vmax, transform=ccrs.PlateCarree())
+#   else:
+#     fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap, vmin=vmin, vmax=vmax, transform=ccrs.PlateCarree())
+    
+#   if(not clevs_check or type(clevs)==type(None)):
+#     fill = ax.contourf(xvals, yvals, data, cmap=cmap, clevs=clevs, transform=ccrs.PlateCarree())
+#   else:
+#     fill = ax.contourf(xvals, yvals, data, clevs, cmap=cmap, clevs=clevs, transform=ccrs.PlateCarree())    
+    
+  if(add_contours): plt.contour(data,colors='black')
+    
+  plt.colorbar(fill, orientation='horizontal', extend=extend, shrink=0.75)
+
+  ax.coastlines()
+  ax.gridlines()
+  
+  ax.set_xticks([0, 60, 120, 180, 240, 300, 359.99], crs=ccrs.PlateCarree())
+  ax.set_yticks([-90, -60, -30, 0, 30, 60, 90], crs=ccrs.PlateCarree())
+  lon_formatter = LongitudeFormatter(zero_direction_label=True, number_format='.0f')
+  lat_formatter = LatitudeFormatter()
+  ax.xaxis.set_major_formatter(lon_formatter)
+  ax.yaxis.set_major_formatter(lat_formatter)
+  
+  if(type(units)==type(None)):
+    plt.title(title, fontsize=16)
+  else:
+    plt.title(title+' ('+units+')', fontsize=16)
+  #plt.savefig('test.png')
+  if('output' in locals()):
+    plt.savefig(output+'.png')
+    print('Image saved to ',output+'.png')
+  else:
+    plt.show()
+
+  return() #end shade_2d_curvilinear
+
 class nino_indices:
   def __init__(self,select,**kwargs):
     
@@ -6041,8 +6240,9 @@ class n_data_funcs:
         raise SystemExit('get_lev_info: Dont know this key:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if(not lev_check):        
-        lev=self.ifh0.variables['lev'][:]
-
+        #lev=self.ifh0.variables['lev'][:]
+        lev=self.ifh0[0].variables['lev'][:] #fuck
+        
     self.lev=lev
     self.nlev=len(self.lev)
 
@@ -6110,8 +6310,17 @@ class n_data_funcs:
           #return(self.timeseries_tfreq)
         #elif(value_split[0]=='pacific_region'): #test/dummy case.
         elif(value_split[0]=='msftyz'):
+            #print('self.nfiles=',self.nfiles)
             if(self.nfiles>1): #ensembles
-              pass
+              var_shape=self.ifhN[0].variables[self.input_var_name].shape
+              new_shape=[]
+              new_shape.append(var_shape[0])
+              new_shape.append(self.nfiles)
+              for shape in var_shape[1::]:
+                new_shape.append(shape)
+              self.output_tfreq=np.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+              for n in range(self.nfiles):
+                self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:]
             else:
               #j=self.ifhN.variables[self.input_var_name][:]
               #print('j.shape=',j.shape)
@@ -6436,12 +6645,14 @@ class n_data_funcs:
     try:
       ybeg=self.date_time_stamp_monthly[0].year
     except AttributeError:
-      ybeg=self.date_time_stamp_tfreq[0].year
+      #ybeg=self.date_time_stamp_tfreq[0].year
+      ybeg=self.date_time_stamp_tfreq[0][0].year #fuck
       
     try:
       yend=self.date_time_stamp_monthly[-1].year
     except AttributeError:
-      yend=self.date_time_stamp_tfreq[-1].year
+      #yend=self.date_time_stamp_tfreq[-1].year
+      yend=self.date_time_stamp_tfreq[0][-1].year #fuck
 
     ydiff_monthly=yend-ybeg+1
 
@@ -6452,12 +6663,14 @@ class n_data_funcs:
     try:
       first_month=self.date_time_stamp_monthly[0].month
     except AttributeError:
-      first_month=self.date_time_stamp_tfreq[0].month
+      #first_month=self.date_time_stamp_tfreq[0].month
+      first_month=self.date_time_stamp_tfreq[0][0].month #fuck
       
     try:
       last_month=self.date_time_stamp_monthly[-1].month
     except AttributeError:
-      last_month=self.date_time_stamp_tfreq[-1].month
+      #last_month=self.date_time_stamp_tfreq[-1].month
+      last_month=self.date_time_stamp_tfreq[0][-1].month #fuck
       
     #first_month=self.date_time_stamp_monthly[0].month
     #last_month=self.date_time_stamp_monthly[-1].month
@@ -6630,14 +6843,26 @@ class n_data_funcs:
       
 #     if('self.num_stamp_monthly' in locals()):
 #       print('yyy')
+
+    print('self.time_tfreq=',self.time_tfreq)
+    #print('self.num_stamp_monthly=',self.num_stamp_monthly)
+
       
     try:
+      print('111')
       self.num_stamp_climatology = np.average(np.reshape(self.num_stamp_monthly[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #gone through daily to monthly function.
       #print('iii')
     except:
-      self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
+      print('222')
+      #self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
       #print('jjj')
+      
+      #fuck
+      
+      self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[0][icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
+
     
+    print('333')
     #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
 #     if('self.num_stamp_monthly' in locals()):
@@ -6709,7 +6934,8 @@ class n_data_funcs:
     try:
       self.num_stamp_anomaly = self.num_stamp_monthly[iabeg:iaend+1] #gone through daily to monthly function.
     except:
-      self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
+      #self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
+      self.num_stamp_anomaly = self.time_tfreq[0][iabeg:iaend+1] #original monthly inputs. fuck
       
     if(AnnOut):
       self.num_stamp_anomaly = np.average(np.reshape(self.num_stamp_anomaly,[aend-abeg+1,self.nmy]), axis=1,weights=self.days_in_month)
@@ -6736,203 +6962,3 @@ class n_data_funcs:
       return(self.monthly_climatology,self.monthly_anomaly)
     
 #end of class n_data_funcs
-
-#https://stackoverflow.com/questions/3279560/invert-colormap-in-matplotlib
-def reverse_colourmap(cmap, name = 'my_cmap_r'):
-    """
-    In: 
-    cmap, name 
-    Out:
-    my_cmap_r
-
-    Explanation:
-    t[0] goes from 0 to 1
-    row i:   x  y0  y1 -> t[0] t[1] t[2]
-                   /
-                  /
-    row i+1: x  y0  y1 -> t[n] t[1] t[2]
-
-    so the inverse should do the same:
-    row i+1: x  y1  y0 -> 1-t[0] t[2] t[1]
-                   /
-                  /
-    row i:   x  y1  y0 -> 1-t[n] t[2] t[1]
-    """        
-    import matplotlib as mpl
-    reverse = []
-    k = []   
-
-    for key in cmap._segmentdata:    
-        k.append(key)
-        channel = cmap._segmentdata[key]
-        data = []
-
-        for t in channel:                    
-            data.append((1-t[0],t[2],t[1]))            
-        reverse.append(sorted(data))    
-
-    LinearL = dict(zip(k,reverse))
-    my_cmap_r = mpl.colors.LinearSegmentedColormap(name, LinearL) 
-    return my_cmap_r
-
-def basic_stats(data):
-  '''
-  produce basic statistics of numpy array, similar to ferret stat command.
-  '''
-  import numpy as np
-  print('Basic statistics using unweighted data:')
-  print('min ',np.min(data))
-  print('max ',np.max(data))
-  print('avg ',np.mean(data))
-  print('Total Points ',data.size)
-  print('No. Missing ',data.count())
-  print('No. Good ',data.size-data.count())
-  print('STD ',np.std(data))      
-  return()
-
-def myfile_copy(inf,outf):
-  import filecmp
-  import shutil
-  import os
-  
-  CRED = '\033[91m'
-  CEND = '\033[0m'
-  #print(CRED + "Error, does not compute!" + CEND)
-
-  #print(filecmp.cmp(inf,outf))
-  if(not os.path.isfile(outf) or not filecmp.cmp(inf,outf)):
-    print(CRED +'Copying '+inf+' to '+outf +CEND)
-    shutil.copy(inf,outf)
-  else:
-    print('Not copying '+inf+' to '+outf)
-  return() #end basic_stats
-
-def shade_2d_curvilinear(data,**kwargs):
-  """
-  """
-  import matplotlib
-  import matplotlib.pyplot as plt
-  #import numpy as np
-  #import netCDF4
-
-  import cartopy
-  import cartopy.crs as ccrs
-  import inspect
-  
-  Diag = add_contours = cmap_check = title_check = units_check = extend_check = \
-    xyvals_check = clevs_check = vminmax_check = False
-  xsize,ysize=6.0,4.0
-
-  for key, value in kwargs.items():
-    if(key=='Diag'):
-      Diag=bool(value)
-    elif(key=='xysize'):
-      xsize,ysize=value
-    elif(key=='cmap'):
-      cmap=value
-      cmap_check=True
-    elif(key=='title'):
-      title=value
-      title_check=True
-    elif(key=='units'):
-      units=value
-      units_check=True
-    elif(key=='add_contours'):
-      add_contours=bool(value)
-    elif(key=='extend'):
-      extend=value
-      extend_check=True
-    elif(key=='clevs'):
-      clevs=value
-      clevs_check=True
-    elif(key=='xyvals'):
-      xvals,yvals=value
-      xyvals_check=True
-    elif(key=='vminmax'):
-      vmin,vmax=value
-      vminmax_check=True
-    else:
-      raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
-
-  #print('len(clevs)=',len(clevs))
-  #if(len(clevs)==0): del(clevs)
-
-  if(not cmap_check): cmap='jet'
-  if(not title_check): title='data'
-  if(not units_check): units='units'
-  if(not extend_check): extend='both'
-
-  #import cartopy.crs as ccrs
-  from cartopy.mpl.ticker import LongitudeFormatter, LatitudeFormatter
-  from cartopy.util import add_cyclic_point
-  import matplotlib as mpl
-  mpl.rcParams['mathtext.default'] = 'regular'
-  import matplotlib.pyplot as plt
-
-  fig = plt.gcf()
-  fig.set_size_inches(xsize, ysize) #default 6.0,4.0
-
-  ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=0)) #0 seems important otherwise cells all jumbled up. Could use Robinson rather than PlateCarree
-  
-  #clevs = [0,50,100,150,200,250,300,10000]
-  #clevs = [0,50,100,150,200,250,300]
-  
-  #print('extend=',extend)
-  
-  #ax = plt.axes(projection=ccrs.Robinson(central_longitude=0))
-  
-  ax.set_global()
-  
-  #z_min, z_max = -np.abs(data).max(), np.abs(data).max()
-  if(not vminmax_check):
-    vmin,vmax = data.min(),data.max()
-  
-  #print(vmin,vmax)
-  
-#see https://github.com/PBrockmann/cartopy_matplotlib_opa_nemo
-
-  if(not clevs_check or type(clevs)==type(None)):
-    fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap, transform=ccrs.PlateCarree())
-  else:
-    cmap_job=plt.get_cmap(cmap)
-    levels=np.array(clevs)
-    colors = cmap_job(np.linspace(0, 1, len(levels)+1))
-    cmap_job, norm = matplotlib.colors.from_levels_and_colors(levels, colors, extend=extend)
-    fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap_job, norm=norm, transform=ccrs.PlateCarree())
-    
-#   if(not clevs_check or type(clevs)==type(None)):
-#     fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap, vmin=vmin, vmax=vmax, transform=ccrs.PlateCarree())
-#   else:
-#     fill = ax.pcolormesh(xvals, yvals, data, cmap=cmap, vmin=vmin, vmax=vmax, transform=ccrs.PlateCarree())
-    
-#   if(not clevs_check or type(clevs)==type(None)):
-#     fill = ax.contourf(xvals, yvals, data, cmap=cmap, clevs=clevs, transform=ccrs.PlateCarree())
-#   else:
-#     fill = ax.contourf(xvals, yvals, data, clevs, cmap=cmap, clevs=clevs, transform=ccrs.PlateCarree())    
-    
-  if(add_contours): plt.contour(data,colors='black')
-    
-  plt.colorbar(fill, orientation='horizontal', extend=extend, shrink=0.75)
-
-  ax.coastlines()
-  ax.gridlines()
-  
-  ax.set_xticks([0, 60, 120, 180, 240, 300, 359.99], crs=ccrs.PlateCarree())
-  ax.set_yticks([-90, -60, -30, 0, 30, 60, 90], crs=ccrs.PlateCarree())
-  lon_formatter = LongitudeFormatter(zero_direction_label=True, number_format='.0f')
-  lat_formatter = LatitudeFormatter()
-  ax.xaxis.set_major_formatter(lon_formatter)
-  ax.yaxis.set_major_formatter(lat_formatter)
-  
-  if(type(units)==type(None)):
-    plt.title(title, fontsize=16)
-  else:
-    plt.title(title+' ('+units+')', fontsize=16)
-  #plt.savefig('test.png')
-  if('output' in locals()):
-    plt.savefig(output+'.png')
-    print('Image saved to ',output+'.png')
-  else:
-    plt.show()
-
-  return() #end shade_2d_curvilinear
