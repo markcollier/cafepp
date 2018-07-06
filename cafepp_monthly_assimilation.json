@@ -40,10 +40,10 @@
     "dvar":"tos",
     #"dvar":"pr",
 #
-    "ybeg":2002, #beg year to process (no default).
-    "yend":2016, #end year to process (no default). 2016
-    "mbeg":1, #beg month to process (default 1).
-    "mend":12, #end month to process (default 12). 6
+    #"ybeg":2002, #beg year to process (no default).
+    #"yend":2016, #end year to process (no default). 2016
+    #"mbeg":1, #beg month to process (default 1).
+    #"mend":12, #end month to process (default 12). 6
 
     "season":"MON", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.
     #"season":"MAM", #season (currently defined ANN, DJF, MAM, JJA, SON, SO, DecJan) or monthly output.

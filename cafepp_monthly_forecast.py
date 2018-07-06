@@ -15,11 +15,11 @@ def main(**kwargs):
   import inspect
   import shutil
 
-  rundir_check=cafe_experiment_check,num_months_truncate_check,dvar_check,\
-    ybeg_check,yend_check,mbeg_check,mend_check,\
-    ybeg_first_check,yend_first_check,mbeg_first_check,mend_first_check,\
-    ebeg_check,eend_check= \
-    False,False,False,False,False,False,False,False,False,False,False,False,False
+  rundir_check=cafe_experiment_check = num_months_truncate_check = dvar_check = \
+    ybeg_check = yend_check = mbeg_check = mend_check = \
+    ybeg_first_check = yend_first_check = mbeg_first_check = mend_first_check = \
+    ebeg_check = eend_check= Noclobber_check = \
+    False
   for key, value in kwargs.iteritems():
     #print("%s = %s" % (key, value))
     if(key=='rundir'):
@@ -64,6 +64,9 @@ def main(**kwargs):
     elif(key=='eend'):
       eend=int(value)
       eend_check=True
+    elif(key=='NoClobber'):
+      NoClobber=value
+      NoClobber_check=True
 
   if(not rundir_check):SystemExit('Set rundir:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not cafe_experiment_check):SystemExit('Set cafe_experiment:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -109,6 +112,8 @@ def main(**kwargs):
       line='     #"mbeg":"1",\n'
     elif(token3=='mend'):
       line='     #"mend":"12",\n'
+    elif(token3=='NoClobber'):
+      line='     "NoClobber":"'+NoClobber+'",\n'
     print(line,file=ofh,end='')
   ifh.close()
   ofh.close()
@@ -125,6 +130,7 @@ def main(**kwargs):
    
         if(cafe_experiment=='v1_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no3='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
 	elif(cafe_experiment=='v2_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v2/OUTPUT/'+str('{0:04d}'.format(ynow))+'/'+str('{0:02d}'.format(mnow))+'/OUTPUT.'+str('{0:02d}'.format(enow))
         print('top_directory_no2=',top_directory_no2)

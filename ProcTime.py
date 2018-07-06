@@ -26,7 +26,7 @@ class ProcTime:
   #def __init__(self, season, experiment, realm, frequency):
   
   def __init__(self,**kwargs):
-    season_check= experiment_check = realm_check = frequency_check = input_directory_check =       ybeg_season_process_check = yend_season_process_check =       mbeg_season_process_check = mend_season_process_check =       False
+    season_check= experiment_check = realm_check = frequency_check = input_directory_check =       ybeg_season_process_check = yend_season_process_check =       mbeg_season_process_check = mend_season_process_check = False
     for key, value in kwargs.items():
       if(key=='experiment'):
         self.experiment=value
@@ -41,11 +41,13 @@ class ProcTime:
         self.frequency=value
         frequency_check=True
       elif(key=='ybeg_season_process'):
-        self.ybeg_season_process=value
-        ybeg_season_process_check=True
+        if(type(value)!=type(None)):
+          self.ybeg_season_process=value
+          ybeg_season_process_check=True
       elif(key=='yend_season_process'):
-        self.yend_season_process=value
-        yend_season_process_check=True
+        if(type(value)!=type(None)):
+          self.yend_season_process=value
+          yend_season_process_check=True
       elif(key=='mbeg_season_process'):
         self.mbeg_season_process=value
         mbeg_season_process_check=True
@@ -143,8 +145,9 @@ class ProcTime:
       #with this kind of experiment we would have to loop over each 2/5 year experiment as well as ensemble, producing one output file for each.
       self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
       #self.ybeg_season_process,self.yend_season_process,self.mbeg_season_process,self.mend_season_process=2003,2004,1,12 #potential for 2002,2004
-      self.input_directory='/g/data1/v14/forecast/v1/yr2002/mn2/OUTPUT.1'
-      self.input_directory='/g/data1/v14/forecast/v1/yr2003/mn1/OUTPUT.1'
+      if(not input_directory_check):
+        self.input_directory='/g/data1/v14/forecast/v1/yr2002/mn2/OUTPUT.1'
+        self.input_directory='/g/data1/v14/forecast/v1/yr2003/mn1/OUTPUT.1'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc')))
 
     elif(self.experiment=='v2_forecast'): #noleap
