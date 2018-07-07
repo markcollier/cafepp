@@ -26,7 +26,7 @@
           },
 #
     "options_with_arguments":{
-    #"num_months_truncate":"120000",
+    "num_months_truncate":"120000",
     #"cafe_experiment":"v1", #experiment to process, see file cafepp_experimentrs.json for the current list.
     #"cafe_experiment":"v1_forecast",
     #"cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",

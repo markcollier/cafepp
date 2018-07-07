@@ -953,7 +953,7 @@ def main(json_input_instructions):
 
   ProcTimeN=None
 
-  ProcTimeN=ProcTime(season=season,experiment=cafe_experiment,realm=realm,frequency=frequency,ybeg_season_process=ybeg,yend_season_process=yend,mbeg_season_process=mbeg,mend_season_process=mend,input_directory=idir) #create instance.
+  ProcTimeN=ProcTime(season=season,experiment=cafe_experiment,realm=realm,frequency=frequency,ybeg_season_process=ybeg,yend_season_process=yend,mbeg_season_process=mbeg,mend_season_process=mend,input_directory=idir,num_months_truncate=num_months_truncate) #create instance.
 
   ProcTimeN.step1()
 

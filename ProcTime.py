@@ -26,7 +26,7 @@ class ProcTime:
   #def __init__(self, season, experiment, realm, frequency):
   
   def __init__(self,**kwargs):
-    season_check= experiment_check = realm_check = frequency_check = input_directory_check =       ybeg_season_process_check = yend_season_process_check =       mbeg_season_process_check = mend_season_process_check = False
+    season_check= experiment_check = realm_check = frequency_check = input_directory_check =       ybeg_season_process_check = yend_season_process_check =       mbeg_season_process_check = mend_season_process_check = num_months_truncate_check = False
     for key, value in kwargs.items():
       if(key=='experiment'):
         self.experiment=value
@@ -57,6 +57,9 @@ class ProcTime:
       elif(key=='input_directory'):
         self.input_directory=value
         input_directory_check=True
+      elif(key=='num_months_truncate'):
+        self.num_months_truncate=value
+        num_months_truncate_check=True
       else:
         raise SystemExit('key unknown:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
@@ -147,7 +150,7 @@ class ProcTime:
       #self.ybeg_season_process,self.yend_season_process,self.mbeg_season_process,self.mend_season_process=2003,2004,1,12 #potential for 2002,2004
       if(not input_directory_check):
         self.input_directory='/g/data1/v14/forecast/v1/yr2002/mn2/OUTPUT.1'
-        self.input_directory='/g/data1/v14/forecast/v1/yr2003/mn1/OUTPUT.1'
+        self.input_directory='/g/data1/v14/forecast/v1/yr2016/mn1/OUTPUT.1'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc')))
 
     elif(self.experiment=='v2_forecast'): #noleap
@@ -336,6 +339,11 @@ class ProcTime:
     self.time_calendar=self.time.calendar
     self.ntime_orig=len(self.time)
 
+    try:
+      print('self.num_months_truncate=',self.num_months_truncate)
+    except:
+      print('no months truncate')
+      
     try:
       num_months_truncate_test=dir(self).index('num_months_truncate')
     except ValueError:
