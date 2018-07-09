@@ -143,6 +143,15 @@ class ProcTime:
         if(Diagnostic): print('self.i,self.input_directory=',self.i,self.input_directory) #get rid of not.
         self.list_of_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc')))
         self.input_files.append(self.list_of_files[0])
+
+    elif(self.experiment=='v0_forecast'): #julian
+      #with this kind of experiment we would have to loop over each 2/5 year experiment as well as ensemble, producing one output file for each.
+      self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
+      #self.ybeg_season_process,self.yend_season_process,self.mbeg_season_process,self.mend_season_process=2003,2004,1,12 #potential for 2002,2004
+      if(not input_directory_check):
+        self.input_directory='/g/data1/v14/forecast/v0/yr2002/mn2/OUTPUT.1'
+        self.input_directory='/g/data1/v14/forecast/v0/yr2016/mn1/OUTPUT.1'
+      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc')))
     
     elif(self.experiment=='v1_forecast'): #julian
       #with this kind of experiment we would have to loop over each 2/5 year experiment as well as ensemble, producing one output file for each.

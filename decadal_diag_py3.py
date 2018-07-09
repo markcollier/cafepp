@@ -105,7 +105,7 @@ def shade_2d_polar(data,**kwargs):
 #   print('lonlat_extent=',lonlat_extent)
 
   #print(len(clevs))
-  print('clevs=',clevs)
+  #print('clevs=',clevs)
   #if('clevs' in locals()):
   
   if(not clevs_check or type(clevs)==type(None)):

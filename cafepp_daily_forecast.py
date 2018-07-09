@@ -23,7 +23,7 @@ def main(**kwargs):
   from decadal_diag import process_json
   from decadal_diag import get_daily_indices_for_monthlyave
 
-  cafe_experiment_check=rundir_check=ybeg_check=yend_check=ybeg_first_check=yend_last_check=mbeg_first_check=mend_last_check=ebeg_check=eend_check=mbeg_norm_check=mend_norm_check=False
+  cafe_experiment_check=rundir_check=ybeg_check=yend_check=ybeg_first_check=yend_last_check=mbeg_first_check=mend_last_check=ebeg_check=eend_check=mbeg_norm_check=mend_norm_check=dvar_check=False
 
   for key, value in kwargs.iteritems():
     if(key=='cafe_experiment'):
@@ -32,6 +32,9 @@ def main(**kwargs):
     elif(key=='rundir'):
       rundir=value
       rundir_check=True
+    elif(key=='dvar'):
+      dvar=value
+      dvar_check=True
     elif(key=='ybeg'):
       ybeg=int(value)
       ybeg_check=True
@@ -65,6 +68,7 @@ def main(**kwargs):
 
   if(not rundir_check):SystemExit('Set rundir:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not cafe_experiment_check):SystemExit('Set cafe_experiment:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  if(not dvar_check): SystemExit('Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not ybeg_check):SystemExit('Set ybeg:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not yend_check):SystemExit('Set yend:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not mbeg_first_check):SystemExit('Set mbeg_first:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -83,8 +87,11 @@ def main(**kwargs):
     token2=(token1[0].replace(' ',''))
     token3=(token2.replace('"',''))
     #print('token3=',token3)
-    if(token3=='cafe_experiment'):
-      line='    "cafe_experiment":"v1_forecast",\n'
+    if(token3=='dvar'):
+      line='     "dvar":"'+dvar+'",\n'
+    elif(token3=='cafe_experiment'):
+#      line='    "cafe_experiment":"v1_forecast",\n'
+      line='     "cafe_experiment":"'+cafe_experiment+'",\n'
     elif(token3=='ybeg'):
       line='    "ybeg":2003,\n'
     elif(token3=='yend'):
@@ -121,11 +128,17 @@ def main(**kwargs):
           os.remove(output)
         ofh=open(output,'w')
 
-        if(cafe_experiment=='v1_forecast'): #January and July are 5 year forecasts, else 2 years.
+        if(cafe_experiment=='v0_forecast'): #January and July are 5 year forecasts, else 2 years.
+          top_directory_no2='/g/data1/v14/forecast/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no2='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          physics=4
+        elif(cafe_experiment=='v1_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no2='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
           physics=1
         elif(cafe_experiment=='v2_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v2/OUTPUT/'+str('{0:04d}'.format(ynow))+'/'+str('{0:02d}'.format(mnow))+'/OUTPUT.'+str('{0:02d}'.format(enow))
+          top_directory_no2='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v2/OUTPUT/'+str('{0:04d}'.format(ynow))+'/'+str('{0:02d}'.format(mnow))+'/OUTPUT.'+str('{0:02d}'.format(enow))
           physics=3
 
         files_string=top_directory_no2+'/'+realm+'_daily_????_??_01.nc'
@@ -170,7 +183,6 @@ def main(**kwargs):
         ofh.close()
 
         test_ok=cafepp_daily.main('cafepp.json')
-
         #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   print('Finished O.K.:'+__file__+' line number: '+str(inspect.stack()[0][2]))

@@ -5573,6 +5573,7 @@ class n_data_funcs:
 #      if(key=='ensembles'):
 #        ensembles=bool(value)
 
+    self.daily_to_monthly_test=False 
     self.input_files = input_files
     self.input_files_flat = list(itertools.chain.from_iterable(input_files))
     self.input_var_name = input_var_name
@@ -5684,8 +5685,8 @@ class n_data_funcs:
     self.year_min=netCDF4.num2date(min(self.mins),self.units[0],self.calendar[0])
     self.year_max=netCDF4.num2date(max(self.maxs),self.units[0],self.calendar[0]) #not year maximum as need to consider end of each experiment.
 
-    print('Forecast start times go from ',min(self.mins),'to',max(self.maxs),'or',self.year_min,'to',self.year_max)
-    print('Ensembles go from ',min(self.ens),'to',max(self.ens)) #later on restrict to only valid ensembles to keep arrays compact eg 1,2,3,11 but not 1-11.
+    print('calculate_filedatetime_info_multiforc: Forecast start times go from ',min(self.mins),'to',max(self.maxs),'or',self.year_min,'to',self.year_max)
+    print('calculate_filedatetime_info_multiforc: Ensembles go from ',min(self.ens),'to',max(self.ens)) #later on restrict to only valid ensembles to keep arrays compact eg 1,2,3,11 but not 1-11.
 
     self.npens=np.array(list(set(self.ens)))
 
@@ -5831,7 +5832,6 @@ class n_data_funcs:
 #    else:
 #      raise SystemExit('n_data_funcs.init issue with ensembles check:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
       
-
   #def calculate(self, **kwargs):
     calendar_check=units_check=Diag=False
     
@@ -5865,8 +5865,8 @@ class n_data_funcs:
 
     if(self.nfiles==1 and self.nfiles_flat==1):
       print('calculate_filedatetime_info: case 1: no ensembles, one input file.')
-      print('self.input_files=',self.input_files)
-      print('self.input_files[0][0]=',self.input_files[0][0])
+      if(Diag): print('self.input_files=',self.input_files)
+      if(Diag): print('self.input_files[0][0]=',self.input_files[0][0])
       self.ifhN=netCDF4.Dataset(self.input_files[0][0])
       self.ifh0=self.ifhN
       self.time_tfreq=self.ifh0.variables['time']
@@ -5955,6 +5955,9 @@ class n_data_funcs:
 
   def regrid_curv_to_rect_setup(self,**kwargs):
     import glob
+    import numpy as np
+    #import netCDF4
+
     interpolate_check=topdir_check=Diag=outmask_check=outmask=False
     for key, value in kwargs.items():
       if(key=='Diag'):
@@ -6047,6 +6050,10 @@ class n_data_funcs:
         raise SystemExit('regrid_curv_to_rect_setup: Dont know this key:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
   def regrid_curv_to_rect_weights_mask(self,**kwargs):
+    import netCDF4
+    import numpy.ma as ma
+    import scipy.sparse as sps
+
     interpolate_check=topdir_check=Diag=False
     for key, value in kwargs.items():
       if(key=='Diag'):
@@ -6092,6 +6099,8 @@ class n_data_funcs:
       if(Diag): print('self.weights_file=',self.weights_file)
 
   def regrid_curv_to_rect(self,**kwargs):
+    import numpy.ma as ma
+    import numpy as np
     Diag=apply_lsmask=False
     for key, value in kwargs.items():
       if(key=='Diag'):
@@ -6135,7 +6144,7 @@ class n_data_funcs:
     elif(self.ls_mask_type=='2d_ocean'):
       print('self.ls_mask.shape=',self.ls_mask.shape)
       if(len(input.shape)==2): #input is lat, lon
-        print('regrid_curv_to_rect: must be 2d ocean + zero time climatology')
+        print('regrid_curv_to_rect: must be 2d ocean/seaice + zero time climatology')
         input_flat = input.reshape(-1, self.nlon*self.nlat)
         if(Diag): print('regrid_curv_to_rect: input_flat.shape=',input_flat.shape)
         output_flat = self.A[0].dot(input_flat.T).T
@@ -6145,7 +6154,7 @@ class n_data_funcs:
         if(apply_lsmask): output=output*_ls_mask
         
       else: #input is time, lat, lon
-        print('regrid_curv_to_rect: must be 2d ocean + multi time anomaly')
+        print('regrid_curv_to_rect: must be 2d ocean/seaice + multi time anomaly')
         input_flat = input.reshape(-1, self.nlon*self.nlat)
         if(Diag): print('regrid_curv_to_rect: input_flat.shape=',input_flat.shape)
         output_flat = self.A[0].dot(input_flat.T).T
@@ -6240,8 +6249,11 @@ class n_data_funcs:
         raise SystemExit('get_lev_info: Dont know this key:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if(not lev_check):        
-        #lev=self.ifh0.variables['lev'][:]
-        lev=self.ifh0[0].variables['lev'][:] #fuck
+      #lev=self.ifh0.variables['lev'][:]
+      if(self.nfiles>1): #ensembles
+        lev=self.ifh0[0].variables['lev'][:]
+      else:
+        lev=self.ifh0.variables['lev'][:]
         
     self.lev=lev
     self.nlev=len(self.lev)
@@ -6260,7 +6272,7 @@ class n_data_funcs:
       #value_split=string.split(value,sep=",")
       #print('value_split=',value_split)
       #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
-      print('calculate_quantity: key,value=',key,value)
+      if(Diag): print('calculate_quantity: key,value=',key,value)
       if(key=='Diag'):
         print('calculate_quantity: Turning on diagnostics.')
         Diag=bool(value)
@@ -6286,7 +6298,7 @@ class n_data_funcs:
             new_shape.append(instance.nindices_nino)
             
             #print('new_shape=',new_shape)
-            self.output_tfreq=np.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
             
             for k,indice in enumerate(instance.indices_nino):
               imin,imax=instance.indices_i[instance.indices_nino.index(indice)][0], \
@@ -6318,7 +6330,7 @@ class n_data_funcs:
               new_shape.append(self.nfiles)
               for shape in var_shape[1::]:
                 new_shape.append(shape)
-              self.output_tfreq=np.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+              self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
               for n in range(self.nfiles):
                 self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:]
             else:
@@ -6341,7 +6353,7 @@ class n_data_funcs:
             new_shape.append(self.nfiles)
             for shape in var_shape[1::]:
               new_shape.append(shape)
-            self.output_tfreq=np.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
             for n in range(self.nfiles):
               self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
           else:  
@@ -6361,7 +6373,7 @@ class n_data_funcs:
             new_shape.append(self.nfiles)
             for shape in var_shape[2::]:
               new_shape.append(shape)
-            self.output_tfreq=np.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
             print('equatorial: self.output_tfreq.shape=',self.output_tfreq.shape)
             for n in range(self.nfiles):
               self.output_tfreq[:,n,]=np.average(self.ifhN[n].variables[self.input_var_name][:,46:47+1,self.imin:self.imax+1],axis=1)
@@ -6383,7 +6395,7 @@ class n_data_funcs:
             new_shape.append(var_shape[1])
             for shape in var_shape[3::]:
               new_shape.append(shape)
-            self.output_tfreq=np.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
             for n in range(self.nfiles):
               self.output_tfreq[:,n,]=np.average(self.ifhN[n].variables[self.input_var_name][:,:,136:137+1,:],axis=2)
           else:
@@ -6568,7 +6580,7 @@ class n_data_funcs:
   
     else:
       raise SystemExit('daily_to_monthly: EndOption can be only 1 or 2:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    
+    self.daily_to_monthly_test=True 
     return(self.output)
 
   def monthly_clim_anom(self,**kwargs):
@@ -6642,17 +6654,33 @@ class n_data_funcs:
     #print(self.date_time_stamp_monthly[0][0].year)
     #print(self.date_time_stamp_monthly[0][-1].year)
 
+    #print('monthly_clim_anom: self.date_time_stamp_monthly=',self.date_time_stamp_monthly)
+
+    print('monthly_clim_anom: self.daily_to_monthly_test=',self.daily_to_monthly_test)
+
     try:
-      ybeg=self.date_time_stamp_monthly[0].year
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        ybeg=self.date_time_stamp_monthly[0][0].year
+      else:
+        ybeg=self.date_time_stamp_monthly[0].year
     except AttributeError:
       #ybeg=self.date_time_stamp_tfreq[0].year
-      ybeg=self.date_time_stamp_tfreq[0][0].year #fuck
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        ybeg=self.date_time_stamp_tfreq[0][0].year
+      else:
+        ybeg=self.date_time_stamp_tfreq[0].year
       
     try:
-      yend=self.date_time_stamp_monthly[-1].year
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        yend=self.date_time_stamp_monthly[0][-1].year
+      else:
+        yend=self.date_time_stamp_monthly[-1].year
     except AttributeError:
       #yend=self.date_time_stamp_tfreq[-1].year
-      yend=self.date_time_stamp_tfreq[0][-1].year #fuck
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        yend=self.date_time_stamp_tfreq[0][-1].year
+      else:
+        yend=self.date_time_stamp_tfreq[-1].year
 
     ydiff_monthly=yend-ybeg+1
 
@@ -6661,22 +6689,34 @@ class n_data_funcs:
     MissingMonths=False
 
     try:
-      first_month=self.date_time_stamp_monthly[0].month
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        first_month=self.date_time_stamp_monthly[0][0].month
+      else:
+        first_month=self.date_time_stamp_monthly[0].month
     except AttributeError:
       #first_month=self.date_time_stamp_tfreq[0].month
-      first_month=self.date_time_stamp_tfreq[0][0].month #fuck
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        first_month=self.date_time_stamp_tfreq[0][0].month
+      else:
+        first_month=self.date_time_stamp_tfreq[0].month
       
     try:
-      last_month=self.date_time_stamp_monthly[-1].month
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        last_month=self.date_time_stamp_monthly[0][-1].month
+      else:
+        last_month=self.date_time_stamp_monthly[-1].month
     except AttributeError:
       #last_month=self.date_time_stamp_tfreq[-1].month
-      last_month=self.date_time_stamp_tfreq[0][-1].month #fuck
+      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+        last_month=self.date_time_stamp_tfreq[0][-1].month
+      else:
+        last_month=self.date_time_stamp_tfreq[-1].month
       
     #first_month=self.date_time_stamp_monthly[0].month
     #last_month=self.date_time_stamp_monthly[-1].month
 
-    if(Diag): print('ybeg,yend=',ybeg,yend)
-    if(Diag): print('first,last_month=',first_month,last_month)
+    if(Diag): print('monthly_clim_anom: ybeg,yend=',ybeg,yend)
+    if(Diag): print('monthly_clim_anom: first,last_month=',first_month,last_month)
 
     missing_months_beg,missing_months_end=0,0
 
@@ -6705,10 +6745,10 @@ class n_data_funcs:
       input_full_shape=[ydiff_monthly*self.nmy]
       for sss in input.shape[1::]:
         input_full_shape.append(sss)
-      if(Diag): print('input_full_shape=',input_full_shape)
+      if(Diag): print('monthly_clim_anom: input_full_shape=',input_full_shape)
       input_full=ma.masked_all(input_full_shape,dtype=float)
 
-      if(Diag): print('input_full.shape=',input_full.shape)
+      if(Diag): print('monthly_clim_anom: input_full.shape=',input_full.shape)
 
       if('cbeg' not in locals()): #assign to full series.
         cbeg=ybeg
@@ -6732,7 +6772,7 @@ class n_data_funcs:
         
       #timeseries_monthly_full=ma.masked_all((ncep_nino_indices.nindices_nino,ydiff_monthly*self.nmy),dtype=float) #ensure missing months are masked out.
       last_month_index=(ydiff_monthly*self.nmy)-(12-last_month)
-      print('ydiff_monthly,missing_months_beg,last_month_index=',ydiff_monthly,missing_months_beg,last_month_index)
+      print('monthly_clim_anom: ydiff_monthly,missing_months_beg,last_month_index=',ydiff_monthly,missing_months_beg,last_month_index)
       #timeseries_monthly_full[:,first_month-1:last_month_index]=self.timeseries_monthly
       
       #input_full[missing_months_beg-1:last_month_index-1,]=input
@@ -6773,9 +6813,9 @@ class n_data_funcs:
     if('aend' not in locals()): #assign to full series.
       aend=yend
 
-    if(Diag): print('input.shape=',input.shape)
+    if(Diag): print('monthly_clim_anom: input.shape=',input.shape)
 
-    if(Diag): print('cbeg,cend=',cbeg,cend)
+    if(Diag): print('monthly_clim_anom: cbeg,cend=',cbeg,cend)
 
     if(cend<cbeg):
       raise SystemExit('monthly_clim_anom: cend<cbeg:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -6835,7 +6875,6 @@ class n_data_funcs:
     ###
     
 #     print(self.num_stamp_monthly)
-    
 
     #print('locals=',locals())
 #     if('num_stamp_monthly' in locals()):
@@ -6844,25 +6883,24 @@ class n_data_funcs:
 #     if('self.num_stamp_monthly' in locals()):
 #       print('yyy')
 
-    print('self.time_tfreq=',self.time_tfreq)
+    #print('self.time_tfreq=',self.time_tfreq)
     #print('self.num_stamp_monthly=',self.num_stamp_monthly)
-
       
     try:
-      print('111')
+      #print('111')
       self.num_stamp_climatology = np.average(np.reshape(self.num_stamp_monthly[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #gone through daily to monthly function.
       #print('iii')
     except:
-      print('222')
+      #print('222')
       #self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
       #print('jjj')
       
-      #fuck
-      
-      self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[0][icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
+      if(self.nfiles>1):
+        self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[0][icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
+      else:
+        self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
 
-    
-    print('333')
+    #print('333')
     #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
 #     if('self.num_stamp_monthly' in locals()):
@@ -6932,16 +6970,22 @@ class n_data_funcs:
 #       self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
 
     try:
-      self.num_stamp_anomaly = self.num_stamp_monthly[iabeg:iaend+1] #gone through daily to monthly function.
+      if(self.nfiles>1):
+        self.num_stamp_anomaly = self.num_stamp_monthly[0][iabeg:iaend+1] #gone through daily to monthly function.
+      else:
+        self.num_stamp_anomaly = self.num_stamp_monthly[iabeg:iaend+1] #gone through daily to monthly function.
     except:
       #self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
-      self.num_stamp_anomaly = self.time_tfreq[0][iabeg:iaend+1] #original monthly inputs. fuck
+      if(self.nfiles>1):
+        self.num_stamp_anomaly = self.time_tfreq[0][iabeg:iaend+1] #original monthly inputs.
+      else:
+        self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
       
     if(AnnOut):
       self.num_stamp_anomaly = np.average(np.reshape(self.num_stamp_anomaly,[aend-abeg+1,self.nmy]), axis=1,weights=self.days_in_month)
     self.date_time_stamp_anomaly=netCDF4.num2date(self.num_stamp_anomaly,self.time_tfreq_units,self.time_tfreq_calendar)
     
-    print('monthly_clim_anom: self.num_stamp_anomaly.shape=',self.num_stamp_anomaly.shape)
+    if(Diag): print('monthly_clim_anom: self.num_stamp_anomaly.shape=',self.num_stamp_anomaly.shape)
     
     if(AnnOut):
       to_shape_anomaly=[aend-abeg+1,self.nmy]

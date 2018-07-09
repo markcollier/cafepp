@@ -43,7 +43,7 @@
     #"ProcessFileTxt":"cafepp_daily_control.txt",
     "cafe_experiment":"coupled_da/OUTPUT-2step-nobreeding-carbon2",
     "info":"last modified today",
-    "force_hostname":"raijin", #force hostname to ensure idir is correct (e.g. when submitting to raijin, the batch machine name is very hard to match.
+    #"force_hostname":"raijin", #force hostname to ensure idir is correct (e.g. when submitting to raijin, the batch machine name is very hard to match.
     "name":"options_with_arguments_cafepp.json",
     "importance":5, #a number between 1-5, the higher the number the less important it is in terms of keeping long term.
     "version":"v20171025", #cmor defaults to current date, sometimes want output to go into a specific directory.

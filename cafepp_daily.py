@@ -306,6 +306,11 @@ def main(json_input_instructions):
         elif(l=='top_directory_no3'):
           top_directory_no3=str(list_new[l])
         elif(l=='active_disk_no3'): active_disk_no3=str(list_new[l])
+
+        elif(l=='storage_machine_no4'): storage_machine_no4=str(list_new[l])
+        elif(l=='top_directory_no4'):
+          top_directory_no4=str(list_new[l])
+        elif(l=='active_disk_no4'): active_disk_no4=str(list_new[l])
   
         elif(l=='main_science_contact'): main_science_contact=str(list_new[l])
         elif(l=='main_technical_contact'): main_technical_contact=str(list_new[l])
@@ -363,6 +368,13 @@ def main(json_input_instructions):
     storage_machine_no3_split=storage_machine_no3.split('.')
     if re.match(storage_machine_no3[0],hostname):
       idir=top_directory_no3
+
+  if 'storage_machine_no4' in locals() and active_disk_no4=='yes':
+    storage_machine_no4_split=storage_machine_no4.split('.')
+    if re.match(storage_machine_no4[0],hostname):
+      idir=top_directory_no4
+
+  print('cafepp_daily: idir=',idir)
   
   #print(hostname)
   #print(storage_machine_no1)
@@ -376,7 +388,7 @@ def main(json_input_instructions):
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   print('hostname=',hostname)
-  print('storage_machine_no1=',storage_machine_no1)
+  #print('storage_machine_no1=',storage_machine_no1)
   
   #idir=top_directory_no2 #this is hardwired until I sort out how to manage this on raijin's quque...
   

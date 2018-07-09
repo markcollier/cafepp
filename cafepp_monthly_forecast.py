@@ -128,11 +128,17 @@ def main(**kwargs):
     for mcnt,mnow in enumerate(range(mbeg,mend+1)):
       for ecnt,enow in enumerate(range(ebeg,eend+1)):
    
-        if(cafe_experiment=='v1_forecast'): #January and July are 5 year forecasts, else 2 years.
+        if(cafe_experiment=='v0_forecast'): #January and July are 5 year forecasts, else 2 years.
+          top_directory_no2='/g/data1/v14/forecast/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no3='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+        elif(cafe_experiment=='v1_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
           top_directory_no3='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
 	elif(cafe_experiment=='v2_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v2/OUTPUT/'+str('{0:04d}'.format(ynow))+'/'+str('{0:02d}'.format(mnow))+'/OUTPUT.'+str('{0:02d}'.format(enow))
+        else:
+          raise SystemExit('Dont know that experiment:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
         print('top_directory_no2=',top_directory_no2)
         print('Processing cafepp_experiments.json')
         ifh=open(rundir+'/'+'JsonTemplates'+'/'+'cafepp_experiments.json')
@@ -153,7 +159,7 @@ def main(**kwargs):
         shutil.move(rundir+'/'+'JsonTemplates/cafepp_experiments_tmp.json',rundir+'/'+'JsonTemplates/cafepp_experiments.json')
 
         test_ok=cafepp.main('cafepp.json')
-        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   return(0)
 
