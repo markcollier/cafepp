@@ -23,7 +23,8 @@ def main(**kwargs):
   from decadal_diag import process_json
   from decadal_diag import get_daily_indices_for_monthlyave
 
-  cafe_experiment_check=rundir_check=ybeg_check=yend_check=ybeg_first_check=yend_last_check=mbeg_first_check=mend_last_check=ebeg_check=eend_check=mbeg_norm_check=mend_norm_check=dvar_check=False
+  cafe_experiment_check=rundir_check=ybeg_check=yend_check=ybeg_first_check=yend_last_check=mbeg_first_check=mend_last_check=ebeg_check=eend_check=mbeg_norm_check=mend_norm_check=dvar_check=NoClobber=False
+  NoClobber=True
 
   for key, value in kwargs.iteritems():
     if(key=='cafe_experiment'):
@@ -65,6 +66,9 @@ def main(**kwargs):
     elif(key=='mend_norm'):
       mend_norm=int(value)
       mend_norm_check=True
+    elif(key=='NoClobber'):
+      NoClobber=value
+      NoClobber_check=True
 
   if(not rundir_check):SystemExit('Set rundir:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not cafe_experiment_check):SystemExit('Set cafe_experiment:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -106,6 +110,8 @@ def main(**kwargs):
       line='    "dend":31,\n'
     elif(token3=='#ProcessFileTxt'):
         line='    "ProcessFileTxt":"cafepp_daily_forecast.txt",\n'
+    elif(token3=='NoClobber'):
+      line='     "NoClobber":"'+NoClobber+'",\n'
     print(line,file=ofh,end='')
   ifh.close()
   ofh.close()
@@ -183,7 +189,7 @@ def main(**kwargs):
         ofh.close()
 
         test_ok=cafepp_daily.main('cafepp.json')
-        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   print('Finished O.K.:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 

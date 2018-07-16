@@ -5479,54 +5479,60 @@ def shade_2d_curvilinear(data,**kwargs):
   return() #end shade_2d_curvilinear
 
 class nino_indices:
-  def __init__(self,select,**kwargs):
+  def __init__(self,**kwargs):
     
     '''
     selection:
-    0=first inice only
+    0=first indice only
     -1=last_indice_only
     ALL=all indices
     '''
+    import inspect
     #selection=*kwargs
-    
-      #print('key,value=',key,value)
+    #print('key,value=',key,value)
     Diag=False
+    grid_label=None
     for key, value in kwargs.items():
       if(key=='Diag'):
         Diag=bool(value)
-      elif(key=='selection'):
-        selection=kwargs[key]
+      elif(key=='grid_label'):
+        grid_label=kwargs[key]
+      elif(key=='index_selection'):
+        index_selection=kwargs[key]
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
       
-    #selection='ALL'
+    #index_selection='ALL'
+    if(type(grid_label)==type(None)):
+      raise SystemExit('Must provide grid_label.'+__file__+' line number: '+str(inspect.stack()[0][2]))
     
     self.lons_nino = [[190, 240, 240, 190, 190], [210, 270, 270, 210, 210], [160, 210, 210, 160, 160], [270, 280, 280, 270, 270]] # indices_nino=['nino34','nino3','nino4','nino1+2']
     self.lats_nino = [[-5, -5, 5, 5, -5], [-5.1, -5.1, 5.1, 5.1, -5.1], [-5, -5, 5, 5, -5], [-10, -10, 0, 0, -10]] # 170W-120W:190-240, 150W-90W:210-270, 160E-150W:160-210, 90W-80W:270-280 (10S-0 latitude, others all 5S to 5N)
     self.indices_nino=['nino34','nino3','nino4','nino1+2'] # 170W-120W:190-240, 150W-90W:210-270, 160E-150W:160-210, 90W-80W:270-280 (10S-0 latitude, others all 5S to 5N)
     self.indices_label=['Ni$\~{n}$o3.4','Ni$\~{n}$o3','Ni$\~{n}$o4','Ni$\~{n}$o1+2']
   
-    if(select=='gn'):
+    if(grid_label=='gn'):
       self.indices_i,self.indices_j=[[110,159],[130,189],[80,129],[190,199]],[[122,151],[122,151],[122,151],[107,136]] #check this, whether I need +1 also...what about fractional cells?
-    elif(select=='gr2'):
+    elif(grid_label=='gr2'):
       self.indices_i,self.indices_j=[[190,239],[210,269],[150,209],[270,280]],[[85,94],[85,94],[85,94],[80,89]] #check this, whether I need +1 also...what about fractional cells?
-    elif(select=='ncep2'):
+    elif(grid_label=='ncep2'):
       self.indices_i,self.indices_j=[[102,128],[112,144],[86,112],[144,149]], [[45,50],[45,50],[45,50],[42,46]]
-    elif(select=='20crv2'):
+    elif(grid_label=='20crv2'):
       self.indices_i,self.indices_j=[[102,128],[112,144],[86,112],[144,149]], [[44,49],[44,49],[44,49],[42,51]]
-    elif(select=='access13'):
+    elif(grid_label=='access13'):
       self.indices_i,self.indices_j=[[102,128],[112,144],[86,112],[144,149]], [[44,49],[44,49],[44,49],[42,51]]
     else:
-      raise SystemExit('grid specificatin unknown:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      raise SystemExit('grid specification unknown:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
-    if(selection!='ALL'):
+    if(index_selection!='ALL'):
       self.indices_nino=[self.indices_nino[eval(selection)]]
       self.indices_label=[self.indices_label[eval(selection)]]
       self.indices_i=[self.indices_i[eval(selection)]]
       self.indices_j=[elf.indices_j[eval(selection)]]
 
     self.nindices_nino=len(self.indices_nino)
-    return()
-  
-#end of class nino_indices
+    if(Diag): print('class nino_indices: Number of nino indices defined=',self.nindices_nino)
+    return(None) #end of class nino_indices
     
 #del(n_data_funcs)
 
@@ -5570,6 +5576,8 @@ class n_data_funcs:
         input_files=value
       elif(key=='input_var_name'):
         input_var_name=value
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
 #      if(key=='ensembles'):
 #        ensembles=bool(value)
 
@@ -5614,6 +5622,8 @@ class n_data_funcs:
     for key, value in kwargs.items():
       if(key=='Diag'):
         Diag=bool(value)
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     from ipywidgets import FloatProgress
     #%matplotlib inline
@@ -5719,6 +5729,8 @@ class n_data_funcs:
     for key, value in kwargs.items():
       if(key=='Diag'):
         Diag=bool(value)
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     from ipywidgets import FloatProgress
     #%matplotlib inline
@@ -5773,6 +5785,8 @@ class n_data_funcs:
         input_monthly=value
       elif(key=='input_monthly_climatology'):
         input_monthly_climatology=value
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     #print('input_monthly.shape=',input_monthly.shape)
     #print('input_monthly_climatology.shape=',input_monthly_climatology.shape)
@@ -5845,6 +5859,8 @@ class n_data_funcs:
       elif(key=='units'):
         self.time_tfreq_units=kwargs[key]
         units_check=True
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if(not calendar_check):
       print('calculate_filedatetime_info: Setting to default calendar: julian')
@@ -6274,18 +6290,18 @@ class n_data_funcs:
       #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
       if(Diag): print('calculate_quantity: key,value=',key,value)
       if(key=='Diag'):
-        print('calculate_quantity: Turning on diagnostics.')
         Diag=bool(value)
-#      elif(key=='Diag'):
-#        print('calculate_quantity: Turning on diagnostics.')
-#        Diag=bool(value)
+        if(Diag): print('calculate_quantity: Turning on diagnostics.')
+        if(Diag): print('calculate_quantity: Diag=',Diag)
+        #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
+
       elif(key=='quantity'):
-        print('calculate_quantity: calculating a quantity...')
+        if(Diag): print('calculate_quantity: calculating a quantity...')
         #value_split=string.split(value,sep=",") #python2
         value_split=value.split(",") #python3
         
         if(value=='nino'):
-          print('calculate_quantity: nino chosen.')
+          if(Diag): print('calculate_quantity: nino chosen.')
           #self.output_tfreq=ma.zeros((self.ntime_tfreq,instance.nindices_nino),dtype=float)
           #print('self.output_tfreq.shape=',self.output_tfreq.shape)
           #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
@@ -6309,8 +6325,8 @@ class n_data_funcs:
                 self.output_tfreq[:,n,k]=np.average(np.average(self.ifhN[n].variables[self.input_var_name][:,jmin:jmax,imin:imax], \
                   axis=1,weights=self.clat[jmin:jmax]),axis=1)
           else:
+            self.output_tfreq=ma.zeros((self.ntime_tfreq,instance.nindices_nino),dtype=float)
             for k,indice in enumerate(instance.indices_nino):
-              self.output_tfreq=ma.zeros((self.ntime_tfreq,instance.nindices_nino),dtype=float)
               
               imin,imax=instance.indices_i[instance.indices_nino.index(indice)][0], \
                 instance.indices_i[instance.indices_nino.index(indice)][1]
@@ -6338,7 +6354,7 @@ class n_data_funcs:
               #print('j.shape=',j.shape)
               self.output_tfreq=self.ifhN.variables[self.input_var_name][:]
         elif(value_split[0]=='latlon_region'): #test/dummy case.
-          print('calculate_quantity: latlon_region chosen.')
+          if(Diag): print('calculate_quantity: latlon_region chosen.')
           #print('len(value_split)=',len(value_split))
           #print('self.nlat=',self.nlat)
           if(len(value_split)==1): #assume 1 or 5 only ATM.
@@ -6360,7 +6376,7 @@ class n_data_funcs:
             self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
             
         elif(value_split[0]=='equatorial'): #test/dummy case.
-          print('calculate_quantity: equatorial chosen.')
+          if(Diag): print('calculate_quantity: equatorial chosen.')
           if(len(value_split)==1): #assume 1 or 3 only ATM.
             print('n_data_funcs.calculate_quantity: Using whole lat/lon region.')
             self.imin,self.imax=0,self.nlon
@@ -6374,14 +6390,14 @@ class n_data_funcs:
             for shape in var_shape[2::]:
               new_shape.append(shape)
             self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
-            print('equatorial: self.output_tfreq.shape=',self.output_tfreq.shape)
+            if(Diag): print('equatorial: self.output_tfreq.shape=',self.output_tfreq.shape)
             for n in range(self.nfiles):
               self.output_tfreq[:,n,]=np.average(self.ifhN[n].variables[self.input_var_name][:,46:47+1,self.imin:self.imax+1],axis=1)
           else:
             self.output_tfreq=np.average(self.ifhN.variables[self.input_var_name][:,46:47+1,self.imin:self.imax+1],axis=1)
 
         elif(value=='equatorial_cross_section'):
-          print('calculate_quantity: equatorial_cross_section chosen.')
+          if(Diag): print('calculate_quantity: equatorial_cross_section chosen.')
           if(len(value_split)==1): #assume 1 or 7 only ATM.
             print('n_data_funcs.calculate_quantity: Using whole lat/lon region.')
             self.jmin,self.jmax,self.imin,self.imax,self.kmin,self.kmax=0,self.nlat,0,self.nlon,0,self.ndep
@@ -6437,6 +6453,8 @@ class n_data_funcs:
           self.year_fraction_tfreq=self.year_fraction_tfreq[1:-1]
           self.date_time_stamp_tfreq=self.date_time_stamp_tfreq[1:-1]
           self.output_tfreq=self.output_tfreq[:,1:-1]
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
     #return year_fraction_tfreq,date_time_stamp_tfreq,nino_tfreq
     
   def daily_monthly_indices_info(self,**kwargs):
@@ -6453,6 +6471,8 @@ class n_data_funcs:
         timesep_check=True  
       elif(key=='Diag'):
         Diag=bool(value)
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if(not timesep_check):
       print('daily_monthly_indices_info: Setting to default timesep: 1')
@@ -6497,6 +6517,8 @@ class n_data_funcs:
         input=value
       elif(key=='Diag'):
         Diag=bool(value) 
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if(not EndOption_check):
       print('daily_to_monthly: Setting to default EndOption: 1')
@@ -6611,9 +6633,13 @@ class n_data_funcs:
     in generating plot titles, for example.
     
     '''
-    ClimOnly=AnomOnly=Diag=AnnOut=ZeroClim=False
+    ClimOnly=AnomOnly=AnnOut=ZeroClim=Diag=False
     for key, value in kwargs.items():
-      if(key=='input'):
+      if(key=='Diag'):
+        Diag=bool(value)
+        print('Diag=',Diag)
+        if(Diag): print('monthly_clim_anom: Diagnostics turned on.')
+      elif(key=='input'):
         input=value
       elif(key=='cbeg'):
         cbeg=int(value)
@@ -6629,9 +6655,6 @@ class n_data_funcs:
       elif(key=='AnomOnly'):
         AnomOnly=bool(value)
         print('monthly_clim_anom: Anomalies only.')
-      elif(key=='Diag'):
-        Diag=bool(value)
-        print('monthly_clim_anom: Diagnostics turned on.')
       elif(key=='AnnOut'):
         AnnOut=bool(value)
         print('monthly_clim_anom: Produce annual output rather than monthly.')
@@ -6641,7 +6664,10 @@ class n_data_funcs:
         print('monthly_clim_anom: Reading in climatology rather than calculating it.')
       elif(key=='ZeroClim'):
         ZeroClim=bool(value)
-        print('monthly_clim_anom: Zeroing climatlogy in anomaly calculation.')
+        if(ZeroClim):
+          if(Diag): print('monthly_clim_anom: Zeroing climatlogy in anomaly calculation.')
+        else:
+          if(Diag): print('monthly_clim_anom: Not zeroing climatlogy in anomaly calculation.')
       else:
         raise SystemExit('option '+key+' not known:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -6656,7 +6682,7 @@ class n_data_funcs:
 
     #print('monthly_clim_anom: self.date_time_stamp_monthly=',self.date_time_stamp_monthly)
 
-    print('monthly_clim_anom: self.daily_to_monthly_test=',self.daily_to_monthly_test)
+    if(Diag): print('monthly_clim_anom: self.daily_to_monthly_test=',self.daily_to_monthly_test)
 
     try:
       if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
@@ -6770,38 +6796,20 @@ class n_data_funcs:
       if(missing_months_end!=0 and aend==yend):
         print('monthly_clim_anom: Warning: missing months in last year and abeg set to last year.')
         
-      #timeseries_monthly_full=ma.masked_all((ncep_nino_indices.nindices_nino,ydiff_monthly*self.nmy),dtype=float) #ensure missing months are masked out.
       last_month_index=(ydiff_monthly*self.nmy)-(12-last_month)
       print('monthly_clim_anom: ydiff_monthly,missing_months_beg,last_month_index=',ydiff_monthly,missing_months_beg,last_month_index)
-      #timeseries_monthly_full[:,first_month-1:last_month_index]=self.timeseries_monthly
       
-      #input_full[missing_months_beg-1:last_month_index-1,]=input
       input_full[missing_months_beg:last_month_index,]=input
-      
-      #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-      
-      #if('cbeg' in locals() or 'cend' in locals()):
-      #  raise SystemExit('cbeg/cend not setup for case where all years dont have 12 months:'+__file__+' line number: '+str(inspect.stack()[0][2]))   
       
     else:
       print('monthly_clim_anom: All years have 12 months.')
       
-      #timeseries_monthly_full=self.timeseries_monthly.copy()
       input_full=input.copy()
       
       if(self.nfiles>1):
         year_fraction_monthly_full=self.year_fraction_tfreq[0].copy()
       else:
         year_fraction_monthly_full=self.year_fraction_tfreq.copy()
-        
-    #print('self.dt_avg.shape=',self.dt_avg.shape)
-    
-#     print('self.date_time_stamp_tfreq.shape=',self.date_time_stamp_tfreq.shape)
-#     print('self.time_tfreq.shape=',self.time_tfreq.shape)
-#     print('input_full.shape=',input_full.shape)
-#     print('self.num_stamp_monthly.shape=',self.num_stamp_monthly.shape)
-    
-    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if('cbeg' not in locals()): #assign to full series.
       cbeg=ybeg
@@ -6831,9 +6839,9 @@ class n_data_funcs:
     if(aend>yend):
       raise SystemExit('monthly_clim_anom: aend>yend:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     
-    print('monthly_clim_anom: Input data over years '+str(ybeg)+'-'+str(yend))
-    print('monthly_clim_anom: Climatology years '+str(cbeg)+'-'+str(cend))
-    print('monthly_clim_anom: Anomaly years '+str(abeg)+'-'+str(aend))
+    if(Diag): print('monthly_clim_anom: Input data over years '+str(ybeg)+'-'+str(yend))
+    if(Diag): print('monthly_clim_anom: Climatology years '+str(cbeg)+'-'+str(cend))
+    if(Diag): print('monthly_clim_anom: Anomaly years '+str(abeg)+'-'+str(aend))
     
     #print('cbeg,ybeg=',cbeg,ybeg)
     
@@ -6859,7 +6867,6 @@ class n_data_funcs:
 
     if(Diag): print('monthly_clim_anom: input_full.shape=',input_full.shape)
     
-    #to_shape_monthly=[ydiff_monthly,self.nmy]
     to_shape_monthly=[cend-cbeg+1,self.nmy]
     if(input.ndim>1):
       for sss in output_shape_anomaly[1::]:
@@ -6869,52 +6876,24 @@ class n_data_funcs:
     
     if('monthly_climatology' not in locals()):
       monthly_data_reshaped=np.reshape(input_full[icbeg:icend+1,],to_shape_monthly)
-      #print('monthly_data_reshaped.shape=',monthly_data_reshaped.shape)
       self.monthly_climatology = np.average(monthly_data_reshaped,axis=0)
 
-    ###
-    
-#     print(self.num_stamp_monthly)
-
-    #print('locals=',locals())
-#     if('num_stamp_monthly' in locals()):
-#       print('xxx')
-      
-#     if('self.num_stamp_monthly' in locals()):
-#       print('yyy')
-
-    #print('self.time_tfreq=',self.time_tfreq)
-    #print('self.num_stamp_monthly=',self.num_stamp_monthly)
-      
     try:
-      #print('111')
       self.num_stamp_climatology = np.average(np.reshape(self.num_stamp_monthly[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #gone through daily to monthly function.
-      #print('iii')
     except:
-      #print('222')
-      #self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
-      #print('jjj')
       
       if(self.nfiles>1):
         self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[0][icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
       else:
         self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
 
-    #print('333')
-    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-#     if('self.num_stamp_monthly' in locals()):
-#       print('111')
-#       self.num_stamp_climatology = np.average(np.reshape(self.num_stamp_monthly[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #gone through daily to monthly function.
-#     else:
-#       print('222')
-#       self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
-
-    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    
     if(AnnOut):
       self.num_stamp_climatology = np.average(self.num_stamp_climatology,weights=self.days_in_month)
     self.date_time_stamp_climatology=netCDF4.num2date(self.num_stamp_climatology,self.time_tfreq_units,self.time_tfreq_calendar)
+
+    if(Diag): print('self.date_time_stamp_climatology=',self.date_time_stamp_climatology)
+
+    self.year_fraction_climatology=fractional_year_from_num2date(self.date_time_stamp_climatology,self.time_tfreq_calendar) #fuck
     
     if(Diag): print('monthly_clim_anom: self.monthly_climatology.shape=',self.monthly_climatology.shape)
     
@@ -6929,18 +6908,9 @@ class n_data_funcs:
         return(self.monthly_climatology)
     
     monthly_climatology_repeat1 = np.expand_dims(self.monthly_climatology,-1)
-    #monthly_climatology_repeat2 = np.tile(monthly_climatology_repeat1,(ydiff_monthly))
     monthly_climatology_repeat2 = np.tile(monthly_climatology_repeat1,(aend-abeg+1))
-
     monthly_climatology_repeat = np.moveaxis(monthly_climatology_repeat2,-1,0)
 
-    #print('self.monthly_climatology.shape=',self.monthly_climatology.shape)
-
-    #print('monthly_climatology_repeat1.shape=',monthly_climatology_repeat1.shape)
-    #print('monthly_climatology_repeat2.shape=',monthly_climatology_repeat2.shape)
-    #print('monthly_climatology_repeat.shape=',monthly_climatology_repeat.shape)
-
-    #to_shape_climatology=[ydiff_monthly*self.nmy]
     to_shape_climatology=[(aend-abeg+1)*self.nmy]
     if(input.ndim>1):
       for sss in output_shape_climatology[1::]:
@@ -6953,22 +6923,10 @@ class n_data_funcs:
     else:
       monthly_climatology_flat=np.reshape(monthly_climatology_repeat,to_shape_climatology)
 
-    #print('monthly_climatology_flat.shape=',monthly_climatology_flat.shape)
-
     self.monthly_anomaly = input_full[iabeg:iaend+1,] - monthly_climatology_flat
 
     if(Diag): print('monthly_clim_anom: self.monthly_anomaly.shape=',self.monthly_anomaly.shape)
       
-#     print('self.date_time_stamp_tfreq.shape=',self.date_time_stamp_tfreq.shape)
-#     print('self.time_tfreq.shape=',self.time_tfreq.shape)
-#     print('input_full.shape=',input_full.shape)
-#     print('self.num_stamp_monthly.shape=',self.num_stamp_monthly.shape)
-    
-#     if('self.num_stamp_monthly' in locals()):
-#       self.num_stamp_anomaly = self.num_stamp_monthly[iabeg:iaend+1] #gone through daily to monthly function.
-#     else:
-#       self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
-
     try:
       if(self.nfiles>1):
         self.num_stamp_anomaly = self.num_stamp_monthly[0][iabeg:iaend+1] #gone through daily to monthly function.
@@ -6984,6 +6942,8 @@ class n_data_funcs:
     if(AnnOut):
       self.num_stamp_anomaly = np.average(np.reshape(self.num_stamp_anomaly,[aend-abeg+1,self.nmy]), axis=1,weights=self.days_in_month)
     self.date_time_stamp_anomaly=netCDF4.num2date(self.num_stamp_anomaly,self.time_tfreq_units,self.time_tfreq_calendar)
+
+    self.year_fraction_anomaly=fractional_year_from_num2date(self.date_time_stamp_anomaly,self.time_tfreq_calendar) #fuck
     
     if(Diag): print('monthly_clim_anom: self.num_stamp_anomaly.shape=',self.num_stamp_anomaly.shape)
     
@@ -6993,8 +6953,6 @@ class n_data_funcs:
         for sss in input_full.shape[1::]:
           to_shape_anomaly.append(sss)
         
-      #aaa=np.reshape(self.monthly_anomaly,to_shape_anomaly)
-      #print('aaa.shape=',aaa.shape)
       self.monthly_anomaly=np.average(np.reshape(self.monthly_anomaly,to_shape_anomaly), axis=1,weights=self.days_in_month) #actually annual.
 
     if(AnomOnly):
@@ -7006,3 +6964,375 @@ class n_data_funcs:
       return(self.monthly_climatology,self.monthly_anomaly)
     
 #end of class n_data_funcs
+
+def get_idir_from_experimet_json(json_idir,json_file,experiment):
+  '''
+  This code resides in cafepp but the input directory needs to be determined at a higher level, so
+  have created this function, I have cut back the keys to search as only need a few.
+  '''
+  import inspect
+  import json
+  import sys
+  import re
+  import os
+  import socket
+
+  fh_printfile=sys.stdout
+  hostname=socket.gethostname()
+  
+  uncomment_json(json_idir+'/'+json_file,json_file,True)
+  cafepp_experiments_fh=open(json_file).read()
+  cafepp_experiments_data=json.loads(cafepp_experiments_fh)
+  top_level_keys=cafepp_experiments_data.keys()
+  cafepp_experiment_found=False
+  for key_now in cafepp_experiments_data.iteritems():
+    key_now0=key_now[0]
+    if(key_now0==experiment):
+      cafepp_experiment_found=True
+      print("Found required output experiment :",experiment,file=fh_printfile)
+      list_new=(cafepp_experiments_data[key_now0])
+      for l in list_new:
+        if(l=='experiment'): experiment=str(list_new[l])
+
+        elif(l=='storage_machine_no1'): storage_machine_no1=str(list_new[l])
+        elif(l=='top_directory_no1'): top_directory_no1=str(list_new[l])
+        elif(l=='active_disk_no1'): active_disk_no1=str(list_new[l])
+
+        elif(l=='storage_machine_no2'): storage_machine_no2=str(list_new[l])
+        elif(l=='top_directory_no2'): top_directory_no2=str(list_new[l])
+        elif(l=='active_disk_no2'): active_disk_no2=str(list_new[l])
+
+        elif(l=='storage_machine_no3'): storage_machine_no3=str(list_new[l])
+        elif(l=='top_directory_no3'): top_directory_no3=str(list_new[l])
+        elif(l=='active_disk_no3'): active_disk_no3=str(list_new[l])
+
+        elif(l=='storage_machine_no4'): storage_machine_no4=str(list_new[l])
+        elif(l=='top_directory_no4'): top_directory_no4=str(list_new[l])
+        elif(l=='active_disk_no4'): active_disk_no4=str(list_new[l])
+
+        #else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    else:
+      pass
+
+  if 'storage_machine_no1' in locals() and active_disk_no1=='yes':
+    storage_machine_no1_split=storage_machine_no1.split('.')
+    if re.match(storage_machine_no1_split[0],hostname):
+      idir=top_directory_no1
+
+  if 'storage_machine_no2' in locals() and active_disk_no2=='yes':
+    storage_machine_no2_split=storage_machine_no2.split('.')
+    if re.match(storage_machine_no2_split[0],hostname):
+      idir=top_directory_no2
+
+  if 'storage_machine_no3' in locals() and active_disk_no3=='yes':
+    storage_machine_no3_split=storage_machine_no3.split('.')
+    if re.match(storage_machine_no3_split[0],hostname):
+      idir=top_directory_no3
+
+  if 'storage_machine_no4' in locals() and active_disk_no4=='yes':
+    storage_machine_no4_split=storage_machine_no4.split('.')
+    if re.match(storage_machine_no4[0],hostname):
+      idir=top_directory_no4
+
+  if not 'idir' in locals():
+    raise SystemExit('Could not determine input directory, idir ',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if not os.path.exists(idir):
+    raise SystemExit('Physical input directory specified does not exist, file:'+__file__+' line number: '+str(inspect.stack()[0][2]))    
+
+  return(idir) #end of get_idir_from_experimet_json
+
+def plot_xy(**kwargs):
+  '''
+  plot x-y e.g. time-series from dataset containing all xy-series...
+  
+  input_data,input_xvals:
+  
+  1. are tuples so for single series need
+  (data,)
+  otherwise
+  (data1,data2) or (data1,data2,)
+  2. they need to have the same (tuple) length
+  tuples
+  3. this will allow time-series of different underlying x-values to be overlaid.
+
+  4. e.g.'s
+
+  input_data=(ncepr1_nino_annual_anomaly[:,0], ncepr1_nino_annual_anomaly[:,1], ncepr1_nino_annual_anomaly[:,2],)
+  input_data=(ncepr1_nino_annual_anomaly[:,0],)
+
+  input_data=(ncepr1_nino_annual_anomaly[:,0],) + (ncepr1_nino_annual_anomaly[:,1],)
+  input_xvals=(ncepr1_file_var.year_fraction_anomaly,) + (ncepr1_file_var.year_fraction_anomaly,)
+
+  input_xval=ncepr1_file_var.year_fraction_anomaly
+  input_datas,input_xvals = (),()
+  for n in range(0,4):
+    input_datas = input_datas + (ncepr1_nino_annual_anomaly[:,n],)
+    input_xvals = input_xvals + (input_xval,)
+
+  5. currently option zero might be inadequate as it uses last item of tuple to generate, might want to make it based on min and max of all time-series.
+
+
+  6. fill between. Will look through array and plot single curve for single numbers and plot between two x-series for pairs of numbers...
+  
+  '''
+  import matplotlib.pyplot as plt
+  import inspect
+  import numpy as np
+
+  input_datas=input_xvals=reverse_xaxis=reverse_yaxis=title=units=xysize=xlab=ylab=grid=xticks=yticks=xlim=ylim= \
+    line_colors=line_alphas=fill_between=line_labels=legend_title=None
+  Diag=zero1=zero2=False
+  x_lab_rotation='horizontal'
+  y_lab_rotation='horizontal'
+  legend_position='lower right'
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      Diag=bool(value)
+      print('Diag=',Diag)
+      if(Diag): print('plot_xy: Diagnostics turned on.')
+    elif(key=='input_data'):
+      if(Diag): print('Inputing input_datas.')
+      input_datas=value
+    elif(key=='input_xvals'):
+      if(Diag): print('Inputing input_xvals.')
+      input_xvals=value
+    elif(key=='reverse_xaxis'):
+      reverse_xaxis=bool(value)    
+      if(Diag and reverse_xaxis): print('Reversing y-axis.')
+    elif(key=='reverse_yaxis'):
+      reverse_yaxis=bool(value)
+      if(Diag and reverse_yaxis): print('Reversing y-axis.')
+    elif(key=='title'):
+      if(Diag): print('Inputing title.')
+      title=value
+    elif(key=='units'):
+      if(Diag): print('Inputing units.')
+      units=value
+    elif(key=='xysize'):
+      if(Diag): print('Inputing xsize,ysize.')
+      xsize,ysize=value
+    elif(key=='xlab'):
+      if(Diag): print('Adding xlabel.')
+      xlab=value
+    elif(key=='ylab'):
+      if(Diag): print('Adding ylabel.')
+      ylab=value 
+    elif(key=='zero1'):
+      zero1=bool(value)
+      if(Diag and zero1): print('Adding zero line over input time-axis.')
+    elif(key=='zero2'):
+      zero2=bool(value)
+      if(Diag and zero2): print('Adding zero line over min/max of input datas.')
+    elif(key=='grid'):
+      grid=bool(value)
+      if(Diag and grid): print('Adding grid.')
+    elif(key=='xticks'):
+      xticks=value
+      if(Diag and type(xticks)!=type(None)): print('Adding own xticks.')
+    elif(key=='yticks'):
+      yticks=value
+      if(Diag and type(yticks)!=type(None)): print('Adding own yticks.')
+    elif(key=='x_lab_rotation'):
+      x_lab_rotation=value
+      if(Diag): print('Rotating x labels.')
+    elif(key=='y_lab_rotation'):
+      y_lab_rotation=value
+      if(Diag): print('Rotating y labels.')
+    elif(key=='xlim'):
+      xlim=value
+    elif(key=='ylim'):
+      ylim=value
+    elif(key=='line_colors'):
+      line_colors=value
+    elif(key=='line_alphas'):
+      line_alphas=value
+    elif(key=='line_labels'):
+      line_labels=value
+    elif(key=='fill_between'):
+      fill_between=value
+    elif(key=='legend_position'):
+      legend_position=value
+    elif(key=='legend_title'):
+      if(Diag): print('Inputing legend title.')
+      legend_title=value
+    else:
+      raise SystemExit('plot_xy: option '+key+' not known:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if(type(input_datas)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  if(type(input_xvals)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  if(['best','upper right','upper left','lower left','lower right','right','center left','center right','lower center','upper center','center']. \
+    index(legend_position)<0):
+    raise SystemExit('plot_xy: legend_position='+legend_position+' not valid.'+ \
+      str(len(input_datas))+' '+str(len(input_xvals))+':'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  fig,ax=plt.subplots()
+  fig.set_size_inches(18.5, 10.5)
+
+  if(zero2):
+    xval_min,xval_max=np.array([1e20]),np.array([-1e20])
+
+  if(len(input_datas)!=len(input_xvals)):
+    raise SystemExit('plot_xy: input_datas and input_xvals need to have same (tuple) length currently '+ \
+      str(len(input_datas))+' '+str(len(input_xvals))+':'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  if(len(input_datas)==1):
+    if(Diag): print('plot_xy: one set of data.')
+    input_data_tmp=input_datas
+    input_data=input_data_tmp[0]
+    input_xval=input_xvals[0]
+    ax.plot(input_xval, input_data)
+    if(zero2):
+      find_min=np.zeros(input_xval.size+1)
+      find_min[0:input_xval.size]=input_xval 
+      find_min[input_xval.size]=xval_min
+      xval_min=np.min(find_min)
+
+      find_max=np.zeros(input_xval.size+1)
+      find_max[0:input_xval.size]=input_xval 
+      find_max[input_xval.size]=xval_max
+      xval_max=np.max(find_max)
+      if(Diag): print('plot_xy: xval_min,max=',xval_min,xval_max)
+  else: # >1 lines to plot.
+    if(Diag): print('plot_xy: many sets of data.')
+
+    if(type(fill_between)!=type(None)):
+
+      if(Diag): print('line_colors=',line_colors)
+
+      if(Diag): print('plot_xy: fill_between=',fill_between)
+      #perform various integrity checks on fill_between list.
+      if(Diag): print('len(fill_between)=',len(fill_between))
+      unique=list(set(fill_between))
+      if(Diag): print('plot_xy: unique :',unique)
+
+      vector=[]
+      for count,series in enumerate(range(len(unique))):
+        vector.append([index for index, value in enumerate(fill_between) if value==series])
+        if(Diag): print(vector[count])
+        if(len(vector[count])>2):
+          raise SystemExit('plot_xy: Must be 1 or 2 curves per plot using fill_between '+ \
+            ':'+__file__+' line number: '+str(inspect.stack()[0][2]))
+          
+      if(type(line_colors)==type(None)):
+        line_colors = []
+        for cnt in range(len(vector)):
+          line_colors.append('black')
+          
+      if(type(line_alphas)==type(None)):
+        line_colors = []
+        for cnt in range(len(vector)):
+          line_alphas.append(0.7)   
+          
+      if(type(line_labels)==type(None)):
+        line_labels = []
+        for cnt in range(len(vector)):
+          line_labels.append(str(cnt))  
+          
+      if(Diag): print('vector=',vector)
+      for series in range(len(vector)):
+        if(Diag): print('series,vector=',series,vector[series])
+
+        if(len(vector[series])==1):
+          if(Diag): print('Plotting 1 line.')
+          if(Diag): print('int(vector[series])=',int(vector[series][0]))
+          plot_element=int(vector[series][0])
+          input_data=input_datas[plot_element]
+          input_xval=input_xvals[plot_element]
+          ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+        else:
+          if(Diag): print('Plotting filled area between 2 lines.')
+
+          plot_element=int(vector[series][0])
+          input_data1=input_datas[plot_element]
+          input_xval1=input_xvals[plot_element]
+
+          plot_element=int(vector[series][1])
+          input_data2=input_datas[plot_element]
+          input_xval2=input_xvals[plot_element]
+          ax.fill_between(input_xval1, input_data1, input_data2, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+
+    else:
+      
+      if(type(line_colors)==type(None)):
+        line_colors = []
+        for cnt in range(len(input_datas)):
+          line_colors.append('black')
+          
+      if(type(line_alphas)==type(None)):
+        line_alphas = []
+        for cnt in range(len(input_datas)):
+          line_alphas.append(0.7)
+          
+      if(type(line_labels)==type(None)):
+        line_labels = []
+        for cnt in range(len(input_datas)):
+          line_labels.append(str(cnt)) 
+
+      for series in range(0,len(input_datas)):
+        input_data=input_datas[series]
+        input_xval=input_xvals[series]
+        ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+        if(zero2):
+          find_min=np.zeros(input_xval.size+1)
+          find_min[0:input_xval.size]=input_xval 
+          find_min[input_xval.size]=xval_min
+          xval_min=np.min(find_min)
+
+          find_max=np.zeros(input_xval.size+1)
+          find_max[0:input_xval.size]=input_xval 
+          find_max[input_xval.size]=xval_max
+          xval_max=np.max(find_max)
+          if(Diag): print('plot_xy: series,xval_min,max=',series,xval_min,xval_max)
+    
+  if(zero1):
+    Zero=np.zeros(len(input_xval))
+    ax.plot(input_xval,Zero,color='black')
+
+  if(zero2):
+    Zero=np.zeros(2)
+    ax.plot(np.array([xval_min,xval_max]),Zero,color='black')
+
+  if(type(reverse_xaxis)!=type(None) and reverse_xaxis): plt.gca().invert_xaxis()
+  if(type(reverse_yaxis)!=type(None) and reverse_yaxis): plt.gca().invert_yaxis()
+    
+  if(type(title)!=type(None)):
+    plt.title(title, fontsize=16)
+    
+#     if(type(units)==type(None)):
+#       plt.title(title, fontsize=16)
+#     else:
+#       plt.title(title+' ('+units+')', fontsize=16)
+      
+  if(type(xlab)!=type(None)): plt.xlabel(xlab)
+  if(type(ylab)!=type(None)): plt.ylabel(ylab)
+  if(type(grid)!=type(None)): plt.grid(True,linestyle='-')
+
+  if(type(xticks)!=type(None)):
+    plt.xticks(xticks,rotation=x_lab_rotation)
+  else:
+   xticks=list(plt.xticks()[0])
+   plt.xticks(xticks,rotation=x_lab_rotation)
+
+  if(type(yticks)!=type(None)):
+    plt.yticks(yticks,rotation=y_lab_rotation)
+  else:
+   yticks=list(plt.yticks()[0])
+   plt.yticks(yticks,rotation=y_lab_rotation)
+
+  if(type(xlim)!=type(None)): plt.xlim(xlim)
+  if(type(ylim)!=type(None)): plt.ylim(ylim)
+
+  if(type(legend_title)==type(None)): legend_title=''
+
+  legend=ax.legend(loc=legend_position,shadow=False,fontsize='xx-large',title=legend_title)
+
+  #print('xticks=',plt.xticks())  
+  #print('xticks=',plt.xticks())  
+
+  plt.show()
+
+  return() #end of plot_xy

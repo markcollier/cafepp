@@ -18,8 +18,9 @@ def main(**kwargs):
   rundir_check=cafe_experiment_check = num_months_truncate_check = dvar_check = \
     ybeg_check = yend_check = mbeg_check = mend_check = \
     ybeg_first_check = yend_first_check = mbeg_first_check = mend_first_check = \
-    ebeg_check = eend_check= Noclobber_check = \
+    ebeg_check = eend_check= NoClobber_check = \
     False
+  NoClobber=False
   for key, value in kwargs.iteritems():
     #print("%s = %s" % (key, value))
     if(key=='rundir'):
@@ -159,7 +160,7 @@ def main(**kwargs):
         shutil.move(rundir+'/'+'JsonTemplates/cafepp_experiments_tmp.json',rundir+'/'+'JsonTemplates/cafepp_experiments.json')
 
         test_ok=cafepp.main('cafepp.json')
-        raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   return(0)
 
