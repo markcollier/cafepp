@@ -7044,7 +7044,7 @@ def get_idir_from_experimet_json(json_idir,json_file,experiment):
 
 def plot_xy(**kwargs):
   '''
-  plot x-y e.g. time-series from dataset containing all xy-series...
+  plot x-y e.g. time-series from dataset containing all xy-series...with ability to conveniently modify features/characteristics.
   
   input_data,input_xvals:
   
@@ -7052,8 +7052,10 @@ def plot_xy(**kwargs):
   (data,)
   otherwise
   (data1,data2) or (data1,data2,)
+  
   2. they need to have the same (tuple) length
   tuples
+  
   3. this will allow time-series of different underlying x-values to be overlaid.
 
   4. e.g.'s
@@ -7071,7 +7073,6 @@ def plot_xy(**kwargs):
     input_xvals = input_xvals + (input_xval,)
 
   5. currently option zero might be inadequate as it uses last item of tuple to generate, might want to make it based on min and max of all time-series.
-
 
   6. fill between. Will look through array and plot single curve for single numbers and plot between two x-series for pairs of numbers...
   
@@ -7141,21 +7142,29 @@ def plot_xy(**kwargs):
       if(Diag): print('Rotating y labels.')
     elif(key=='xlim'):
       xlim=value
+      if(Diag): print('Choosing xlim.')
     elif(key=='ylim'):
       ylim=value
+      if(Diag): print('Choosing ylim.')
     elif(key=='line_colors'):
       line_colors=value
+      if(Diag): print('Adding line colors.')
     elif(key=='line_alphas'):
       line_alphas=value
+      if(Diag): print('Adding line alphas.')
     elif(key=='line_labels'):
       line_labels=value
+      if(Diag): print('Adding line labels for legend.')
     elif(key=='fill_between'):
       fill_between=value
+      if(Diag): print('Adding lines with fill between feature.')
     elif(key=='legend_position'):
       legend_position=value
+      if(Diag): print('Choosing legend position.')
     elif(key=='legend_title'):
-      if(Diag): print('Inputing legend title.')
       legend_title=value
+      if(Diag): print('Adding legend title.')
+
     else:
       raise SystemExit('plot_xy: option '+key+' not known:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -7232,19 +7241,19 @@ def plot_xy(**kwargs):
         for cnt in range(len(vector)):
           line_labels.append(str(cnt))  
           
-      if(Diag): print('vector=',vector)
+      if(Diag): print('plot_xy: vector=',vector)
       for series in range(len(vector)):
-        if(Diag): print('series,vector=',series,vector[series])
+        if(Diag): print('plot_xy: series,vector=',series,vector[series])
 
         if(len(vector[series])==1):
-          if(Diag): print('Plotting 1 line.')
-          if(Diag): print('int(vector[series])=',int(vector[series][0]))
+          if(Diag): print('plot_xy: Plotting 1 line.')
+          if(Diag): print('plot_xy: int(vector[series])=',int(vector[series][0]))
           plot_element=int(vector[series][0])
           input_data=input_datas[plot_element]
           input_xval=input_xvals[plot_element]
           ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
         else:
-          if(Diag): print('Plotting filled area between 2 lines.')
+          if(Diag): print('plot_xy: Plotting filled area between 2 lines.')
 
           plot_element=int(vector[series][0])
           input_data1=input_datas[plot_element]
@@ -7301,11 +7310,6 @@ def plot_xy(**kwargs):
     
   if(type(title)!=type(None)):
     plt.title(title, fontsize=16)
-    
-#     if(type(units)==type(None)):
-#       plt.title(title, fontsize=16)
-#     else:
-#       plt.title(title+' ('+units+')', fontsize=16)
       
   if(type(xlab)!=type(None)): plt.xlabel(xlab)
   if(type(ylab)!=type(None)): plt.ylabel(ylab)
