@@ -4651,32 +4651,66 @@ def fractional_year_from_num2date(stamps,calendar):
   import datetime
   import netCDF4
   import numpy as np
-    
-  fraction_year_size=len(stamps)
+
+  Diag=False
+
+  try:
+    dummy=stamps.year
+    fraction_year_size=1
+  except:
+    fraction_year_size=len(stamps)
   #print('fraction_year_size=',fraction_year_size)
   fraction_year=np.zeros(fraction_year_size,dtype=float)
+    
+  if(Diag): print('fractional_year_from_num2date: stamps=',stamps)
+  #print('fractional_year_from_num2date: stamps.year=',stamps.year)
+  #print('fractional_year_from_num2date: type(stamps)=',type(stamps))
+  #print('fractional_year_from_num2date: stamps.shape=',stamps.shape)
+  #print('fractional_year_from_num2date: len(stamps)=',len(stamps))
 
-  for i,stamp in enumerate(stamps):
-    #print(i,stamp)
-    this_year=(stamp.year)
-    this_month=(stamp.month)
-    this_day=(stamp.day)
-    this_hour=(stamp.hour)
+  #for i,stamp in enumerate(stamps):
+  if(fraction_year_size==1):
+    this_year=(stamps.year)
+    this_month=(stamps.month)
+    this_day=(stamps.day)
+    this_hour=(stamps.hour)
     #print('this_hour=',this_hour)
     time_string='days since '+str(this_year)+'-01-01'
-    
+
     time_stamp_beg=datetime.datetime(this_year,1,1) + datetime.timedelta(hours=0.0)
     time_beg=netCDF4.date2num(time_stamp_beg,time_string,calendar)
-    
+
     time_stamp_now=datetime.datetime(this_year,this_month,this_day) + datetime.timedelta(hours=this_hour)
     time_now=netCDF4.date2num(time_stamp_now,time_string,calendar)
-    
+
     time_stamp_end=datetime.datetime(this_year,12,31) + datetime.timedelta(hours=24.0)
     time_end=netCDF4.date2num(time_stamp_end,time_string,calendar)
 
     fraction_of_the_year=(time_now-time_beg)/(time_end+1.0)
-    fraction_year[i]=this_year+fraction_of_the_year
+    fraction_year[0]=this_year+fraction_of_the_year
+  else:
+    for i in range(fraction_year_size):
+      #print(i,stamp)
+      this_year=(stamps[i].year)
+      this_month=(stamps[i].month)
+      this_day=(stamps[i].day)
+      this_hour=(stamps[i].hour)
+      #print('this_hour=',this_hour)
+      time_string='days since '+str(this_year)+'-01-01'
+    
+      time_stamp_beg=datetime.datetime(this_year,1,1) + datetime.timedelta(hours=0.0)
+      time_beg=netCDF4.date2num(time_stamp_beg,time_string,calendar)
+    
+      time_stamp_now=datetime.datetime(this_year,this_month,this_day) + datetime.timedelta(hours=this_hour)
+      time_now=netCDF4.date2num(time_stamp_now,time_string,calendar)
+    
+      time_stamp_end=datetime.datetime(this_year,12,31) + datetime.timedelta(hours=24.0)
+      time_end=netCDF4.date2num(time_stamp_end,time_string,calendar)
 
+      fraction_of_the_year=(time_now-time_beg)/(time_end+1.0)
+      fraction_year[i]=this_year+fraction_of_the_year
+
+  #print('fractional_year_from_num2date: type(fraction_year)=',type(fraction_year))
   return(fraction_year)
 
 def get_daily_indices_for_monthlyave(time,stamp,calendar):
@@ -5521,6 +5555,8 @@ class nino_indices:
       self.indices_i,self.indices_j=[[102,128],[112,144],[86,112],[144,149]], [[44,49],[44,49],[44,49],[42,51]]
     elif(grid_label=='access13'):
       self.indices_i,self.indices_j=[[102,128],[112,144],[86,112],[144,149]], [[44,49],[44,49],[44,49],[42,51]]
+    elif(grid_label=='hadisst'):
+      self.indices_i,self.indices_j=[[189,239],[210,269],[160,209],[270,279]], [[85,94],[85,94],[85,94],[80,99]] #check/fuck
     else:
       raise SystemExit('grid specification unknown:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -5535,6 +5571,406 @@ class nino_indices:
     return(None) #end of class nino_indices
     
 #del(n_data_funcs)
+
+def get_idir_from_experimet_json(json_idir,json_file,experiment):
+  '''
+  This code resides in cafepp but the input directory needs to be determined at a higher level, so
+  have created this function, I have cut back the keys to search as only need a few.
+  '''
+  import inspect
+  import json
+  import sys
+  import re
+  import os
+  import socket
+
+  fh_printfile=sys.stdout
+  hostname=socket.gethostname()
+  
+  uncomment_json(json_idir+'/'+json_file,json_file,True)
+  cafepp_experiments_fh=open(json_file).read()
+  cafepp_experiments_data=json.loads(cafepp_experiments_fh)
+  top_level_keys=cafepp_experiments_data.keys()
+  cafepp_experiment_found=False
+  for key_now in cafepp_experiments_data.iteritems():
+    key_now0=key_now[0]
+    if(key_now0==experiment):
+      cafepp_experiment_found=True
+      print("Found required output experiment :",experiment,file=fh_printfile)
+      list_new=(cafepp_experiments_data[key_now0])
+      for l in list_new:
+        if(l=='experiment'): experiment=str(list_new[l])
+
+        elif(l=='storage_machine_no1'): storage_machine_no1=str(list_new[l])
+        elif(l=='top_directory_no1'): top_directory_no1=str(list_new[l])
+        elif(l=='active_disk_no1'): active_disk_no1=str(list_new[l])
+
+        elif(l=='storage_machine_no2'): storage_machine_no2=str(list_new[l])
+        elif(l=='top_directory_no2'): top_directory_no2=str(list_new[l])
+        elif(l=='active_disk_no2'): active_disk_no2=str(list_new[l])
+
+        elif(l=='storage_machine_no3'): storage_machine_no3=str(list_new[l])
+        elif(l=='top_directory_no3'): top_directory_no3=str(list_new[l])
+        elif(l=='active_disk_no3'): active_disk_no3=str(list_new[l])
+
+        elif(l=='storage_machine_no4'): storage_machine_no4=str(list_new[l])
+        elif(l=='top_directory_no4'): top_directory_no4=str(list_new[l])
+        elif(l=='active_disk_no4'): active_disk_no4=str(list_new[l])
+
+        #else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    else:
+      pass
+
+  if 'storage_machine_no1' in locals() and active_disk_no1=='yes':
+    storage_machine_no1_split=storage_machine_no1.split('.')
+    if re.match(storage_machine_no1_split[0],hostname):
+      idir=top_directory_no1
+
+  if 'storage_machine_no2' in locals() and active_disk_no2=='yes':
+    storage_machine_no2_split=storage_machine_no2.split('.')
+    if re.match(storage_machine_no2_split[0],hostname):
+      idir=top_directory_no2
+
+  if 'storage_machine_no3' in locals() and active_disk_no3=='yes':
+    storage_machine_no3_split=storage_machine_no3.split('.')
+    if re.match(storage_machine_no3_split[0],hostname):
+      idir=top_directory_no3
+
+  if 'storage_machine_no4' in locals() and active_disk_no4=='yes':
+    storage_machine_no4_split=storage_machine_no4.split('.')
+    if re.match(storage_machine_no4[0],hostname):
+      idir=top_directory_no4
+
+  if not 'idir' in locals():
+    raise SystemExit('Could not determine input directory, idir ',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if not os.path.exists(idir):
+    raise SystemExit('Physical input directory specified does not exist, file:'+__file__+' line number: '+str(inspect.stack()[0][2]))    
+
+  return(idir) #end of get_idir_from_experimet_json
+
+def plot_xy(**kwargs):
+  '''
+  plot x-y e.g. time-series from dataset containing all xy-series...with ability to conveniently modify features/characteristics.
+  
+  input_data,input_xvals:
+  
+  1. are tuples so for single series need
+  (data,)
+  otherwise
+  (data1,data2) or (data1,data2,)
+  
+  2. they need to have the same (tuple) length
+  tuples
+  
+  3. this will allow time-series of different underlying x-values to be overlaid.
+
+  4. e.g.'s
+
+  input_data=(ncepr1_nino_annual_anomaly[:,0], ncepr1_nino_annual_anomaly[:,1], ncepr1_nino_annual_anomaly[:,2],)
+  input_data=(ncepr1_nino_annual_anomaly[:,0],)
+
+  input_data=(ncepr1_nino_annual_anomaly[:,0],) + (ncepr1_nino_annual_anomaly[:,1],)
+  input_xvals=(ncepr1_file_var.year_fraction_anomaly,) + (ncepr1_file_var.year_fraction_anomaly,)
+
+  input_xval=ncepr1_file_var.year_fraction_anomaly
+  input_datas,input_xvals = (),()
+  for n in range(0,4):
+    input_datas = input_datas + (ncepr1_nino_annual_anomaly[:,n],)
+    input_xvals = input_xvals + (input_xval,)
+
+  5. currently option zero might be inadequate as it uses last item of tuple to generate, might want to make it based on min and max of all time-series.
+
+  6. fill between. Will look through array and plot single curve for single numbers and plot between two x-series for pairs of numbers...
+  
+  '''
+  import matplotlib.pyplot as plt
+  import inspect
+  import numpy as np
+
+  input_datas=input_xvals=reverse_xaxis=reverse_yaxis=title=units=xysize=xlab=ylab=grid=xticks=yticks=xlim=ylim= \
+    line_colors=line_alphas=fill_between=line_labels=legend_title=legend_item_reorder=None
+  Diag=zero1=zero2=False
+  x_lab_rotation='horizontal'
+  y_lab_rotation='horizontal'
+  legend_position='lower right'
+  xsize,ysize=6.0,4.0
+  legend_fontsize='xx-large'
+  legend_off=False
+  
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      Diag=bool(value)
+      #if(Diag): print('Diag=',Diag)
+      if(Diag): print('plot_xy: Diagnostics turned on.')
+    elif(key=='input_data'):
+      if(Diag): print('Inputing input_datas.')
+      input_datas=value
+    elif(key=='input_xvals'):
+      if(Diag): print('Inputing input_xvals.')
+      input_xvals=value
+    elif(key=='reverse_xaxis'):
+      reverse_xaxis=bool(value)    
+      if(Diag and reverse_xaxis): print('Reversing y-axis.')
+    elif(key=='reverse_yaxis'):
+      reverse_yaxis=bool(value)
+      if(Diag and reverse_yaxis): print('Reversing y-axis.')
+    elif(key=='title'):
+      if(Diag): print('Inputing title.')
+      title=value
+    elif(key=='units'):
+      if(Diag): print('Inputing units.')
+      units=value
+    elif(key=='xysize'):
+      if(Diag): print('Inputing xsize,ysize.')
+      xsize,ysize=value
+    elif(key=='xlab'):
+      if(Diag): print('Adding xlabel.')
+      xlab=value
+    elif(key=='ylab'):
+      if(Diag): print('Adding ylabel.')
+      ylab=value 
+    elif(key=='zero1'):
+      zero1=bool(value)
+      if(Diag and zero1): print('Adding zero line over input time-axis.')
+    elif(key=='zero2'):
+      zero2=bool(value)
+      if(Diag and zero2): print('Adding zero line over min/max of input datas.')
+    elif(key=='grid'):
+      grid=bool(value)
+      if(Diag and grid): print('Adding grid.')
+    elif(key=='xticks'):
+      xticks=value
+      if(Diag and type(xticks)!=type(None)): print('Adding own xticks.')
+    elif(key=='yticks'):
+      yticks=value
+      if(Diag and type(yticks)!=type(None)): print('Adding own yticks.')
+    elif(key=='x_lab_rotation'):
+      x_lab_rotation=value
+      if(Diag): print('Rotating x labels.')
+    elif(key=='y_lab_rotation'):
+      y_lab_rotation=value
+      if(Diag): print('Rotating y labels.')
+    elif(key=='xlim'):
+      xlim=value
+      if(Diag): print('Choosing xlim.')
+    elif(key=='ylim'):
+      ylim=value
+      if(Diag): print('Choosing ylim.')
+    elif(key=='line_colors'):
+      line_colors=value
+      if(Diag): print('Adding line colors.')
+    elif(key=='line_alphas'):
+      line_alphas=value
+      if(Diag): print('Adding line alphas.')
+    elif(key=='line_labels'):
+      line_labels=value
+      if(Diag): print('Adding line labels for legend.')
+    elif(key=='fill_between'):
+      fill_between=value
+      if(Diag): print('Adding lines with fill between feature.')
+    elif(key=='legend_position'):
+      legend_position=value
+      if(Diag): print('Choosing legend position.')
+    elif(key=='legend_title'):
+      legend_title=value
+      if(Diag): print('Adding legend title.')
+    elif(key=='legend_fontsize'):
+      legend_fontsize=value
+      if(Diag): print('Changing legend fontsize.')
+    elif(key=='legend_off'):
+      legend_off=bool(value)
+      if(Diag and legend_off): print('Removing legend.')
+    elif(key=='legend_item_reorder'):
+      legend_item_reorder=value
+      if(Diag): print('Reordering legend items.')        
+    else:
+      raise SystemExit('plot_xy: option '+key+' not known:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if(type(input_datas)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  if(type(input_xvals)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  if(['best','upper right','upper left','lower left','lower right','right','center left','center right','lower center','upper center','center']. \
+    index(legend_position)<0):
+    raise SystemExit('plot_xy: legend_position='+legend_position+' not valid.'+ \
+      str(len(input_datas))+' '+str(len(input_xvals))+':'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  fig,ax=plt.subplots()
+  fig.set_size_inches(xsize, ysize)
+
+  if(zero2):
+    xval_min,xval_max=np.array([1e20]),np.array([-1e20])
+
+  if(len(input_datas)!=len(input_xvals)):
+    raise SystemExit('plot_xy: input_datas and input_xvals need to have same (tuple) length currently '+ \
+      str(len(input_datas))+' '+str(len(input_xvals))+':'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  if(len(input_datas)==1):
+    if(Diag): print('plot_xy: one set of data.')
+    input_data_tmp=input_datas
+    input_data=input_data_tmp[0]
+    input_xval=input_xvals[0]
+    ax.plot(input_xval, input_data)
+    if(zero2):
+      find_min=np.zeros(input_xval.size+1)
+      find_min[0:input_xval.size]=input_xval 
+      find_min[input_xval.size]=xval_min
+      xval_min=np.min(find_min)
+
+      find_max=np.zeros(input_xval.size+1)
+      find_max[0:input_xval.size]=input_xval 
+      find_max[input_xval.size]=xval_max
+      xval_max=np.max(find_max)
+      if(Diag): print('plot_xy: xval_min,max=',xval_min,xval_max)
+  else: # >1 lines to plot.
+    if(Diag): print('plot_xy: many sets of data.')
+
+    if(type(fill_between)!=type(None)):
+
+      if(Diag): print('line_colors=',line_colors)
+
+      if(Diag): print('plot_xy: fill_between=',fill_between)
+      #perform various integrity checks on fill_between list.
+      if(Diag): print('len(fill_between)=',len(fill_between))
+      unique=list(set(fill_between))
+      if(Diag): print('plot_xy: unique :',unique)
+
+      vector=[]
+      for count,series in enumerate(range(len(unique))):
+        vector.append([index for index, value in enumerate(fill_between) if value==series])
+        if(Diag): print(vector[count])
+        if(len(vector[count])>2):
+          raise SystemExit('plot_xy: Must be 1 or 2 curves per plot using fill_between '+ \
+            ':'+__file__+' line number: '+str(inspect.stack()[0][2]))
+          
+      if(type(line_colors)==type(None)):
+        line_colors = []
+        for cnt in range(len(vector)):
+          line_colors.append('black')
+          
+      if(type(line_alphas)==type(None)):
+        line_colors = []
+        for cnt in range(len(vector)):
+          line_alphas.append(0.7)   
+          
+      if(type(line_labels)==type(None)):
+        line_labels = []
+        for cnt in range(len(vector)):
+          line_labels.append(str(cnt))  
+          
+      if(Diag): print('plot_xy: vector=',vector)
+      for series in range(len(vector)):
+        if(Diag): print('plot_xy: series,vector=',series,vector[series])
+
+        if(len(vector[series])==1):
+          if(Diag): print('plot_xy: Plotting 1 line.')
+          if(Diag): print('plot_xy: int(vector[series])=',int(vector[series][0]))
+          plot_element=int(vector[series][0])
+          input_data=input_datas[plot_element]
+          input_xval=input_xvals[plot_element]
+          ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+        else:
+          if(Diag): print('plot_xy: Plotting filled area between 2 lines.')
+
+          plot_element=int(vector[series][0])
+          input_data1=input_datas[plot_element]
+          input_xval1=input_xvals[plot_element]
+
+          plot_element=int(vector[series][1])
+          input_data2=input_datas[plot_element]
+          input_xval2=input_xvals[plot_element]
+          ax.fill_between(input_xval1, input_data1, input_data2, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+
+    else:
+      
+      if(type(line_colors)==type(None)):
+        line_colors = []
+        for cnt in range(len(input_datas)):
+          line_colors.append('black')
+          
+      if(type(line_alphas)==type(None)):
+        line_alphas = []
+        for cnt in range(len(input_datas)):
+          line_alphas.append(0.7)
+          
+      if(type(line_labels)==type(None)):
+        line_labels = []
+        for cnt in range(len(input_datas)):
+          line_labels.append(str(cnt)) 
+
+      for series in range(0,len(input_datas)):
+        input_data=input_datas[series]
+        input_xval=input_xvals[series]
+        ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+        if(zero2):
+          find_min=np.zeros(input_xval.size+1)
+          find_min[0:input_xval.size]=input_xval 
+          find_min[input_xval.size]=xval_min
+          xval_min=np.min(find_min)
+
+          find_max=np.zeros(input_xval.size+1)
+          find_max[0:input_xval.size]=input_xval 
+          find_max[input_xval.size]=xval_max
+          xval_max=np.max(find_max)
+          if(Diag): print('plot_xy: series,xval_min,max=',series,xval_min,xval_max)
+    
+  if(zero1):
+    Zero=np.zeros(len(input_xval))
+    ax.plot(input_xval,Zero,color='black')
+
+  if(zero2):
+    Zero=np.zeros(2)
+    ax.plot(np.array([xval_min,xval_max]),Zero,color='black')
+
+  if(type(reverse_xaxis)!=type(None) and reverse_xaxis): plt.gca().invert_xaxis()
+  if(type(reverse_yaxis)!=type(None) and reverse_yaxis): plt.gca().invert_yaxis()
+    
+  if(type(title)!=type(None)):
+    plt.title(title, fontsize=16)
+      
+  if(type(xlab)!=type(None)): plt.xlabel(xlab, fontsize=16)
+  if(type(ylab)!=type(None)): plt.ylabel(ylab, fontsize=16)
+  if(type(grid)!=type(None)): plt.grid(True,linestyle='-')
+
+  if(type(xticks)!=type(None)):
+    plt.xticks(xticks,fontsize=16,rotation=x_lab_rotation)
+  else:
+   xticks=list(plt.xticks()[0])
+   plt.xticks(xticks,fontsize=16,rotation=x_lab_rotation)
+
+  if(type(yticks)!=type(None)):
+    plt.yticks(yticks,fontsize=16,rotation=y_lab_rotation)
+  else:
+   yticks=list(plt.yticks()[0])
+   plt.yticks(yticks,fontsize=16,rotation=y_lab_rotation)
+
+  if(type(xlim)!=type(None)): plt.xlim(xlim)
+  if(type(ylim)!=type(None)): plt.ylim(ylim)
+
+  if(type(legend_item_reorder)==type(None)):
+    newhandles, newlabels = ax.get_legend_handles_labels()
+  else:
+    handles, labels = ax.get_legend_handles_labels()
+    #order = [4,2,5,3,1,0]
+    newhandles, newlabels = [handles[idx] for idx in legend_item_reorder],[labels[idx] for idx in legend_item_reorder]
+  
+  if(Diag): print('plot_xy: newhandles=',newhandles)
+  if(Diag): print('plot_xy: newlabels=',newlabels)
+  
+  #plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order])
+  
+  if(type(legend_title)==type(None)): legend_title=''
+
+  if(not legend_off): legend=ax.legend(newhandles, newlabels, loc=legend_position,shadow=False,fontsize=legend_fontsize,title=legend_title)
+
+  #print('xticks=',plt.xticks())  
+  #print('xticks=',plt.xticks())  
+
+  plt.show()
+
+  return() #end of plot_xy
 
 class n_data_funcs:
   '''
@@ -5569,29 +6005,56 @@ class n_data_funcs:
     import itertools
     #self.ensembles=False
     Diag=False
+    dummy_mode=None
     for key, value in kwargs.items():
       if(key=='Diag'):
         Diag=bool(value)
       elif(key=='input_files'):
         input_files=value
+        if(Diag): print('input_files=',input_files)
       elif(key=='input_var_name'):
         input_var_name=value
+        if(Diag): print('input_var_name=',input_var_name)
+      elif(key=='dummy_mode'):
+        dummy_mode=value
+        if(Diag): print('len(dummy_mode)=',len(dummy_mode))
       else:
         raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
-#      if(key=='ensembles'):
-#        ensembles=bool(value)
 
-    self.daily_to_monthly_test=False 
-    self.input_files = input_files
-    self.input_files_flat = list(itertools.chain.from_iterable(input_files))
-    self.input_var_name = input_var_name
+    if(type(input_files)==type(None) or type(input_var_name)==type(None)):
+      if(Diag): print('n_data_funcs.init: Dummy mode...')
+      if(type(dummy_mode)!=type(None)):
+        if(Diag): print('n_data_funcs.init: Get tuple here...')
+        self.daily_to_monthly_test, _dummy_time_stamp, _dummy_num_stamp, _dummy_time_units, _dummy_calendar = dummy_mode
+        #print('n_data_funcs.init: self.daily_to_monthly_test=',self.daily_to_monthly_test)        
+        #print('n_data_funcs.init: _dummy_time_stamp=',_dummy_time_stamp)
+        self.time_tfreq_units = _dummy_time_units
+        self.time_tfreq_calendar = _dummy_calendar
+        if(self.daily_to_monthly_test):
+          self.date_time_stamp_monthly = _dummy_time_stamp
+          self.num_stamp_monthly = _dummy_num_stamp #this comes from daily_to_monthly function
+        else:
+          self.date_time_stamp_tfreq =_dummy_time_stamp
+          self.time_tfreq = _dummy_num_stamp
+      else:
+         raise SystemExit('n_data_funcs.init dummy_mode:'+__file__+' line number: '+str(inspect.stack()[0][2]))               
+    else:
+      self.daily_to_monthly_test=False 
+      self.input_files = input_files
+      self.input_files_flat = list(itertools.chain.from_iterable(input_files))
+      self.input_var_name = input_var_name
+      if(len(self.input_files)==1):
+        print('n_data_funcs.init: no ensembles in this example.')
+      elif(len(self.input_files)>1):
+        print('n_data_funcs.init: ensembles in this example.')
+      else:
+        raise SystemExit('n_data_funcs.init issue with ensembles check:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
+
     #self.ensembles=True
-    
     #self.rad = 4.0*math.atan(1.0)/180.0
 #  for sublist in cafe_files:
 #      for item in sublist:
 #        cafe_files_flat.append(item)      
-    #
     #setattr(self, input_files, input_files)
     #setattr(self, input_var_name, input_var_name)
     #print('len(input_files)=',len(input_files))
@@ -5600,21 +6063,10 @@ class n_data_funcs:
     #self.input_files = []
     #self.input_files_flat=[item for sublist in input_files for item in sublist]
     #self.nmy = 12
-
-    if(len(self.input_files)==1):
-      print('n_data_funcs.init: no ensembles in this example.')
-    elif(len(self.input_files)>1):
-      print('n_data_funcs.init: ensembles in this example.')
-    else:
-      raise SystemExit('n_data_funcs.init issue with ensembles check:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
-      
     #if(len(self.input_files)!=)
 #    print('self.input_files=',self.input_files)
-
 #    print('len(self.input_files)=',len(self.input_files))
-
 #    print('self.input_files_flat=',self.input_files_flat)
-
 #    print('len(self.input_files_flat)=',len(self.input_files_flat))
   
   def calculate_filedatetime_info_multiforc(self,nino,**kwargs):
@@ -6476,6 +6928,7 @@ class n_data_funcs:
         
     if(not timesep_check):
       print('daily_monthly_indices_info: Setting to default timesep: 1')
+      timesep=1
       
     #print('timesep=',timesep)
     
@@ -6495,7 +6948,6 @@ class n_data_funcs:
         self.daily_day_beg,self.daily_day_end, \
         self.beg_month_partial,self.end_month_partial = \
         generate_daily_month_indices(self.date_time_stamp_tfreq,self.time_tfreq_units,self.time_tfreq_calendar,timesep)      
-      
     #print('self.daily_month_indice_beg=',self.daily_month_indice_beg)
     #print('self.daily_month_indice_end=',self.daily_month_indice_end)
     #print('self.date_time_stamp_tfreq[0]=',self.date_time_stamp_tfreq[0])
@@ -6634,6 +7086,7 @@ class n_data_funcs:
     
     '''
     ClimOnly=AnomOnly=AnnOut=ZeroClim=Diag=False
+    monthly_climatology=None
     for key, value in kwargs.items():
       if(key=='Diag'):
         Diag=bool(value)
@@ -6651,13 +7104,13 @@ class n_data_funcs:
         aend=int(value)
       elif(key=='ClimOnly'):
         ClimOnly=bool(value)
-        print('monthly_clim_anom: Climatologies only.')
+        if(Diag and ClimOnly): print('monthly_clim_anom: Climatologies only.')
       elif(key=='AnomOnly'):
         AnomOnly=bool(value)
-        print('monthly_clim_anom: Anomalies only.')
+        if(Diag and AnomOnly): print('monthly_clim_anom: Anomalies only.')
       elif(key=='AnnOut'):
         AnnOut=bool(value)
-        print('monthly_clim_anom: Produce annual output rather than monthly.')
+        if(Diag and AnnOut): print('monthly_clim_anom: Produce annual output rather than monthly.')
       elif(key=='clim'):
         monthly_climatology=self.monthly_climatology=value
         AnomOnly=True
@@ -6687,14 +7140,18 @@ class n_data_funcs:
     try:
       if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
         ybeg=self.date_time_stamp_monthly[0][0].year
+        if(Diag): print('monthly_clim_anom: aaa')
       else:
         ybeg=self.date_time_stamp_monthly[0].year
+        if(Diag): print('monthly_clim_anom: bbb')
     except AttributeError:
       #ybeg=self.date_time_stamp_tfreq[0].year
       if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
         ybeg=self.date_time_stamp_tfreq[0][0].year
+        if(Diag): print('monthly_clim_anom: ccc')
       else:
         ybeg=self.date_time_stamp_tfreq[0].year
+        if(Diag): print('monthly_clim_anom: ddd')
       
     try:
       if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
@@ -6806,10 +7263,17 @@ class n_data_funcs:
       
       input_full=input.copy()
       
-      if(self.nfiles>1):
-        year_fraction_monthly_full=self.year_fraction_tfreq[0].copy()
+      if(self.daily_to_monthly_test):
+        year_fraction_monthly_full=self.date_time_stamp_monthly.copy()
       else:
-        year_fraction_monthly_full=self.year_fraction_tfreq.copy()
+        if(self.nfiles>1):
+          year_fraction_monthly_full=self.year_fraction_tfreq[0].copy()
+        else:
+          year_fraction_monthly_full=self.year_fraction_tfreq.copy()
+
+    #print('fuck')
+
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if('cbeg' not in locals()): #assign to full series.
       cbeg=ybeg
@@ -6874,14 +7338,14 @@ class n_data_funcs:
         
     if(Diag): print('monthly_clim_anom: to_shape_monthly=',to_shape_monthly)
     
-    if('monthly_climatology' not in locals()):
+#    if('monthly_climatology' not in locals()):
+    if(type(monthly_climatology)==type(None)):
       monthly_data_reshaped=np.reshape(input_full[icbeg:icend+1,],to_shape_monthly)
       self.monthly_climatology = np.average(monthly_data_reshaped,axis=0)
 
-    try:
+    if(self.daily_to_monthly_test):
       self.num_stamp_climatology = np.average(np.reshape(self.num_stamp_monthly[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #gone through daily to monthly function.
-    except:
-      
+    else:
       if(self.nfiles>1):
         self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[0][icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
       else:
@@ -6891,7 +7355,7 @@ class n_data_funcs:
       self.num_stamp_climatology = np.average(self.num_stamp_climatology,weights=self.days_in_month)
     self.date_time_stamp_climatology=netCDF4.num2date(self.num_stamp_climatology,self.time_tfreq_units,self.time_tfreq_calendar)
 
-    if(Diag): print('self.date_time_stamp_climatology=',self.date_time_stamp_climatology)
+    #if(Diag): print('self.date_time_stamp_climatology=',self.date_time_stamp_climatology)
 
     self.year_fraction_climatology=fractional_year_from_num2date(self.date_time_stamp_climatology,self.time_tfreq_calendar) #fuck
     
@@ -6927,13 +7391,9 @@ class n_data_funcs:
 
     if(Diag): print('monthly_clim_anom: self.monthly_anomaly.shape=',self.monthly_anomaly.shape)
       
-    try:
-      if(self.nfiles>1):
-        self.num_stamp_anomaly = self.num_stamp_monthly[0][iabeg:iaend+1] #gone through daily to monthly function.
-      else:
-        self.num_stamp_anomaly = self.num_stamp_monthly[iabeg:iaend+1] #gone through daily to monthly function.
-    except:
-      #self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
+    if(self.daily_to_monthly_test):
+      self.num_stamp_anomaly = self.num_stamp_monthly[iabeg:iaend+1] #gone through daily to monthly function.      
+    else:
       if(self.nfiles>1):
         self.num_stamp_anomaly = self.time_tfreq[0][iabeg:iaend+1] #original monthly inputs.
       else:
@@ -6964,379 +7424,3 @@ class n_data_funcs:
       return(self.monthly_climatology,self.monthly_anomaly)
     
 #end of class n_data_funcs
-
-def get_idir_from_experimet_json(json_idir,json_file,experiment):
-  '''
-  This code resides in cafepp but the input directory needs to be determined at a higher level, so
-  have created this function, I have cut back the keys to search as only need a few.
-  '''
-  import inspect
-  import json
-  import sys
-  import re
-  import os
-  import socket
-
-  fh_printfile=sys.stdout
-  hostname=socket.gethostname()
-  
-  uncomment_json(json_idir+'/'+json_file,json_file,True)
-  cafepp_experiments_fh=open(json_file).read()
-  cafepp_experiments_data=json.loads(cafepp_experiments_fh)
-  top_level_keys=cafepp_experiments_data.keys()
-  cafepp_experiment_found=False
-  for key_now in cafepp_experiments_data.iteritems():
-    key_now0=key_now[0]
-    if(key_now0==experiment):
-      cafepp_experiment_found=True
-      print("Found required output experiment :",experiment,file=fh_printfile)
-      list_new=(cafepp_experiments_data[key_now0])
-      for l in list_new:
-        if(l=='experiment'): experiment=str(list_new[l])
-
-        elif(l=='storage_machine_no1'): storage_machine_no1=str(list_new[l])
-        elif(l=='top_directory_no1'): top_directory_no1=str(list_new[l])
-        elif(l=='active_disk_no1'): active_disk_no1=str(list_new[l])
-
-        elif(l=='storage_machine_no2'): storage_machine_no2=str(list_new[l])
-        elif(l=='top_directory_no2'): top_directory_no2=str(list_new[l])
-        elif(l=='active_disk_no2'): active_disk_no2=str(list_new[l])
-
-        elif(l=='storage_machine_no3'): storage_machine_no3=str(list_new[l])
-        elif(l=='top_directory_no3'): top_directory_no3=str(list_new[l])
-        elif(l=='active_disk_no3'): active_disk_no3=str(list_new[l])
-
-        elif(l=='storage_machine_no4'): storage_machine_no4=str(list_new[l])
-        elif(l=='top_directory_no4'): top_directory_no4=str(list_new[l])
-        elif(l=='active_disk_no4'): active_disk_no4=str(list_new[l])
-
-        #else: raise SystemExit('Unknown variable metadata',l,' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    else:
-      pass
-
-  if 'storage_machine_no1' in locals() and active_disk_no1=='yes':
-    storage_machine_no1_split=storage_machine_no1.split('.')
-    if re.match(storage_machine_no1_split[0],hostname):
-      idir=top_directory_no1
-
-  if 'storage_machine_no2' in locals() and active_disk_no2=='yes':
-    storage_machine_no2_split=storage_machine_no2.split('.')
-    if re.match(storage_machine_no2_split[0],hostname):
-      idir=top_directory_no2
-
-  if 'storage_machine_no3' in locals() and active_disk_no3=='yes':
-    storage_machine_no3_split=storage_machine_no3.split('.')
-    if re.match(storage_machine_no3_split[0],hostname):
-      idir=top_directory_no3
-
-  if 'storage_machine_no4' in locals() and active_disk_no4=='yes':
-    storage_machine_no4_split=storage_machine_no4.split('.')
-    if re.match(storage_machine_no4[0],hostname):
-      idir=top_directory_no4
-
-  if not 'idir' in locals():
-    raise SystemExit('Could not determine input directory, idir ',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-
-  if not os.path.exists(idir):
-    raise SystemExit('Physical input directory specified does not exist, file:'+__file__+' line number: '+str(inspect.stack()[0][2]))    
-
-  return(idir) #end of get_idir_from_experimet_json
-
-def plot_xy(**kwargs):
-  '''
-  plot x-y e.g. time-series from dataset containing all xy-series...with ability to conveniently modify features/characteristics.
-  
-  input_data,input_xvals:
-  
-  1. are tuples so for single series need
-  (data,)
-  otherwise
-  (data1,data2) or (data1,data2,)
-  
-  2. they need to have the same (tuple) length
-  tuples
-  
-  3. this will allow time-series of different underlying x-values to be overlaid.
-
-  4. e.g.'s
-
-  input_data=(ncepr1_nino_annual_anomaly[:,0], ncepr1_nino_annual_anomaly[:,1], ncepr1_nino_annual_anomaly[:,2],)
-  input_data=(ncepr1_nino_annual_anomaly[:,0],)
-
-  input_data=(ncepr1_nino_annual_anomaly[:,0],) + (ncepr1_nino_annual_anomaly[:,1],)
-  input_xvals=(ncepr1_file_var.year_fraction_anomaly,) + (ncepr1_file_var.year_fraction_anomaly,)
-
-  input_xval=ncepr1_file_var.year_fraction_anomaly
-  input_datas,input_xvals = (),()
-  for n in range(0,4):
-    input_datas = input_datas + (ncepr1_nino_annual_anomaly[:,n],)
-    input_xvals = input_xvals + (input_xval,)
-
-  5. currently option zero might be inadequate as it uses last item of tuple to generate, might want to make it based on min and max of all time-series.
-
-  6. fill between. Will look through array and plot single curve for single numbers and plot between two x-series for pairs of numbers...
-  
-  '''
-  import matplotlib.pyplot as plt
-  import inspect
-  import numpy as np
-
-  input_datas=input_xvals=reverse_xaxis=reverse_yaxis=title=units=xysize=xlab=ylab=grid=xticks=yticks=xlim=ylim= \
-    line_colors=line_alphas=fill_between=line_labels=legend_title=None
-  Diag=zero1=zero2=False
-  x_lab_rotation='horizontal'
-  y_lab_rotation='horizontal'
-  legend_position='lower right'
-  for key, value in kwargs.items():
-    if(key=='Diag'):
-      Diag=bool(value)
-      print('Diag=',Diag)
-      if(Diag): print('plot_xy: Diagnostics turned on.')
-    elif(key=='input_data'):
-      if(Diag): print('Inputing input_datas.')
-      input_datas=value
-    elif(key=='input_xvals'):
-      if(Diag): print('Inputing input_xvals.')
-      input_xvals=value
-    elif(key=='reverse_xaxis'):
-      reverse_xaxis=bool(value)    
-      if(Diag and reverse_xaxis): print('Reversing y-axis.')
-    elif(key=='reverse_yaxis'):
-      reverse_yaxis=bool(value)
-      if(Diag and reverse_yaxis): print('Reversing y-axis.')
-    elif(key=='title'):
-      if(Diag): print('Inputing title.')
-      title=value
-    elif(key=='units'):
-      if(Diag): print('Inputing units.')
-      units=value
-    elif(key=='xysize'):
-      if(Diag): print('Inputing xsize,ysize.')
-      xsize,ysize=value
-    elif(key=='xlab'):
-      if(Diag): print('Adding xlabel.')
-      xlab=value
-    elif(key=='ylab'):
-      if(Diag): print('Adding ylabel.')
-      ylab=value 
-    elif(key=='zero1'):
-      zero1=bool(value)
-      if(Diag and zero1): print('Adding zero line over input time-axis.')
-    elif(key=='zero2'):
-      zero2=bool(value)
-      if(Diag and zero2): print('Adding zero line over min/max of input datas.')
-    elif(key=='grid'):
-      grid=bool(value)
-      if(Diag and grid): print('Adding grid.')
-    elif(key=='xticks'):
-      xticks=value
-      if(Diag and type(xticks)!=type(None)): print('Adding own xticks.')
-    elif(key=='yticks'):
-      yticks=value
-      if(Diag and type(yticks)!=type(None)): print('Adding own yticks.')
-    elif(key=='x_lab_rotation'):
-      x_lab_rotation=value
-      if(Diag): print('Rotating x labels.')
-    elif(key=='y_lab_rotation'):
-      y_lab_rotation=value
-      if(Diag): print('Rotating y labels.')
-    elif(key=='xlim'):
-      xlim=value
-      if(Diag): print('Choosing xlim.')
-    elif(key=='ylim'):
-      ylim=value
-      if(Diag): print('Choosing ylim.')
-    elif(key=='line_colors'):
-      line_colors=value
-      if(Diag): print('Adding line colors.')
-    elif(key=='line_alphas'):
-      line_alphas=value
-      if(Diag): print('Adding line alphas.')
-    elif(key=='line_labels'):
-      line_labels=value
-      if(Diag): print('Adding line labels for legend.')
-    elif(key=='fill_between'):
-      fill_between=value
-      if(Diag): print('Adding lines with fill between feature.')
-    elif(key=='legend_position'):
-      legend_position=value
-      if(Diag): print('Choosing legend position.')
-    elif(key=='legend_title'):
-      legend_title=value
-      if(Diag): print('Adding legend title.')
-
-    else:
-      raise SystemExit('plot_xy: option '+key+' not known:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-
-  if(type(input_datas)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  if(type(input_xvals)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    
-  if(['best','upper right','upper left','lower left','lower right','right','center left','center right','lower center','upper center','center']. \
-    index(legend_position)<0):
-    raise SystemExit('plot_xy: legend_position='+legend_position+' not valid.'+ \
-      str(len(input_datas))+' '+str(len(input_xvals))+':'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    
-  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    
-  fig,ax=plt.subplots()
-  fig.set_size_inches(18.5, 10.5)
-
-  if(zero2):
-    xval_min,xval_max=np.array([1e20]),np.array([-1e20])
-
-  if(len(input_datas)!=len(input_xvals)):
-    raise SystemExit('plot_xy: input_datas and input_xvals need to have same (tuple) length currently '+ \
-      str(len(input_datas))+' '+str(len(input_xvals))+':'+__file__+' line number: '+str(inspect.stack()[0][2]))
-  
-  if(len(input_datas)==1):
-    if(Diag): print('plot_xy: one set of data.')
-    input_data_tmp=input_datas
-    input_data=input_data_tmp[0]
-    input_xval=input_xvals[0]
-    ax.plot(input_xval, input_data)
-    if(zero2):
-      find_min=np.zeros(input_xval.size+1)
-      find_min[0:input_xval.size]=input_xval 
-      find_min[input_xval.size]=xval_min
-      xval_min=np.min(find_min)
-
-      find_max=np.zeros(input_xval.size+1)
-      find_max[0:input_xval.size]=input_xval 
-      find_max[input_xval.size]=xval_max
-      xval_max=np.max(find_max)
-      if(Diag): print('plot_xy: xval_min,max=',xval_min,xval_max)
-  else: # >1 lines to plot.
-    if(Diag): print('plot_xy: many sets of data.')
-
-    if(type(fill_between)!=type(None)):
-
-      if(Diag): print('line_colors=',line_colors)
-
-      if(Diag): print('plot_xy: fill_between=',fill_between)
-      #perform various integrity checks on fill_between list.
-      if(Diag): print('len(fill_between)=',len(fill_between))
-      unique=list(set(fill_between))
-      if(Diag): print('plot_xy: unique :',unique)
-
-      vector=[]
-      for count,series in enumerate(range(len(unique))):
-        vector.append([index for index, value in enumerate(fill_between) if value==series])
-        if(Diag): print(vector[count])
-        if(len(vector[count])>2):
-          raise SystemExit('plot_xy: Must be 1 or 2 curves per plot using fill_between '+ \
-            ':'+__file__+' line number: '+str(inspect.stack()[0][2]))
-          
-      if(type(line_colors)==type(None)):
-        line_colors = []
-        for cnt in range(len(vector)):
-          line_colors.append('black')
-          
-      if(type(line_alphas)==type(None)):
-        line_colors = []
-        for cnt in range(len(vector)):
-          line_alphas.append(0.7)   
-          
-      if(type(line_labels)==type(None)):
-        line_labels = []
-        for cnt in range(len(vector)):
-          line_labels.append(str(cnt))  
-          
-      if(Diag): print('plot_xy: vector=',vector)
-      for series in range(len(vector)):
-        if(Diag): print('plot_xy: series,vector=',series,vector[series])
-
-        if(len(vector[series])==1):
-          if(Diag): print('plot_xy: Plotting 1 line.')
-          if(Diag): print('plot_xy: int(vector[series])=',int(vector[series][0]))
-          plot_element=int(vector[series][0])
-          input_data=input_datas[plot_element]
-          input_xval=input_xvals[plot_element]
-          ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
-        else:
-          if(Diag): print('plot_xy: Plotting filled area between 2 lines.')
-
-          plot_element=int(vector[series][0])
-          input_data1=input_datas[plot_element]
-          input_xval1=input_xvals[plot_element]
-
-          plot_element=int(vector[series][1])
-          input_data2=input_datas[plot_element]
-          input_xval2=input_xvals[plot_element]
-          ax.fill_between(input_xval1, input_data1, input_data2, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
-
-    else:
-      
-      if(type(line_colors)==type(None)):
-        line_colors = []
-        for cnt in range(len(input_datas)):
-          line_colors.append('black')
-          
-      if(type(line_alphas)==type(None)):
-        line_alphas = []
-        for cnt in range(len(input_datas)):
-          line_alphas.append(0.7)
-          
-      if(type(line_labels)==type(None)):
-        line_labels = []
-        for cnt in range(len(input_datas)):
-          line_labels.append(str(cnt)) 
-
-      for series in range(0,len(input_datas)):
-        input_data=input_datas[series]
-        input_xval=input_xvals[series]
-        ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
-        if(zero2):
-          find_min=np.zeros(input_xval.size+1)
-          find_min[0:input_xval.size]=input_xval 
-          find_min[input_xval.size]=xval_min
-          xval_min=np.min(find_min)
-
-          find_max=np.zeros(input_xval.size+1)
-          find_max[0:input_xval.size]=input_xval 
-          find_max[input_xval.size]=xval_max
-          xval_max=np.max(find_max)
-          if(Diag): print('plot_xy: series,xval_min,max=',series,xval_min,xval_max)
-    
-  if(zero1):
-    Zero=np.zeros(len(input_xval))
-    ax.plot(input_xval,Zero,color='black')
-
-  if(zero2):
-    Zero=np.zeros(2)
-    ax.plot(np.array([xval_min,xval_max]),Zero,color='black')
-
-  if(type(reverse_xaxis)!=type(None) and reverse_xaxis): plt.gca().invert_xaxis()
-  if(type(reverse_yaxis)!=type(None) and reverse_yaxis): plt.gca().invert_yaxis()
-    
-  if(type(title)!=type(None)):
-    plt.title(title, fontsize=16)
-      
-  if(type(xlab)!=type(None)): plt.xlabel(xlab)
-  if(type(ylab)!=type(None)): plt.ylabel(ylab)
-  if(type(grid)!=type(None)): plt.grid(True,linestyle='-')
-
-  if(type(xticks)!=type(None)):
-    plt.xticks(xticks,rotation=x_lab_rotation)
-  else:
-   xticks=list(plt.xticks()[0])
-   plt.xticks(xticks,rotation=x_lab_rotation)
-
-  if(type(yticks)!=type(None)):
-    plt.yticks(yticks,rotation=y_lab_rotation)
-  else:
-   yticks=list(plt.yticks()[0])
-   plt.yticks(yticks,rotation=y_lab_rotation)
-
-  if(type(xlim)!=type(None)): plt.xlim(xlim)
-  if(type(ylim)!=type(None)): plt.ylim(ylim)
-
-  if(type(legend_title)==type(None)): legend_title=''
-
-  legend=ax.legend(loc=legend_position,shadow=False,fontsize='xx-large',title=legend_title)
-
-  #print('xticks=',plt.xticks())  
-  #print('xticks=',plt.xticks())  
-
-  plt.show()
-
-  return() #end of plot_xy

@@ -25,4 +25,4 @@ echo "https://$value:9990/"
 
 conda activate cafepp_27_scipy
 
-jupyter notebook --certfile=mycert.pem --keyfile=mykey.key
+jupyter notebook --certfile=mycert.pem --keyfile=mykey.key &

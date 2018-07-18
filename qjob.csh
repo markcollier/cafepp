@@ -8,6 +8,8 @@
 #PBS -M mark.collier@csiro.au
 #PBS -N analysis
 
+#comment
+
 cd RUNDIR
 
 echo "hello"
