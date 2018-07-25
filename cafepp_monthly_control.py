@@ -16,6 +16,7 @@ def main(**kwargs):
   import cafepp
   import inspect
   import shutil
+  from decadal_diag import get_idir_from_experimet_json
 
   rundir_check=dvar_check=cafe_experiment_check=rundir_check=ybeg_check=yend_check=mbeg_check=mend_check=NoClobber_check=False
   NoClobber=True
@@ -97,14 +98,20 @@ def main(**kwargs):
 
   enow=1
 
-  if(cafe_experiment=='v0'):
-    top_directory_no2='/g/data1/v14/coupled_model/v0/OUTPUT'
-  elif(cafe_experiment=='v1'):
-    top_directory_no2='/g/data1/v14/coupled_model/v1/OUTPUT'
-  elif(cafe_experiment=='v2'):
-    top_directory_no2='/g/data1/v14/coupled_model/v2/OUTPUT'
-  elif(cafe_experiment=='v3'):
-    top_directory_no2='/g/data1/v14/coupled_model/v3/OUTPUT'
+  top_directory_no2=get_idir_from_experimet_json(rundir+'/'+'JsonTemplates','cafepp_experiments.json',cafe_experiment)
+
+#  if(cafe_experiment=='v0'):
+#    top_directory_no2='/g/data1/v14/coupled_model/v0/OUTPUT'
+#  elif(cafe_experiment=='v1'):
+#    top_directory_no2='/g/data1/v14/coupled_model/v1/OUTPUT'
+#  elif(cafe_experiment=='v2'):
+#    top_directory_no2='/g/data1/v14/coupled_model/v2/OUTPUT'
+#  elif(cafe_experiment=='v3'):
+#    top_directory_no2='/g/data1/v14/coupled_model/v3/OUTPUT'
+#  elif(cafe_experiment=='nov17n'):
+#    top_directory_no2='/short/v19/mtc599/ao_am2/nov17n/out23/OUTPUT'
+#  elif(cafe_experiment=='jul18b'):
+#    top_directory_no2='/short/v19/mtc599/ao_am2/jul18b/OUTPUT'
 
   print('Processing cafepp_experiments.json')
   ifh=open(rundir+'/'+'JsonTemplates'+'/'+'cafepp_experiments.json')
