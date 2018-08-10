@@ -1420,6 +1420,7 @@ def main(json_input_instructions):
   #if(realm=='atmos' and (OutputVarStructure=='time_lat_lon' or OutputVarStructure=='time_plev_lat_lon')):
   if(realm=='atmos' and (OutputVarStructure=='time_plev_lat_lon')):
   #dvar=='zg' or dvar=='ua' or dvar=='va' or dvar=='ta' or dvar =='hus' or dvar=='zg700'):
+    print('plev_type=',plev_type)
     zt=input_fhs0.variables[plev_type][:]*100.0
     #if(dvar=='zg'):
     #  zt=input_fhs0.variables['phalf'][:]*100.0

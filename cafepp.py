@@ -392,7 +392,7 @@ def main(json_input_instructions):
     raise SystemExit('Could not determine input directory, idir ',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   if not os.path.exists(idir):
-    raise SystemExit('Input directory specified does not exist, file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    raise SystemExit('Input directory specified '+idir+' does not exist, file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
    
   #print(outputs_string)
   #print(dvar)
@@ -517,7 +517,7 @@ def main(json_input_instructions):
         elif(l=='inputs_alternative'): inputs_alternative=string.split(str(list_new[l]))
         elif(l=='realm'): realm=str(list_new[l])
   #      elif(l=='diag_dims'): diag_dims=string.split(str(list_new[l]))
-        elif(l=='ounits'): ounits=str(list_new[l])
+        elif(l=='ounits'): ounits=[str(list_new[l])]
         elif(l=='table'): table_tmp=string.split(str(list_new[l]),sep=",")
         elif(l=='table_frequency'): table_frequency=string.split(str(list_new[l]),sep=",")
         elif(l=='ovars'): ovars=string.split(str(list_new[l]))
@@ -993,7 +993,7 @@ def main(json_input_instructions):
   print('var_size=',var_size)
   print('var_dims=',var_dims)
 
-  if(len(var_size)==4 and (OutputVarStructure=='time_lat_lon')):
+  if(len(var_size)==4 and (OutputVarStructure=='time_lat_lon') and output_type=='broadcast'):
     levels=[0]
 
   if not 'levels' in locals():
@@ -1145,9 +1145,11 @@ def main(json_input_instructions):
   
   if(realm=='atmos' and ( OutputVarStructure=='time_plev_lat_lon' or OutputVarStructure=='time_reducedplev_lat_lon') ):
     if(plev_type=='pfull'):
-      zt=f.variables['pfull'][:]*100.0
+      #zt=f.variables['pfull'][:]*100.0
+      zt=ProcTimeN.ifh0.variables['pfull'][:]*100.0
     else:
-      zt=f.variables['phalf'][:]*100.0
+      #zt=f.variables['phalf'][:]*100.0
+      zt=ProcTimeN.ifh0.variables['phalf'][:]*100.0
     min_vals=np.append((1.5*zt[0] - 0.5*zt[1]), (zt[0:-1] + zt[1:])/2)
     max_vals=np.append((zt[0:-1] + zt[1:])/2, (1.5*zt[-1] - 0.5*zt[-2]))
     zbounds =np.column_stack((min_vals, max_vals))
@@ -1386,7 +1388,7 @@ def main(json_input_instructions):
     #print('axis_ids=',axis_ids,file=fh_printfile)
     #print(dvar,file=fh_printfile)
     #print(ounits)
-    data_id.append(cmor.variable(dvar[0], ounits, axis_ids=axis_ids, missing_value=-1e20))
+    data_id.append(cmor.variable(dvar[0], ounits[0], axis_ids=axis_ids, missing_value=-1e20))
   
   elif((realm=='ice' or realm=='ocean') and OutputVarStructure=='time_lat_lon'):
     axis_ids=[i_axis_id,j_axis_id,time_axis_id]
@@ -1398,11 +1400,11 @@ def main(json_input_instructions):
     axis_ids=[0,-100]
     axis_ids=[grid_id]
     axis_ids=[time_axis_id,grid_id] #working
-    data_id.append(cmor.variable(dvar[0], ounits, axis_ids=axis_ids, missing_value=-1e20))
+    data_id.append(cmor.variable(dvar[0], ounits[0], axis_ids=axis_ids, missing_value=-1e20))
   
   elif(table=='fx'):
     axis_ids=[1,-100]
-    data_id.append(cmor.variable(dvar[0], ounits, axis_ids=axis_ids, missing_value=-1e20))
+    data_id.append(cmor.variable(dvar[0], ounits[0], axis_ids=axis_ids, missing_value=-1e20))
     #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   elif(realm=='ocean' and ( OutputVarStructure=='time_depth_lat_lon' or OutputVarStructure=='time_reduceddepth_lat_lon')):
@@ -1412,7 +1414,7 @@ def main(json_input_instructions):
     #axis_ids=[0,-100]
     #axis_ids=[0,2,-100] #works but prob.
     axis_ids=[0,1,-100]
-    data_id.append(cmor.variable(dvar[0], ounits, axis_ids=axis_ids, missing_value=-1e20))
+    data_id.append(cmor.variable(dvar[0], ounits[0], axis_ids=axis_ids, missing_value=-1e20))
   
   elif((realm=='atmos' or realm =='ice_obsolete') and OutputVarStructure=='time_lat_lon'):
     axis_ids=np.array([time_axis_id,lat_axis_id,lon_axis_id])
@@ -1430,7 +1432,7 @@ def main(json_input_instructions):
   #  else:
   #    positive=None
   
-    data_id.append(cmor.variable(dvar[0], ounits, axis_ids=axis_ids, missing_value=-1e20,positive=positive))
+    data_id.append(cmor.variable(dvar[0], ounits[0], axis_ids=axis_ids, missing_value=-1e20,positive=positive))
   
   elif(realm=='atmos' and ( OutputVarStructure=='time_plev_lat_lon' or OutputVarStructure=='time_reducedplev_lat_lon')):
     #cmor.set_table(tables[2])
@@ -1445,6 +1447,8 @@ def main(json_input_instructions):
     #print(outputs_string)
   
     for o in range(0,len(ovars)):
+      print('ovars[o]=',ovars[o])
+      print('ounits[o]=',ounits[o])
       data_id.append(cmor.variable(ovars[o], ounits[o], axis_ids=axis_ids, missing_value=-1e20))
     #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
@@ -1462,11 +1466,11 @@ def main(json_input_instructions):
     axis_ids=np.array([time_axis_id])
     axis_ids=[0] #working
     #data_id=cmor.variable(dvar, ounits,  missing_value=-1e20)
-    data_id.append(cmor.variable(dvar[0], ounits, axis_ids=axis_ids, missing_value=-1e20))
+    data_id.append(cmor.variable(dvar[0], ounits[0], axis_ids=axis_ids, missing_value=-1e20))
   
   elif(realm=='ocean' and OutputVarStructure=='time_basin_depth_lat'):
     axis_ids=np.array([time_axis_id, basin_axis_id, z_axis_id, lat_axis_id])
-    data_id.append(cmor.variable(dvar[0], ounits, axis_ids=axis_ids, missing_value=-1e20))
+    data_id.append(cmor.variable(dvar[0], ounits[0], axis_ids=axis_ids, missing_value=-1e20))
     #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   #elif(dvar=='volcello' or dvar=='thkcello'):

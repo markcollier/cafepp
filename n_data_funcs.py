@@ -32,6 +32,7 @@ class n_data_funcs:
     #self.ensembles=False
     Diag=False
     dummy_mode=None
+    self.dummy_mode = False
     for key, value in kwargs.items():
       if(key=='Diag'):
         Diag=bool(value)
@@ -59,12 +60,15 @@ class n_data_funcs:
         #print('n_data_funcs.init: _dummy_time_stamp=',_dummy_time_stamp)
         self.time_tfreq_units = _dummy_time_units
         self.time_tfreq_calendar = _dummy_calendar
+        self.dummy_mode = True
         if(self.daily_to_monthly_test):
           self.date_time_stamp_monthly = _dummy_time_stamp
           self.num_stamp_monthly = _dummy_num_stamp #this comes from daily_to_monthly function
+          #self.nfiles=None
         else:
           self.date_time_stamp_tfreq =_dummy_time_stamp
           self.time_tfreq = _dummy_num_stamp
+          #self.nfiles=None
       else:
          raise SystemExit('n_data_funcs.init dummy_mode:'+__file__+' line number: '+str(inspect.stack()[0][2]))               
     else:
@@ -97,7 +101,7 @@ class n_data_funcs:
 #    print('len(self.input_files)=',len(self.input_files))
 #    print('self.input_files_flat=',self.input_files_flat)
 #    print('len(self.input_files_flat)=',len(self.input_files_flat))
-  
+
   def calculate_filedatetime_info_multiforc(self,nino,**kwargs):
     Diag=False
     for key, value in kwargs.items():
@@ -108,7 +112,7 @@ class n_data_funcs:
         
     from ipywidgets import FloatProgress
     #%matplotlib inline
-    f = FloatProgress(min=0, max=len(self.input_files), description='Loading...') 
+    floatprogress = FloatProgress(min=0, max=len(self.input_files), description='Loading...') 
     display(f)
     
     #print(nino.nindices_nino)
@@ -166,7 +170,7 @@ class n_data_funcs:
         self.npdate_time_stamps=np.append(self.npdate_time_stamps,netCDF4.num2date(self.times[cnt_i],self.units[cnt_i],self.calendar[cnt_i]))
     
       ifhs.close()
-      f.value += 1 
+      floatprogress.value += 1 
       #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
       
     self.nptimes=np.array(self.times)
@@ -253,7 +257,7 @@ class n_data_funcs:
         nino_monthly[self.beg[cnt_i]:self.end[cnt_i]+1,k,self.ens[cnt_i]-1,self.ens_cnt[self.ens[cnt_i]-1]-1]= \
           np.average(np.average(ifhs.variables[dvar][:,jmin:jmax+1,imin:imax+1],axis=1,weights=self.clat[jmin:jmax+1]),axis=1)
       ifhs.close()
-      f.value += 1
+      floatprogress.value += 1
       
     return(nino_monthly)
 
@@ -319,6 +323,8 @@ class n_data_funcs:
     import numpy.ma as ma
     import inspect
     import itertools
+    from decadal_diag import \
+      fractional_year_from_num2date
 
 #    if(len(self.input_files)==1):
 #      print('n_data_fincs.init: no ensembles in this example.')
@@ -365,8 +371,8 @@ class n_data_funcs:
       if(Diag): print('self.input_files=',self.input_files)
       if(Diag): print('self.input_files[0][0]=',self.input_files[0][0])
       self.ifhN=netCDF4.Dataset(self.input_files[0][0])
-      self.ifh0=self.ifhN
-      self.time_tfreq=self.ifh0.variables['time']
+      self.ifh0=[self.ifhN] #fuck
+      self.time_tfreq=self.ifh0[0].variables['time']
       self.ntime_tfreq=len(self.time_tfreq)
       if(units_check):
         self.date_time_stamp_tfreq=netCDF4.num2date(self.time_tfreq[:],self.time_tfreq_units,self.time_tfreq_calendar)
@@ -377,7 +383,7 @@ class n_data_funcs:
     elif(self.nfiles==1 and self.nfiles_flat>1):
       print('calculate_filedatetime_info: case 2: no ensembles, multiple input files.')
       self.ifhN=netCDF4.MFDataset(self.input_files[0][:])
-      self.ifh0=netCDF4.Dataset(self.input_files[0][0])
+      self.ifh0=[netCDF4.Dataset(self.input_files[0][0])] #fuck
       self.time_tfreq=self.ifhN.variables['time']
       self.ntime_tfreq=len(self.time_tfreq)
       self.date_time_stamp_tfreq=netCDF4.num2date(self.time_tfreq[:],self.time_tfreq.units,self.time_tfreq_calendar)
@@ -390,11 +396,12 @@ class n_data_funcs:
       for input_file in self.input_files:
         #print('input_file=',input_file)
         self.ifhN.append(netCDF4.Dataset(input_file[0]))
-      self.ifh0=self.ifhN
+      #print(type(self.ifhN))
+      self.ifh0=[self.ifhN] #fuck
       
       self.time_tfreq,self.ntime_tfreq=[],[]
       for cnt,ifh0 in enumerate(self.ifh0):
-        self.time_tfreq.append(ifh0.variables['time'])
+        self.time_tfreq.append(ifh0[0].variables['time'])
         self.ntime_tfreq.append(len(self.time_tfreq[cnt]))
     
       self.date_time_stamp_tfreq,self.year_fraction_tfreq=[],[]
@@ -429,7 +436,7 @@ class n_data_funcs:
     #assume all calendars are the same...
     #print('self.time_tfreq=',self.time_tfreq)
     #if(len(self.time_tfreq)>1):
-    if(self.nfiles>1):
+    if(self.nfiles>1): #ensembles
       self.time_tfreq_units=self.time_tfreq[0].units
     else:
       self.time_tfreq_units=self.time_tfreq.units
@@ -639,7 +646,7 @@ class n_data_funcs:
         if(apply_lsmask): output=output*_ls_mask 
         
     elif(self.ls_mask_type=='2d_ocean'):
-      print('self.ls_mask.shape=',self.ls_mask.shape)
+      if(Diag): print('self.ls_mask.shape=',self.ls_mask.shape)
       if(len(input.shape)==2): #input is lat, lon
         print('regrid_curv_to_rect: must be 2d ocean/seaice + zero time climatology')
         input_flat = input.reshape(-1, self.nlon*self.nlat)
@@ -677,9 +684,9 @@ class n_data_funcs:
         Diag=bool(value)
       elif(key=='lat'):
         if(self.nfiles==1):
-          lat=self.ifh0.variables[value][:]
+          lat=self.ifh0[0].variables[value][:]
         else:
-          lat=self.ifh0[0].variables[value][:]          
+          lat=self.ifh0[0][0].variables[value][:]          
         lat_check=True
       elif(key=='lon'):
         if(type(value)==type(None)):
@@ -687,34 +694,41 @@ class n_data_funcs:
           lon_check=True
         else:
           if(self.nfiles==1):
-            lon=self.ifh0.variables[value][:]    
-          else:
             lon=self.ifh0[0].variables[value][:]    
+          else:
+            lon=self.ifh0[0][0].variables[value][:]    
           lon_check=True
       else:
         raise SystemExit('get_latlon_info: Dont know this key:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
     if(not lat_check):
+        #print('self.ifh0=',self.ifh0)
+        #print('type(self.ifh0)=',type(self.ifh0))
+
         if(self.nfiles==1):
-          lat=self.ifh0.variables['lat'][:]
+          lat=self.ifh0[0].variables['lat'][:]
         else:
-          lat=self.ifh0[0].variables['lat'][:]          
+          lat=self.ifh0[0][0].variables['lat'][:]          
+
     if(not lon_check):
         if(self.nfiles==1):
-          lon=self.ifh0.variables['lon'][:]
-        else:
           lon=self.ifh0[0].variables['lon'][:]
+        else:
+          lon=self.ifh0[0][0].variables['lon'][:]
         
-    if(len(lat.shape)>1):
-      self.lat2d=lat.copy()
-      self.nlat2d=list(self.lat2d.shape)
-      self.lat=lat[:,0]
-      self.clat=np.cos(self.lat[:]*self.rad)
-      self.nlat=len(self.lat)
+    if(type(lat)==type(None)):
+      self.lat2d = self.nlat2d = self.lat = self.nlat = None
     else:
-      self.lat=lat
-      self.clat=np.cos(self.lat[:]*self.rad)
-      self.nlat=len(self.lat)
+      if(len(lat.shape)>1):
+        self.lat2d=lat.copy()
+        self.nlat2d=list(self.lat2d.shape)
+        self.lat=lat[:,0]
+        self.clat=np.cos(self.lat[:]*self.rad)
+        self.nlat=len(self.lat)
+      else:
+        self.lat=lat
+        self.clat=np.cos(self.lat[:]*self.rad)
+        self.nlat=len(self.lat)
     
     if(type(lon)==type(None)):
       self.lon2d = self.nlon2d = self.lon = self.nlon = None
@@ -740,7 +754,11 @@ class n_data_funcs:
       if(key=='Diag'):
         Diag=bool(value)
       elif(key=='lev'):
-        lev=self.ifh0.variables[value][:]
+        if(Diag): print(len(self.ifh0))
+        if(self.nfiles==1):
+          lev=self.ifh0[0].variables[value][:]
+        else:
+          lev=self.ifh0[0][0].variables[value][:]
         lev_check=True
       else:
         raise SystemExit('get_lev_info: Dont know this key:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -945,6 +963,7 @@ class n_data_funcs:
     import numpy.ma as ma
     import inspect
     import itertools
+    from decadal_diag import generate_daily_month_indices
     timesep_check=Diag=False
     for key, value in kwargs.items():
       if(key=='timesep'):
@@ -1093,6 +1112,8 @@ class n_data_funcs:
     import numpy.ma as ma
     import inspect
     import itertools
+    from decadal_diag import \
+      fractional_year_from_num2date, get_timestamp_number
     '''
     cbeg: beginning year for climatology calculation (default begin valid year).
     cend: ending year for climatology calculation (default begin valid year).
@@ -1116,6 +1137,7 @@ class n_data_funcs:
     '''
     ClimOnly=AnomOnly=AnnOut=ZeroClim=Diag=False
     monthly_climatology=None
+    cbeg=cend=abeg=aend=None
     for key, value in kwargs.items():
       if(key=='Diag'):
         Diag=bool(value)
@@ -1167,6 +1189,9 @@ class n_data_funcs:
 
     if(Diag): print('monthly_clim_anom: self.daily_to_monthly_test=',self.daily_to_monthly_test)
 
+    #print('xxx',self.date_time_stamp_monthly,self.daily_to_monthly_test)
+    #print('xxx',self.date_time_stamp_tfreq,self.daily_to_monthly_test)
+
     try:
       if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
         ybeg=self.date_time_stamp_monthly[0][0].year
@@ -1176,7 +1201,12 @@ class n_data_funcs:
         if(Diag): print('monthly_clim_anom: bbb')
     except AttributeError:
       #ybeg=self.date_time_stamp_tfreq[0].year
-      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+      if(self.dummy_mode):
+        try:
+          ybeg=self.date_time_stamp_tfreq[0].year
+        except AttributeError:
+          ybeg=self.date_time_stamp_tfreq[0][0].year
+      elif(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
         ybeg=self.date_time_stamp_tfreq[0][0].year
         if(Diag): print('monthly_clim_anom: ccc')
       else:
@@ -1190,7 +1220,13 @@ class n_data_funcs:
         yend=self.date_time_stamp_monthly[-1].year
     except AttributeError:
       #yend=self.date_time_stamp_tfreq[-1].year
-      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+
+      if(self.dummy_mode):
+        try:
+          yend=self.date_time_stamp_tfreq[-1].year
+        except AttributeError:
+          yend=self.date_time_stamp_tfreq[0][-1].year
+      elif(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
         yend=self.date_time_stamp_tfreq[0][-1].year
       else:
         yend=self.date_time_stamp_tfreq[-1].year
@@ -1208,7 +1244,12 @@ class n_data_funcs:
         first_month=self.date_time_stamp_monthly[0].month
     except AttributeError:
       #first_month=self.date_time_stamp_tfreq[0].month
-      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+      if(self.dummy_mode):
+        try:
+          first_month=self.date_time_stamp_tfreq[0].month
+        except AttributeError:
+          first_month=self.date_time_stamp_tfreq[0][0].month
+      elif(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
         first_month=self.date_time_stamp_tfreq[0][0].month
       else:
         first_month=self.date_time_stamp_tfreq[0].month
@@ -1220,7 +1261,12 @@ class n_data_funcs:
         last_month=self.date_time_stamp_monthly[-1].month
     except AttributeError:
       #last_month=self.date_time_stamp_tfreq[-1].month
-      if(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
+      if(self.dummy_mode):
+        try:
+          last_month=self.date_time_stamp_tfreq[-1].month
+        except AttributeError:
+          last_month=self.date_time_stamp_tfreq[0][-1].month
+      elif(not self.daily_to_monthly_test and self.nfiles>1): #ensembles
         last_month=self.date_time_stamp_tfreq[0][-1].month
       else:
         last_month=self.date_time_stamp_tfreq[-1].month
@@ -1245,12 +1291,15 @@ class n_data_funcs:
       missing_months_end=12-last_month
       cyear_end_skip=2
       MissingMonths=True
+
+    self.PaddedYears=False
   
     if(MissingMonths):
+      self.PaddedYears=True
       print('monthly_clim_anom: There are missing months in the set. '+str(missing_months_beg)+' at beginning and '+str(missing_months_end)+' at end.')
       print('monthly_clim_anom: Currently years with missing months are not used in generating long term monthly climatology.')
       print('monthly_clim_anom: And missing months will be set to missing in the final time-series.')
-      self.ts_beg,self.ts_end,self.ts_avg,self.dt_beg,self.dt_end,self.dt_avg= \
+      self.ts_beg,self.ts_end,self.ts_avg,self.dt_beg,self.dt_end,self.dt_avg = \
         get_timestamp_number(ybeg,yend,1,12,self.time_tfreq_units,self.time_tfreq_calendar)
       year_fraction_monthly_full=fractional_year_from_num2date(self.ts_avg,self.time_tfreq_calendar) 
   
@@ -1263,14 +1312,18 @@ class n_data_funcs:
 
       if(Diag): print('monthly_clim_anom: input_full.shape=',input_full.shape)
 
-      if('cbeg' not in locals()): #assign to full series.
+      #if('cbeg' not in locals()): #assign to full series.
+      if(type(cbeg)==type(None)):
         cbeg=ybeg
-      if('cend' not in locals()): #assign to full series.
+      #if('cend' not in locals()): #assign to full series.
+      if(type(cend)==type(None)):
         cend=yend
 
-      if('abeg' not in locals()): #assign to full series.
+      #if('abeg' not in locals()): #assign to full series.
+      if(type(abeg)==type(None)):
         abeg=ybeg
-      if('aend' not in locals()): #assign to full series.
+      #if('aend' not in locals()): #assign to full series.
+      if(type(aend)==type(None)):
         aend=yend
         
       if(missing_months_beg!=0 and cbeg==ybeg):
@@ -1286,38 +1339,84 @@ class n_data_funcs:
       last_month_index=(ydiff_monthly*self.nmy)-(12-last_month)
       print('monthly_clim_anom: ydiff_monthly,missing_months_beg,last_month_index=',ydiff_monthly,missing_months_beg,last_month_index)
       
-      input_full[missing_months_beg:last_month_index,]=input
+      input_full[missing_months_beg:last_month_index,]=input #assigning data to larger array, with missing values in unassigned cells.
+
+      self.PaddedYears_missing_months_beg=missing_months_beg
+      self.PaddedYears_missing_months_end=missing_months_end
+      self.PaddedYears_last_month_index=last_month_index
+
+      #print('self.dt_avg=',self.dt_avg) #this is the one, need
+      #print('self.dt_avg.shape=',self.dt_avg.shape)
+      #print('self.ts_avg=',self.ts_avg)
+      #print('year_fraction_monthly_full=',year_fraction_monthly_full)
+      #print('self.time_tfreq[0][:]=',self.time_tfreq[0][:])
+      #print('self.time_tfreq[0].shape=',self.time_tfreq[0].shape)
+      #print('len(self.time_tfreq)=',len(self.time_tfreq))
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+      self.time_tfreq_full=self.dt_avg #all years 12 months.
       
     else:
       print('monthly_clim_anom: All years have 12 months.')
-      
+
+      #print('type(self.time_tfreq)=',type(self.time_tfreq)) 
+      #print('len(self.time_tfreq)=',len(self.time_tfreq)) 
+
+      print('xxx',self.daily_to_monthly_test)
+
+      #self.num_stamp_monthly
+
+      try:
+        self.time_tfreq_full=self.time_tfreq #.copy()
+      except AttributeError:
+        self.time_freq_full=self.num_stamp_monthly
+
       input_full=input.copy()
       
       if(self.daily_to_monthly_test):
         year_fraction_monthly_full=self.date_time_stamp_monthly.copy()
       else:
-        if(self.nfiles>1):
+        if(self.dummy_mode):
+
+        #self.time_tfreq_units = _dummy_time_units
+        #self.time_tfreq_calendar = _dummy_calendar
+        #self.dummy_mode = True
+        #if(self.daily_to_monthly_test):
+        #  self.date_time_stamp_monthly = _dummy_time_stamp
+        #  self.num_stamp_monthly = _dummy_num_stamp #this comes from daily_to_monthly function
+        #  #self.nfiles=None
+        #else:
+        #  self.date_time_stamp_tfreq =_dummy_time_stamp
+        #  self.time_tfreq = _dummy_num_stamp
+
+          self.year_fraction_tfreq=fractional_year_from_num2date(self.date_time_stamp_tfreq[0],self.time_tfreq_calendar)
+
+          year_fraction_monthly_full=self.year_fraction_tfreq.copy()
+
+        elif(self.nfiles>1): #ensembles
           year_fraction_monthly_full=self.year_fraction_tfreq[0].copy()
         else:
           year_fraction_monthly_full=self.year_fraction_tfreq.copy()
 
-    #print('fuck')
-
-    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
-    if('cbeg' not in locals()): #assign to full series.
+    #if('cbeg' not in locals()): #assign to full series.
+    if(type(cbeg)==type(None)):
       cbeg=ybeg
-    if('cend' not in locals()): #assign to full series.
+    #if('cend' not in locals()): #assign to full series.
+    if(type(cend)==type(None)):
       cend=yend
 
-    if('abeg' not in locals()): #assign to full series.
+    #if('abeg' not in locals()): #assign to full series.
+    if(type(abeg)==type(None)):
       abeg=ybeg
-    if('aend' not in locals()): #assign to full series.
+    #if('aend' not in locals()): #assign to full series.
+    if(type(aend)==type(None)):
       aend=yend
 
     if(Diag): print('monthly_clim_anom: input.shape=',input.shape)
 
     if(Diag): print('monthly_clim_anom: cbeg,cend=',cbeg,cend)
+    if(Diag): print('monthly_clim_anom: ybeg,yend=',ybeg,yend)
 
     if(cend<cbeg):
       raise SystemExit('monthly_clim_anom: cend<cbeg:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -1374,13 +1473,21 @@ class n_data_funcs:
       self.monthly_climatology = np.average(monthly_data_reshaped,axis=0)
       #if(Diag): print('monthly_clim_anom: self.monthly_climatology=',self.monthly_climatology)
 
+    #print('xxx',icbeg,icend,cbeg,cend)
+
     if(self.daily_to_monthly_test):
       self.num_stamp_climatology = np.average(np.reshape(self.num_stamp_monthly[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #gone through daily to monthly function.
     else:
-      if(self.nfiles>1):
-        self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[0][icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
+      if(self.dummy_mode):
+        self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq_full[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
+      elif(self.nfiles>1): #ensembles
+        #j=self.time_tfreq_full[icbeg:icend+1]
+        #print('j.shape=',j.shape)
+        #print('self.time_tfreq_full.shape=',self.time_tfreq_full.shape)
+        #print('input_full.shape=',input_full.shape)
+        self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq_full[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs. fuck
       else:
-        self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
+        self.num_stamp_climatology = np.average(np.reshape(self.time_tfreq_full[icbeg:icend+1],[cend-cbeg+1,self.nmy]),axis=0) #original monthly inputs.
 
     if(AnnOut):
       self.num_stamp_climatology = np.average(self.num_stamp_climatology,weights=self.days_in_month)
@@ -1425,17 +1532,32 @@ class n_data_funcs:
     if(self.daily_to_monthly_test):
       self.num_stamp_anomaly = self.num_stamp_monthly[iabeg:iaend+1] #gone through daily to monthly function.      
     else:
-      if(self.nfiles>1):
-        self.num_stamp_anomaly = self.time_tfreq[0][iabeg:iaend+1] #original monthly inputs.
+      if(self.dummy_mode):
+        self.num_stamp_anomaly = self.time_tfreq_full[iabeg:iaend+1] #original monthly inputs.
+      elif(self.nfiles>1): #ensembles
+        self.num_stamp_anomaly = self.time_tfreq_full[iabeg:iaend+1] #original monthly inputs. fuck
       else:
-        self.num_stamp_anomaly = self.time_tfreq[iabeg:iaend+1] #original monthly inputs.
+        self.num_stamp_anomaly = self.time_tfreq_full[iabeg:iaend+1] #original monthly inputs.
       
     if(AnnOut):
       self.num_stamp_anomaly = np.average(np.reshape(self.num_stamp_anomaly,[aend-abeg+1,self.nmy]), axis=1,weights=self.days_in_month)
     self.date_time_stamp_anomaly=netCDF4.num2date(self.num_stamp_anomaly,self.time_tfreq_units,self.time_tfreq_calendar)
 
-    self.year_fraction_anomaly=fractional_year_from_num2date(self.date_time_stamp_anomaly,self.time_tfreq_calendar) #fuck
-    
+    #print('xxx self.date_time_stamp_anomaly=',self.date_time_stamp_anomaly)
+
+    #print('self.dummy_mode,self.nfiles,self.daily_to_monthly_test=',self.dummy_mode,self.nfiles,self.daily_to_monthly_test)
+    if(self.dummy_mode):
+      self.year_fraction_anomaly=fractional_year_from_num2date(self.date_time_stamp_anomaly,self.time_tfreq_calendar) #fuck
+    elif(self.nfiles>1): #ensembles
+
+      if(self.daily_to_monthly_test):
+        self.year_fraction_anomaly=fractional_year_from_num2date(self.date_time_stamp_anomaly,self.time_tfreq_calendar) #fuck
+      else:
+        self.year_fraction_anomaly=fractional_year_from_num2date(self.date_time_stamp_anomaly[0],self.time_tfreq_calendar) #fuck
+
+    else:
+      self.year_fraction_anomaly=fractional_year_from_num2date(self.date_time_stamp_anomaly,self.time_tfreq_calendar) #fuck
+
     if(Diag): print('monthly_clim_anom: self.num_stamp_anomaly.shape=',self.num_stamp_anomaly.shape)
     
     if(AnnOut):

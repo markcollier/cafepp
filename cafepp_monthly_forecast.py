@@ -6,6 +6,9 @@ import sys
 #def main(source_directory):
 #def main(rundir,**kwargs):
 def main(**kwargs):
+
+#doesn't make sense to have mbeg/mend on input unless over a single year...think about this.
+
   import  sys
   import os
   #sys.path.insert(0,source_directory)
@@ -41,12 +44,12 @@ def main(**kwargs):
     elif(key=='yend'):
       yend=int(value)
       yend_check=True
-    elif(key=='mbeg'):
-      mbeg=int(value)
-      mbeg_check=True
-    elif(key=='mend'):
-      mend=int(value)
-      mend_check=True
+    elif(key=='mbeg_norm'):
+      mbeg_norm=int(value)
+      mbeg_norm_check=True
+    elif(key=='mend_norm'):
+      mend_norm=int(value)
+      mend_norm_check=True
     elif(key=='ybeg_first'):
       ybeg_first=int(value)
       ybeg_first_check=True
@@ -84,8 +87,8 @@ def main(**kwargs):
   if(not ebeg_check): SystemExit('Set ebeg:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not eend_check): SystemExit('Set eend:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
-  print('cafe_experiment,dvar,ybeg,yend,mbeg,mend,ybeg_first,yend_last,mbeg_first,mend_last,ebeg,eend=',\
-    cafe_experiment,dvar,ybeg,yend,mbeg,mend,ybeg_first,yend_last,mbeg_first,mend_last,ebeg,eend)
+  print('cafe_experiment,dvar,ybeg,yend,mbeg_norm,mend_norm,ybeg_first,yend_last,mbeg_first,mend_last,ebeg,eend=',\
+    cafe_experiment,dvar,ybeg,yend,mbeg_norm,mend_norm,ybeg_first,yend_last,mbeg_first,mend_last,ebeg,eend)
 
   #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -121,16 +124,27 @@ def main(**kwargs):
 
   #return(0)
 
+  print('hello')
   for ycnt,ynow in enumerate(range(ybeg,yend+1)):
+    mbeg,mend=mbeg_norm,mend_norm
+
+    if(ynow==ybeg_first and mbeg_first < mbeg_norm): #skip this month/year then...
+      continue
+    if(ynow==yend_last and mend_last > mend_norm): #skip this month/year then...
+      continue
+
     if(ynow==ybeg_first):
-      mbeg=mbeg_first
+      mbeg=max(mbeg_first,mbeg_norm)
     elif(ynow==yend_last):
-      mend=mend_last
+      mend=min(mend_last,mend_norm)
+
     for mcnt,mnow in enumerate(range(mbeg,mend+1)):
+
       for ecnt,enow in enumerate(range(ebeg,eend+1)):
    
         if(cafe_experiment=='v0_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no2='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
           top_directory_no3='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
         elif(cafe_experiment=='v1_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
@@ -160,7 +174,7 @@ def main(**kwargs):
         shutil.move(rundir+'/'+'JsonTemplates/cafepp_experiments_tmp.json',rundir+'/'+'JsonTemplates/cafepp_experiments.json')
 
         test_ok=cafepp.main('cafepp.json')
-        raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   return(0)
 

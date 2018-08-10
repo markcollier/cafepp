@@ -189,7 +189,7 @@ def main(**kwargs):
         ofh.close()
 
         test_ok=cafepp_daily.main('cafepp.json')
-        raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   print('Finished O.K.:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 

@@ -40,7 +40,7 @@
     "mend_max":12, 
     "realisation":1, 
     "initialisation":1, 
-    "physics":1, 
+    "physics":13, 
     "forcing":1, 
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
     "institution_id":"CSIRO",
@@ -501,7 +501,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da",
     "active_disk_no2":"no",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-31-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr2002/mn2/OUTPUT.1",
     "active_disk_no3":"yes",
 #
@@ -556,7 +556,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da",
     "active_disk_no2":"no",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v1/yr2002/mn2/OUTPUT.1",
     "active_disk_no3":"yes",
 #
