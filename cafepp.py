@@ -384,8 +384,8 @@ def main(json_input_instructions):
     if re.match(storage_machine_no4_split[0],hostname):
       idir=top_directory_no4
   
-  #print('hostname=',hostname)
-  #print('storage_machine_no1=',storage_machine_no1)
+  print('hostname=',hostname)
+  print('storage_machine_no3=',storage_machine_no3)
   #idir=top_directory_no2 #this is hardwired until I sort out how to manage this on raijin's quque...
   
   if not 'idir' in locals():

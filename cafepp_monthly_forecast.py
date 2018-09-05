@@ -23,7 +23,7 @@ def main(**kwargs):
     ybeg_first_check = yend_first_check = mbeg_first_check = mend_first_check = \
     ebeg_check = eend_check= NoClobber_check = \
     False
-  NoClobber=False
+  NoClobber=StopAfterOne=False
   for key, value in kwargs.iteritems():
     #print("%s = %s" % (key, value))
     if(key=='rundir'):
@@ -71,6 +71,10 @@ def main(**kwargs):
     elif(key=='NoClobber'):
       NoClobber=value
       NoClobber_check=True
+    elif(key=='StopAfterOne'):
+      StopAfterOne=bool(value)
+
+  print('StopAfterOne=',StopAfterOne)
 
   if(not rundir_check):SystemExit('Set rundir:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not cafe_experiment_check):SystemExit('Set cafe_experiment:'+__file__+' line number: '+str(inspect.stack()[0][2]))
@@ -174,7 +178,7 @@ def main(**kwargs):
         shutil.move(rundir+'/'+'JsonTemplates/cafepp_experiments_tmp.json',rundir+'/'+'JsonTemplates/cafepp_experiments.json')
 
         test_ok=cafepp.main('cafepp.json')
-        #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+        #if(StopAfterOne): raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   return(0)
 

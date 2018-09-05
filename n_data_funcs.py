@@ -371,7 +371,7 @@ class n_data_funcs:
       if(Diag): print('self.input_files=',self.input_files)
       if(Diag): print('self.input_files[0][0]=',self.input_files[0][0])
       self.ifhN=netCDF4.Dataset(self.input_files[0][0])
-      self.ifh0=[self.ifhN] #fuck
+      self.ifh0=[self.ifhN]
       self.time_tfreq=self.ifh0[0].variables['time']
       self.ntime_tfreq=len(self.time_tfreq)
       if(units_check):
@@ -383,12 +383,12 @@ class n_data_funcs:
     elif(self.nfiles==1 and self.nfiles_flat>1):
       print('calculate_filedatetime_info: case 2: no ensembles, multiple input files.')
       self.ifhN=netCDF4.MFDataset(self.input_files[0][:])
-      self.ifh0=[netCDF4.Dataset(self.input_files[0][0])] #fuck
+      self.ifh0=[netCDF4.Dataset(self.input_files[0][0])]
       self.time_tfreq=self.ifhN.variables['time']
       self.ntime_tfreq=len(self.time_tfreq)
       self.date_time_stamp_tfreq=netCDF4.num2date(self.time_tfreq[:],self.time_tfreq.units,self.time_tfreq_calendar)
       self.year_fraction_tfreq=fractional_year_from_num2date(self.date_time_stamp_tfreq,self.time_tfreq_calendar)
-      
+
     elif(self.nfiles>1 and self.nfiles_flat==self.nfiles):   
       print('calculate_filedatetime_info: case 3: ensembles but only one file for each ensemble.')
       
@@ -397,7 +397,7 @@ class n_data_funcs:
         #print('input_file=',input_file)
         self.ifhN.append(netCDF4.Dataset(input_file[0]))
       #print(type(self.ifhN))
-      self.ifh0=[self.ifhN] #fuck
+      self.ifh0=[self.ifhN]
       
       self.time_tfreq,self.ntime_tfreq=[],[]
       for cnt,ifh0 in enumerate(self.ifh0):
@@ -723,11 +723,11 @@ class n_data_funcs:
         self.lat2d=lat.copy()
         self.nlat2d=list(self.lat2d.shape)
         self.lat=lat[:,0]
-        self.clat=np.cos(self.lat[:]*self.rad)
+        self.clat=np.abs(np.cos(self.lat[:]*self.rad))
         self.nlat=len(self.lat)
       else:
         self.lat=lat
-        self.clat=np.cos(self.lat[:]*self.rad)
+        self.clat=np.abs(np.cos(self.lat[:]*self.rad))
         self.nlat=len(self.lat)
     
     if(type(lon)==type(None)):
@@ -762,18 +762,30 @@ class n_data_funcs:
         lev_check=True
       else:
         raise SystemExit('get_lev_info: Dont know this key:'+__file__+' line number: '+str(inspect.stack()[0][2]))
-        
+
     if(not lev_check):        
       #lev=self.ifh0.variables['lev'][:]
       if(self.nfiles>1): #ensembles
-        lev=self.ifh0[0].variables['lev'][:]
+        if(self.nfiles_flat>1):
+          lev=self.ifh0[0][0].variables['lev'][:]
+        else:
+          lev=self.ifh0[0].variables['lev'][:]
       else:
-        lev=self.ifh0.variables['lev'][:]
+        if(self.nfiles_flat>1):
+          lev=self.ifh0[0].variables['lev'][:]
+        else:
+          lev=self.ifh0[0].variables['lev'][:]
         
     self.lev=lev
     self.nlev=len(self.lev)
 
   def calculate_quantity(self,instance,**kwargs):
+    '''
+    Note that _input only set up for a couple of cases thus far, and also for non ensemble versions, testing purposes.
+    Note that quantity='nino' almost deprecated as 'z20' option is more accurate as it can copy with issues such as box
+    overlapping last longitude.
+    Have set of z20 ensemble case, it relies on input data being in from time,ensemble,lat,lon ...
+    '''
   #def calculate_quantity(self,instance_string,**kwargs):
     import string
     import netCDF4
@@ -783,6 +795,7 @@ class n_data_funcs:
     import inspect
     import itertools
     Diag=False
+    _input=None
     for key, value in kwargs.items():
       #value_split=string.split(value,sep=",")
       #print('value_split=',value_split)
@@ -794,10 +807,15 @@ class n_data_funcs:
         if(Diag): print('calculate_quantity: Diag=',Diag)
         #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
 
+      elif(key=='input'): #this must appear before quantity...
+        _input=value
+        print('calculate_quantity: Reading data from input variable rather than file...testing')
+
       elif(key=='quantity'):
         if(Diag): print('calculate_quantity: calculating a quantity...')
         #value_split=string.split(value,sep=",") #python2
         value_split=value.split(",") #python3
+        print('calculate_quantity: value_split=',value_split)
         
         if(value=='nino'):
           if(Diag): print('calculate_quantity: nino chosen.')
@@ -806,14 +824,14 @@ class n_data_funcs:
           #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2])) 
             
           if(self.nfiles>1): #ensembles
-            var_shape=self.ifhN[0].variables[self.input_var_name].shape
-            new_shape=[]
-            new_shape.append(var_shape[0])
-            new_shape.append(self.nfiles)
-            new_shape.append(instance.nindices_nino)
+            _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+            _new_shape=[]
+            _new_shape.append(_var_shape[0])
+            _new_shape.append(self.nfiles)
+            _new_shape.append(instance.nindices_nino)
             
-            #print('new_shape=',new_shape)
-            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            #print('_new_shape=',_new_shape)
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
             
             for k,indice in enumerate(instance.indices_nino):
               imin,imax=instance.indices_i[instance.indices_nino.index(indice)][0], \
@@ -823,15 +841,21 @@ class n_data_funcs:
               for n in range(self.nfiles):
                 self.output_tfreq[:,n,k]=np.average(np.average(self.ifhN[n].variables[self.input_var_name][:,jmin:jmax+1,imin:imax+1], \
                   axis=1,weights=self.clat[jmin:jmax+1]),axis=1)
-          else:
+          else: #non ensembles case
+
             self.output_tfreq=ma.zeros((self.ntime_tfreq,instance.nindices_nino),dtype=float)
+
             for k,indice in enumerate(instance.indices_nino):
               
               imin,imax=instance.indices_i[instance.indices_nino.index(indice)][0], \
                 instance.indices_i[instance.indices_nino.index(indice)][1]
               jmin,jmax=instance.indices_j[instance.indices_nino.index(indice)][0], \
                 instance.indices_j[instance.indices_nino.index(indice)][1]
-              self.output_tfreq[:,k]=np.average(np.average(self.ifhN.variables[self.input_var_name][:,jmin:jmax+1,imin:imax+1],\
+              if(type(_input)==type(None)):
+                self.output_tfreq[:,k]=np.average(np.average(self.ifhN.variables[self.input_var_name][:,jmin:jmax+1,imin:imax+1],\
+                axis=1,weights=self.clat[jmin:jmax+1]),axis=1)
+              else:
+                self.output_tfreq[:,k]=np.average(np.average(_input[:,jmin:jmax+1,imin:imax+1],\
                 axis=1,weights=self.clat[jmin:jmax+1]),axis=1)
               
           #return(self.timeseries_tfreq)
@@ -839,13 +863,13 @@ class n_data_funcs:
         elif(value_split[0]=='msftyz'):
             #print('self.nfiles=',self.nfiles)
             if(self.nfiles>1): #ensembles
-              var_shape=self.ifhN[0].variables[self.input_var_name].shape
-              new_shape=[]
-              new_shape.append(var_shape[0])
-              new_shape.append(self.nfiles)
-              for shape in var_shape[1::]:
-                new_shape.append(shape)
-              self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+              _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+              _new_shape=[]
+              _new_shape.append(_var_shape[0])
+              _new_shape.append(self.nfiles)
+              for shape in _var_shape[1::]:
+                _new_shape.append(shape)
+              self.output_tfreq=ma.zeros(_new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
               for n in range(self.nfiles):
                 self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:]
             else:
@@ -853,26 +877,260 @@ class n_data_funcs:
               #print('j.shape=',j.shape)
               self.output_tfreq=self.ifhN.variables[self.input_var_name][:]
         elif(value_split[0]=='latlon_region'): #test/dummy case.
+
           if(Diag): print('calculate_quantity: latlon_region chosen.')
           #print('len(value_split)=',len(value_split))
           #print('self.nlat=',self.nlat)
           if(len(value_split)==1): #assume 1 or 5 only ATM.
-            print('n_data_funcs.calculate_quantity: Using whole lat/lon region.')
-            self.jmin,self.jmax,self.imin,self.imax=0,self.nlat,0,self.nlon
-          else:
+
+            print('n_data_funcs.calculate_quantity: Using whole lat/lon region or that specified in instance.')
+            if(type(instance)!=type('abc')): #set this up only for lat/lon boxes.
+              if(instance.nboxes>1):
+                raise SystemExit('n_data_funcs.calculate_quantity: instance.nboxes should equal 1.'+__file__+' line number: '+str(inspect.stack()[0][2])) #as arrays will become too big generally...
+              else:
+                self.jmin,self.jmax,self.imin,self.imax=instance.jmin[0],instance.jmax[0],instance.imin[0],instance.imax[0]
+            #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+            else:
+              self.jmin,self.jmax,self.imin,self.imax=0,self.nlat,0,self.nlon
+            if('self.nlev' in locals()):
+              self.kmin,self.kmax=0,self.nlev
+          elif(len(value_split)==5): #assume 1 or 5 only ATM.
             self.jmin,self.jmax,self.imin,self.imax=tuple([int(x) for x in value_split[1::]]) 
+          elif(len(value_split)==7): #assume 1 or 5 only ATM.
+            self.kmin,self.kmax,self.jmin,self.jmax,self.imin,self.imax=tuple([int(x) for x in value_split[1::]]) 
+          else:
+            raise SystemExit('n_data_funcs.calculate_quantity: Only 1,5,7 known ATM.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+          #might want to make it so that if eg imin>imax then roll the array and associated coordinates, until this is not the case.
+
+          if('self.imin' in locals()):
+            if(self.imin>self.imax):
+              raise SystemExit('n_data_funcs.calculate_quantity: self.imin>self.imax, this quantity not for extracting arrays that wrap.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+          if('self.jmin' in locals()):
+            if(self.jmin>self.jmax):
+              raise SystemExit('n_data_funcs.calculate_quantity: self.jmin>self.jmax, this quantity not for extracting arrays that wrap.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+          if('self.kmin' in locals()):
+            if(self.kmin>self.kmax):
+              raise SystemExit('n_data_funcs.calculate_quantity: self.kmin>self.kmax, this quantity not for extracting arrays that wrap.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
           if(self.nfiles>1): #ensembles
-            var_shape=self.ifhN[0].variables[self.input_var_name].shape
-            new_shape=[]
-            new_shape.append(var_shape[0])
-            new_shape.append(self.nfiles)
-            for shape in var_shape[1::]:
-              new_shape.append(shape)
-            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+            _new_shape=[]
+            _new_shape.append(_var_shape[0])
+            _new_shape.append(self.nfiles)
+
+            if(len(value_split)==7):
+              _new_shape.append(self.kmax-self.kmin+1)
+              _new_shape.append(self.jmax-self.jmin+1)
+              _new_shape.append(self.imax-self.imin+1)
+            elif(len(value_split)==5 or type(instance)!=type('abc')):
+              _new_shape.append(self.jmax-self.jmin+1)
+              _new_shape.append(self.imax-self.imin+1)
+            else:
+              for shape in _var_shape[1::]:
+                _new_shape.append(shape)
+
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+
             for n in range(self.nfiles):
-              self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
+              if(len(value_split)==7):
+                self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,self.imin:self.imax+1]
+              elif(len(value_split)==5):
+                self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
+              else:
+                self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:,]
+          else:  #non-ensembles
+            if(len(value_split)==7):
+              self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,self.imin:self.imax+1]
+            elif(len(value_split)==5 or type(instance)!=type('abc')):
+              #print('xxx',self.jmin,self.jmax,self.imin,self.imax)
+              self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
+            else:
+              self.output_tfreq=self.ifhN.variables[self.input_var_name][:,]
+            
+        elif(value_split[0]=='wwv'):
+
+          if(len(value_split)==2):
+            #print('aaa')
+            ifh=netCDF4.Dataset(value_split[1])
+          else:
+            #print('bbb')
+            ifh=netCDF4.Dataset('/OSM/CBR/OA_DCFP/data/CAFEPP/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+          _area_T = ifh.variables['area_T'][:]
+          _wet = ifh.variables['wet'][:]
+
+          if(Diag): print('calculate_quantity: wwv chosen.')
+
+          #_var_shape=self.ifhN[0].variables[self.input_var_name].shape
+          if(self.nfiles==1):
+            _var_shape=self.ifhN.variables[self.input_var_name].shape
+          else:
+            _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+
+          _area_T_match = np.expand_dims(_area_T*_wet,0)
+          _area_T_new = np.tile(_area_T_match,(_var_shape[0],1,1))
+          print('_area_T_new.shape=',_area_T_new.shape)
+
+          _new_shape=[]
+          if(self.nfiles>1): #ensembles
+            _new_shape.append(_var_shape[0])
+            _new_shape.append(self.nfiles)
+            _new_shape.append(instance.nboxes)
+            print('_new_shape=',_new_shape)
+
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float)
+            for n in range(self.nfiles):
+              for b in range(instance.nboxes):
+
+                if(instance.imin[b]>instance.imax[b]): #box wraps over end of longitude range, need to create average in parts. Note that this is only approx. as really need to take into account the width of the cell edges...
+                  print('warning: lon wraps end, taking sum of two parts.')
+                  _lon_A = self.lon[self.nlon-1] - self.lon[instance.imin[b]]
+                  _lon_B = self.lon[instance.imax[b]] - self.lon[0]
+                  _lon_total = _lon_A + _lon_B
+
+                  self.output_tfreq[:,n,b,]= \
+                    ( np.sum(np.sum(self.ifhN[n].variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon]*_area_T_new[:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon],axis=1),axis=1)*_lon_A + \
+                     np.sum(np.sum(self.ifhN[n].variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1]*_area_T_new[:,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1],axis=1),axis=1)*_lon_B ) /_lon_total
+
+                else:
+
+                  self.output_tfreq[:,n,b,]=np.sum(np.sum( \
+                    self.ifhN[n].variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1] * \
+                    _area_T_new[:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1] \
+                    ,axis=1),axis=1)
+                  #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
           else:  
-            self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
+            _new_shape.append(_var_shape[0])
+            _new_shape.append(instance.nboxes)
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float)
+            for b in range(instance.nboxes):
+              if(instance.imin[b]>instance.imax[b]): #box wraps over end of longitude range, need to create average in parts.
+                print('warning: lon wraps end, taking sum of two parts.')
+                _lon_A = self.lon[self.nlon-1] - self.lon[instance.imin[b]]
+                _lon_B = self.lon[instance.imax[b]] - self.lon[0]
+                _lon_total = _lon_A + _lon_B
+                self.output_tfreq[:,b,]= \
+                  ( np.sum(np.sum(self.ifhN.variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon]*_area_T_new[:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon],axis=1),axis=1)*_lon_A + \
+                  np.sum(np.sum(self.ifhN.variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1]*_area_T_new[:,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1],axis=1),axis=1)*_lon_B ) /_lon_total
+              else:
+                self.output_tfreq[:,b,]=np.sum(np.sum(self.ifhN.variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1]*_area_T_new[:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1],axis=1),axis=1)
+            
+        elif(value=='z20'):
+          if(Diag): print('calculate_quantity: z20 chosen.')
+          #print('len(value_split)=',len(value_split))
+          #print('self.nlat=',self.nlat)
+
+#          if(len(value_split)==1): #assume 1 or 5 only ATM.
+#            print('n_data_funcs.calculate_quantity: Using whole lat/lon region.')
+#            self.jmin,self.jmax,self.imin,self.imax=0,self.nlat,0,self.nlon #should this be nlat-1,nlon-1 ?
+#          else:
+#            print('n_data_funcs.calculate_quantity: Using sub lat/lon region.')
+#            self.jmin,self.jmax,self.imin,self.imax=tuple([int(x) for x in value_split[1::]]) 
+
+          #print(self.nfiles)
+          #print('self.ifhN=',self.ifhN)
+          #print(self.ifhN.shape)
+          #print(self.nfiles)
+          #print(self.nfiles_flat)
+          #print(len(self.ifhN))
+
+          if(self.nfiles==1):
+            _var_shape=self.ifhN.variables[self.input_var_name].shape
+          else:
+            _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+          _new_shape=[]
+          if(self.nfiles>1): #ensembles
+            if(type(_input)==type(None)):
+              _new_shape.append(_var_shape[0])
+            else:
+              _new_shape.append(_input.shape[0])
+            _new_shape.append(self.nfiles)
+            _new_shape.append(instance.nboxes)
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float)
+            for n in range(self.nfiles):
+              #for b in range(instance.nboxes):
+              for b in range(instance.nboxes):
+                #print('n,b=',n,b)
+                #print('jmin,jmax,imin,imax=',instance.jmin[b],instance.jmax[b],instance.imin[b],instance.imax[b])
+
+                if(instance.imin[b]>instance.imax[b]): #box wraps over end of longitude range, need to create average in parts. Note that this is only approx. as really need to take into account the width of the cell edges...
+                  print('warning: lon wraps end, taking average of two parts.')
+                  #print(self.lon[instance.imin[b]:self.nlon])
+                  #print(self.lon[0:instance.imax[b]+1])
+                  _lon_A = self.lon[self.nlon-1] - self.lon[instance.imin[b]]
+                  _lon_B = self.lon[instance.imax[b]] - self.lon[0]
+                  _lon_total = _lon_A + _lon_B
+                  #print('_lon_total=',_lon_total)
+
+                  if(type(_input)==type(None)):
+                    self.output_tfreq[:,n,b,]= \
+                      ( np.average(np.average(self.ifhN[n].variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_A + \
+                       np.average(np.average(self.ifhN[n].variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_B ) /_lon_total
+                  else:
+                    self.output_tfreq[:,n,b,]= \
+                      ( np.average(np.average(_input[:,n,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_A + \
+                       np.average(np.average(_input[:,n,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_B ) /_lon_total
+
+                else:
+                  if(type(_input)==type(None)):
+                    self.output_tfreq[:,n,b,]=np.average(np.average(self.ifhN[n].variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)
+                  else:
+                    self.output_tfreq[:,n,b,]=np.average(np.average(_input[:,n,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)
+                #print('self.nlon=',self.nlon)
+                #j=self.ifhN[n].variables[self.input_var_name][0,instance.jmin[b]:instance.jmin[b]+1,instance.imin[b]:instance.imax[b]+1]
+                #print(j.shape)
+                #print(j)
+                #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+          else: #non ensembles case
+            #print('xxx,hello')
+            #print('_input.shape=',_input.shape)
+
+            if(type(_input)==type(None)):
+              _new_shape.append(_var_shape[0])
+            else:
+              _new_shape.append(_input.shape[0])
+            _new_shape.append(instance.nboxes)
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float)
+
+            for b in range(instance.nboxes):
+              if(instance.imin[b]>instance.imax[b]): #box wraps over end of longitude range, need to create average in parts.
+                print('warning: lon wraps end, taking average of two parts.')
+                _lon_A = self.lon[self.nlon-1] - self.lon[instance.imin[b]]
+                _lon_B = self.lon[instance.imax[b]] - self.lon[0]
+                _lon_total = _lon_A + _lon_B
+
+                if(type(_input)==type(None)):
+                  self.output_tfreq[:,b,]= \
+                    ( np.average(np.average(self.ifhN.variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_A + \
+                    np.average(np.average(self.ifhN.variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_B ) /_lon_total
+                else:
+                  self.output_tfreq[:,b,]= \
+                    ( np.average(np.average(_input[:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:self.nlon],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_A + \
+                    np.average(np.average(_input[:,instance.jmin[b]:instance.jmax[b]+1,0:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)*_lon_B ) /_lon_total
+
+              else:
+
+                #print(self.output_tfreq.shape)
+                #print('xxx',self.clat,instance.jmin,instance.jmax)
+                #j=self.ifhN.variables[self.input_var_name][:]
+                #print(j.shape)
+                #k=np.squeeze(self.ifhN.variables[self.input_var_name][:])
+                #print(k.shape)
+                #print(_var_shape)
+
+                if(type(_input)==type(None)):
+                  if(len(_var_shape)==4): #normally z20 works on time,lat,lon but sometimes some 2d vars have extra "height dimension".
+                    self.output_tfreq[:,b,]=np.average(np.average(self.ifhN.variables[self.input_var_name][:,0,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)
+                  else:
+                    self.output_tfreq[:,b,]=np.average(np.average(self.ifhN.variables[self.input_var_name][:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)
+                else:
+                  if(len(_var_shape)==4): #normally z20 works on time,lat,lon but sometimes some 2d vars have extra "height dimension".
+                    self.output_tfreq[:,b,]=np.average(np.average(_input[:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)
+                  else:
+                    self.output_tfreq[:,b,]=np.average(np.average(_input[:,instance.jmin[b]:instance.jmax[b]+1,instance.imin[b]:instance.imax[b]+1],axis=1,weights=self.clat[instance.jmin[b]:instance.jmax[b]+1]),axis=1)
+              #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
             
         elif(value_split[0]=='equatorial'): #test/dummy case.
           if(Diag): print('calculate_quantity: equatorial chosen.')
@@ -882,13 +1140,13 @@ class n_data_funcs:
           else:
             self.imin,self.imax=tuple([int(x) for x in value_split[1::]]) 
           if(self.nfiles>1): #ensembles
-            var_shape=self.ifhN[0].variables[self.input_var_name].shape
-            new_shape=[]
-            new_shape.append(var_shape[0])
-            new_shape.append(self.nfiles)
-            for shape in var_shape[2::]:
-              new_shape.append(shape)
-            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+            _new_shape=[]
+            _new_shape.append(_var_shape[0])
+            _new_shape.append(self.nfiles)
+            for shape in _var_shape[2::]:
+              _new_shape.append(shape)
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
             if(Diag): print('equatorial: self.output_tfreq.shape=',self.output_tfreq.shape)
             for n in range(self.nfiles):
               self.output_tfreq[:,n,]=np.average(self.ifhN[n].variables[self.input_var_name][:,46:47+1,self.imin:self.imax+1],axis=1)
@@ -903,14 +1161,14 @@ class n_data_funcs:
           else:
             self.jmin,self.jmax,self.imin,self.imax,self.kmin,self.kmax=tuple([int(x) for x in value_split[1::]])           
           if(self.nfiles>1): #ensembles
-            var_shape=self.ifhN[0].variables[self.input_var_name].shape
-            new_shape=[]
-            new_shape.append(var_shape[0])
-            new_shape.append(self.nfiles)
-            new_shape.append(var_shape[1])
-            for shape in var_shape[3::]:
-              new_shape.append(shape)
-            self.output_tfreq=ma.zeros(new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
+            _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+            _new_shape=[]
+            _new_shape.append(_var_shape[0])
+            _new_shape.append(self.nfiles)
+            _new_shape.append(_var_shape[1])
+            for shape in _var_shape[3::]:
+              _new_shape.append(shape)
+            self.output_tfreq=ma.zeros(_new_shape,dtype=float) #e.g. ntimes, nensembles, nlats, nlons
             for n in range(self.nfiles):
               self.output_tfreq[:,n,]=np.average(self.ifhN[n].variables[self.input_var_name][:,:,136:137+1,:],axis=2)
           else:
@@ -1362,7 +1620,7 @@ class n_data_funcs:
       #print('type(self.time_tfreq)=',type(self.time_tfreq)) 
       #print('len(self.time_tfreq)=',len(self.time_tfreq)) 
 
-      print('xxx',self.daily_to_monthly_test)
+      #print('xxx',self.daily_to_monthly_test)
 
       #self.num_stamp_monthly
 

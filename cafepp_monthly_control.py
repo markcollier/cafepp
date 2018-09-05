@@ -88,6 +88,14 @@ def main(**kwargs):
       line='     "mbeg":"'+str(mbeg)+'",\n'
     elif(token3=='mend'):
       line='     "mend":"'+str(mend)+'",\n'
+    elif(token3=='#ybeg'):
+      line='     "ybeg":"'+str(ybeg)+'",\n'
+    elif(token3=='#yend'):
+      line='     "yend":"'+str(yend)+'",\n'
+    elif(token3=='#mbeg'):
+      line='     "mbeg":"'+str(mbeg)+'",\n'
+    elif(token3=='#mend'):
+      line='     "mend":"'+str(mend)+'",\n'
     elif(token3=='NoClobber'):
       line='     "NoClobber":"'+NoClobber+'",\n'
 #    if(token3=='num_months_truncate'):

@@ -213,6 +213,11 @@ class ProcTime:
       if(not input_directory_check):
         self.input_directory='/short/v19/mtc599/ao_am2/jul18b/OUTPUT'
       self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc')))
+    elif(self.experiment=='aug18b'):
+      self.hours=0.0 #this helps to identify year/month from the time-stamps. This experiment time-stamp is at the middle of that month.
+      if(not input_directory_check):
+        self.input_directory='/short/v19/mtc599/ao_am2/aug18b/OUTPUT'
+      self.input_files=sorted((glob.glob(self.input_directory+'/'+self.realm+'_'+self.frequency+'_????_??.nc')))
     else:
       raise Exception('Don\'t know experiment '+self.experiment+' file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   

@@ -19,7 +19,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/col414/g/data1/v14/coupled_model/v0/OUTPUT",
     "active_disk_no2":"yes",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v0/OUTPUT",
     "active_disk_no3":"yes",
 #
@@ -66,7 +66,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/col414/g/data1/v14/coupled_model/v1/OUTPUT",
     "active_disk_no2":"yes",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v1/OUTPUT",
     "active_disk_no3":"yes",
 #
@@ -118,7 +118,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/col414/g/data1/v14/coupled_model/v2/OUTPUT",
     "active_disk_no2":"yes",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v2/OUTPUT",
     "active_disk_no3":"yes",
 #
@@ -168,7 +168,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/col414/g/data1/v14/coupled_model/v3/OUTPUT",
     "active_disk_no2":"yes",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v3/OUTPUT",
     "active_disk_no3":"yes",
 #
@@ -444,15 +444,23 @@
     "reference":"None",
     "integration_machine":"raijin.nci.org.au",
     "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", 
-    "storage_machine_no1":"tube-hba",
-    "top_directory_no1":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/coupled_da/OUTPUT-2step-nobreeding-carbon2",
-    "active_disk_no1":"no",
-    "storage_machine_no2":"raijin",
-    "top_directory_no2":"/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2",
-    "active_disk_no2":"yes",
-    "storage_machine_no3":"Snapper-as",
-    "top_directory_no3":"/Volumes/LaCieNo1/coupled_model/feb17a/OUTPUT",
-    "active_disk_no3":"no",
+#
+    "storage_machine_no1":"raijin",
+    "top_directory_no1":"/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2",
+    "active_disk_no1":"yes",
+#
+    "storage_machine_no2":"tube-hba",
+    "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/coupled_da/OUTPUT-2step-nobreeding-carbon2",
+    "active_disk_no2":"no",
+#
+    "storage_machine_no3":"oa-3.-cdc",
+    "top_directory_no3":"/OSM/CBR/OA_DCFP/data3/CAFEPP/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2",
+    "active_disk_no3":"yes",
+#
+    "storage_machine_no4":"Snapper-as",
+    "top_directory_no4":"/Volumes/LaCieNo1/coupled_model/feb17a/OUTPUT",
+    "active_disk_no4":"no",
+#
     "main_science_contact":"tok599",
     "main_technical_contact":"tok599",
     "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", 
@@ -501,7 +509,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/DA/breed_da",
     "active_disk_no2":"no",
 #
-    "storage_machine_no3":"oa-31-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr2002/mn2/OUTPUT.1",
     "active_disk_no3":"yes",
 #
@@ -729,7 +737,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/col414/g/data1/v14/coupled_model/v1/OUTPUT",
     "active_disk_no2":"no",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v1/OUTPUT",
     "active_disk_no3":"no",
 #
@@ -785,7 +793,7 @@
     "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/col414/g/data1/v14/coupled_model/v1/OUTPUT",
     "active_disk_no2":"no",
 #
-    "storage_machine_no3":"oa-32-cdc",
+    "storage_machine_no3":"oa-3.-cdc",
     "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v1/OUTPUT",
     "active_disk_no3":"no",
 #
@@ -807,6 +815,62 @@
     "realisation":1,
     "initialisation":1,
     "physics":12,
+    "forcing":1,
+    "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
+    "institution_id":"CSIRO",
+    "Forecast":"False",
+    #"calendar":"julian",
+    "calendar":"noleap",
+    "daily_data_layout":"noleap_1fileperyear",
+    "monthly_data_layout":"noleap_1fileperyear"
+    },
+    "aug18b":{
+    "source_id":                    "CAFE-1-0",
+    "source":                       "CAFE-1-0",
+#    "experiment_id":"piControl",
+#    "experiment":"pre-industrial control",
+#    "parent_experiment_id":"piControl-spinup",
+#
+    "experiment":"all-forcing forecast of the recent past/future",
+    "experiment_id":"historical",
+    "parent_experiment_id":"piControl",
+#
+    "history":"Coupled (ocean-atmosphere-land-ice-seaice) CAFE experiment using GFDL coupled model source code",
+    "confluence_notes":"500-year run with properly activated land topography (oct16e) but bit too much mass (~ 18 hPa) in the atmosphere. Namelist modified: vertical coordinate is switched to zstar, cm2_bugs are removed from the ice model.",
+    "reference":"None",
+    "integration_machine":"raijin.nci.org.au",
+    "integration_machine_info":"Linux raijin4 3.10.0-514.26.1.el6.x86_64 NO1 SMP Fri Jun 30 00:26:47 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux", 
+#
+    "storage_machine_no1":"raijin",
+    "top_directory_no1":"/short/v19/mtc599/ao_am2/aug18b/OUTPUT",
+    "active_disk_no1":"yes",
+#
+    "storage_machine_no2":"tube-hba",
+    "top_directory_no2":"/OSM/HBA/OA_DECADAL_CLIMATE/work/col414/g/data1/v14/coupled_model/v1/OUTPUT",
+    "active_disk_no2":"no",
+#
+    "storage_machine_no3":"oa-3.-cdc",
+    "top_directory_no3":"/OSM/CBR/OA_DCFP/data/CAFEPP/g/data1/v14/coupled_model/v1/OUTPUT",
+    "active_disk_no3":"no",
+#
+    "storage_machine_no4":"Snapper-as",
+    "top_directory_no4":"/Volumes/LaCieNo1/data/CAFEPP/g/data1/v14/coupled_model/v1/OUTPUT",
+    "active_disk_no4":"no",
+#
+    "main_science_contact":"tok599",
+    "main_technical_contact":"tok599",
+    "readable_nexus_ids_no1":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", 
+    "readable_nexus_ids_no2":"tok599,col414,rxm599,mtc599,lxs599,ct8307,dpm599,jsr599,bs8763", 
+    "writable_nexus_ids":"tok599,dpm599",
+    "ybeg_min":1980,
+    "yend_max":2009,
+    "mbeg_min":1,
+    "mend_max":12,
+    "dbeg_min":1,
+    "dend_max":31,
+    "realisation":1,
+    "initialisation":1,
+    "physics":13,
     "forcing":1,
     "institution":"Commonwealth Scientific and Industrial Research Organisation, Australia",
     "institution_id":"CSIRO",

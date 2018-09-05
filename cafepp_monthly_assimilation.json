@@ -37,7 +37,8 @@
     "importance":5, #a number between 1-5, the higher the number the less important it is in terms of keeping long term.
     "version":"v20171025", #cmor defaults to current date, sometimes want output to go into a specific directory.
 #
-    "dvar":"tos",
+    "dvar":"t20d",
+    #"dvar":"tos",
     #"dvar":"pr",
 #
     #"ybeg":2002, #beg year to process (no default).

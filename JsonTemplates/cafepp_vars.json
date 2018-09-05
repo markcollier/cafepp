@@ -553,6 +553,62 @@
     "plev_type":"None",
     "positive":"up"
     },
+    "rsds":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"swdn_sfc",
+    "realm":"atmos",
+    "ounits":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"down"
+    },
+    "rsus":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"swup_sfc",
+    "realm":"atmos",
+    "ounits":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"up"
+    },
+    "rsdt":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"swdn_toa",
+    "realm":"atmos",
+    "ounits":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"down"
+    },
+    "rsut":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"swup_toa",
+    "realm":"atmos",
+    "ounits":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"up"
+    },
 #
     "sfcWind":{
     "info":"None",
@@ -588,8 +644,8 @@
     "hfls":{
     "info":"None",
     "area_t":"False",
-#    "inputs":"evap",
-    "inputs":"shflx", #dummy to test out, later use correct one.
+    "inputs":"evap",
+#    "inputs":"shflx", #dummy to test out, later use correct one.
     "realm":"atmos",
     "ounits":"W m-2",
     "table":"Amon,day",
@@ -599,6 +655,8 @@
     "output_type":"diagnostic",
     "plev_type":"None",
     "positive":"up",
+    "diagnostic_function_name":"hfls",
+    "diagnostic_args_string":"None,None", #need a sequence, hence 2 Nones.
     "comment":"Converted from evap using 28.9, assuming latent heat of vaporization of 2.5 MJ/kg"
     },
 #
@@ -713,7 +771,9 @@
     "rlus":{
     "info":"None",
     "area_t":"False",
-    "inputs":"lwup_sfc",
+#    "inputs":"lwup_sfc",
+#net=lwflx=down-up=rlds-rlus => rlus=rlds-net=lwdn_sfc-lwflx
+    "inputs":"lwdn_sfc,lwflx",
     "realm":"atmos",
     "ounits":"W m-2",
     "table":"Amon,day",
@@ -721,8 +781,24 @@
     "ovars":"dvar",
     "OutputVarStructure":"time_lat_lon",
     "output_type":"diagnostic",
+    "diagnostic_function_name":"rlus",
+    "diagnostic_args_string":"None,None", #need a sequence, hence 2 Nones.
     "plev_type":"None",
     "positive":"up"
+    },
+    "rlds":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"lwdn_sfc",
+    "realm":"atmos",
+    "ounits":"W m-2",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None",
+    "positive":"down"
     },
     "dummy":{
     "info":"None",

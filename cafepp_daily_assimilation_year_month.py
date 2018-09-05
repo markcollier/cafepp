@@ -119,8 +119,11 @@ def main(**kwargs):
       mend=mend_norm
     for mcnt,mnow in enumerate(range(mbeg,mend+1)):
 
-      top_directory_no2='/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2/'+ \
+      top_directory_no2='/OSM/CBR/OA_DCFP/data3/CAFEPP/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2/'+ \
         str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
+
+#      top_directory_no2='/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2/'+ \
+#        str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
 
       print('Processing cafepp_experiments.json')
       ifh=open(rundir+'/'+'cafepp_experiments.json')

@@ -3595,11 +3595,17 @@ def diag_psl(data,*argv):
   onehundred,fh_printfile=argv
   return data*onehundred
 
-def diag_hfls(data):
+def diag_hfls(data,*argv):
   '''
   '''
   import numpy as np
-  return data/28.9
+  return 86400.*data*28.9
+
+def diag_rlus(data1,data2,*argv):
+  '''
+  '''
+  import numpy as np
+  return(data1-data2)
 
 def diag_volcello(data,*argv):
   '''
@@ -3717,7 +3723,7 @@ def shade_2d_simple(data,**kwargs):
 #colormap = cm.LinearColormap(colors=['red','lightblue','blue'], index=[-3,0,12],vmin=-3,vmax=12)
 #colormap
 
-  xlab=ylab=xtik=ytik=output=n_contour=contour_array=None
+  xlab=ylab=xtik=ytik=output=n_contour=contour_arrays=None
   Diag = add_contours = title_check = units_check = extend_check = reverse_xaxis = reverse_yaxis = \
     xyvals_check = xlim_check = ylim_check = grid = xtik_check = ytik_check = cmap_check = \
     clevs_check = False
@@ -3779,8 +3785,8 @@ def shade_2d_simple(data,**kwargs):
       yscale=value
     elif(key=='n_contour'):
       n_contour=value
-    elif(key=='contour_array'):
-      contour_array=value
+    elif(key=='contour_arrays'):
+      contour_arrays=value
     else:
       raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -3827,12 +3833,25 @@ def shade_2d_simple(data,**kwargs):
   else:
     cs=plt.contourf(X, Y, data, clevs, extend=extend, cmap=cmap) #good
 
-  if(type(n_contour)!=type(None)): nc=plt.contour(X, Y, data, levels=n_contour)
+  if(type(n_contour)!=type(None)):
+    nc=plt.contour(X, Y, data, levels=n_contour, colors='black')
+    plt.clabel(nc, inline=False, fontsize=10, fmt='%3.0f') #, manual=manual_locations)
 
-  if(type(contour_array)!=type(None)):
-    anotherX,anotherY,anotherdata=contour_array
-    ca=plt.contour(anotherX, anotherY, anotherdata, colors='black') #, levels=n_contour)
-    plt.clabel(ca, inline=False, fontsize=10, fmt='%3.0f') #, manual=manual_locations)
+#fuck
+
+  if(type(contour_arrays)!=type(None)):
+    colours=['black','pink','green','orange','purple','cyan']
+    #print('xxx',len(contour_arrays))
+    for cnt in range(len(contour_arrays)):
+      anotherX,anotherY,anotherdata=contour_arrays[cnt]
+
+      #ca=plt.contour(anotherX, anotherY, anotherdata, colors=colours[cnt], levels=n_contour, linewidths=[1,1,1,5,1,1,1,1,1]) #something odd when I specify values for each level...
+      ca=plt.contour(anotherX, anotherY, anotherdata, colors=colours[cnt], levels=n_contour)
+      #print('xxx',plt.rcParams['lines.linewidth']) #this gives linewidth.
+
+      plt.clabel(ca, inline=False, fontsize=10, fmt='%3.0f') #, manual=manual_locations)
+
+    #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
 #     cs=plt.pcolormesh(X, Y, data, clevs, cmap=cmap)
     #cs=plt.contourf(X, Y, data, extend=extend, norm=MidpointNormalize(midpoint=0.,vmin=-1,vmax=1), cmap=cmap)
@@ -5584,6 +5603,118 @@ def shade_2d_curvilinear(data,**kwargs):
 
   return() #end shade_2d_curvilinear
 
+class box_indices:
+  def __init__(self,**kwargs):
+    '''
+    notes
+    '''
+    import inspect
+    import numpy as np
+    #selection=*kwargs
+    #print('key,value=',key,value)
+    boxes=_instance=None
+    Diag=False
+    for key, value in kwargs.items():
+      if(key=='Diag'):
+        Diag=bool(value)
+      elif(key=='boxes'):
+        boxes=value
+      elif(key=='instance'):
+        _instance=value
+      else:
+        raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    if(type(boxes)==type(None)):
+      raise SystemExit('Need to supply boxes option.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+    if(Diag): print('len(boxes)=',len(boxes))
+    if(Diag): print('boxes=',boxes)
+
+#    if(_instance_data.lat[0]<_instance_data.lat[1]):
+#      if(Diag): print('latitudes arranged SH to NH')
+#      lat_arrange=[1,2]
+#    else:
+#      lat_arrange=[2,1]
+#      if(Diag): print('latitudes arranged NH to SH')
+
+#    self.indices_i,self.indices_j=[],[]
+#    for cnt in range(len(self.indices_nino)):
+#      #print('cnt=',cnt)
+#      self.indices_i.append( \
+#        [np.abs(_instance_data.lon - _instance_nino.lons_nino[cnt][0]).argmin(), \
+#        np.abs(_instance_data.lon - _instance_nino.lons_nino[cnt][1]).argmin()] \
+#         )
+#      self.indices_j.append( \
+#        [np.abs(_instance_data.lat - _instance_nino.lats_nino[cnt][ lat_arrange[0] ]).argmin(), \
+#        np.abs(_instance_data.lat - _instance_nino.lats_nino[cnt][ lat_arrange[1]]).argmin()] \
+#         )
+
+    self.nboxes=len(boxes)
+    self.latmin,self.latmax,self.lonmin,self.lonmax,self.boxes_labs,self.boxes_units=[],[],[],[],[],[]
+    self.jmin,self.jmax,self.imin,self.imax=[],[],[],[]
+
+    for cnt,box in enumerate(boxes):
+      #if(Diag): print('cnt,box=',cnt,box)
+      stuff=box.split(',')
+
+      self.boxes_labs.append(stuff[0])
+      self.boxes_units.append(stuff[1])
+      self.latmin.append(float(stuff[2]))
+      self.latmax.append(float(stuff[3]))
+      self.lonmin.append(float(stuff[4]))
+      self.lonmax.append(float(stuff[5]))
+
+      #if(_instance.lat[0]<_instance.lat[1]):
+      #  if(Diag): print('latitudes arranged SH to NH')
+      #  self.jmin.append( np.abs(_instance.lat - self.latmin[cnt]).argmin() )
+      #  self.jmax.append( np.abs(_instance.lat - self.latmax[cnt]).argmin() )
+      #else:
+      #  if(Diag): print('latitudes arranged NH to SH')
+      #  self.jmin.append( np.abs(_instance.lat[::-1] - self.latmin[cnt]).argmin() )
+      #  self.jmax.append( np.abs(_instance.lat[::-1] - self.latmax[cnt]).argmin() )
+
+      self.jmin.append(np.abs(_instance.lat - self.latmin[cnt]).argmin())
+      #to get accurate value, flip the lat range, get min of difference, subtract from total nlat.
+      #this works O.K. for lats from SH to NH or -ve to +ve, however, might need to have code
+      #for other case. Will be a simple case of reversing lats passing through same code, howeer,
+      #will need to subtract numbers from nlat and perhaps -1...test it out.
+
+      #self.jmax.append(np.abs(_instance.lat - self.latmax[cnt]).argmin())
+      self.jmax.append( _instance.nlat - np.abs((_instance.lat[::-1] - self.latmax[cnt])).argmin() -1)
+
+      self.imin.append(np.abs(_instance.lon - self.lonmin[cnt]).argmin())
+      self.imax.append(np.abs(_instance.lon - self.lonmax[cnt]).argmin())
+
+      #print('aaa',aaa,_instance.lat[aaa])
+
+      if(self.imin[cnt] > self.imax[cnt]):
+        print('warning: self.imin[cnt] > self.imax[cnt],cnt',cnt)
+
+      if(self.jmin[cnt] > self.jmax[cnt]):
+        print('warning: self.jmin[cnt] > self.jmax[cnt],cnt',cnt,'...swapping.')
+        _jmin_tmp = self.jmin[cnt]
+        self.jmin[cnt] = self.jmax[cnt]
+        self.jmax[cnt] = _jmin_tmp
+
+      #print( \
+      #' latmin,latmax=',self.latmin,self.latmax,' self.jmin,self.jmax=',self.jmin,self.jmax, \
+      #' lonmin,lonmax=',self.lonmin,self.lonmax,' self.imin,self.imax=',self.imin,self.imax, \
+      #' actual: latmin,latmax=',_instance.lat[self.jmin],_instance.lat[self.jmax], \
+      #' actual: lonmin,lonmax=',_instance.lon[self.imin],_instance.lon[self.imax])
+
+    if(Diag):
+      print( \
+      ' latmin,latmax=',self.latmin,self.latmax,' self.jmin,self.jmax=',self.jmin,self.jmax, \
+      ' lonmin,lonmax=',self.lonmin,self.lonmax,' self.imin,self.imax=',self.imin,self.imax, \
+      ' actual: latmin,latmax=',_instance.lat[self.jmin],_instance.lat[self.jmax], \
+      ' actual: lonmin,lonmax=',_instance.lon[self.imin],_instance.lon[self.imax])
+
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    #if(Diag): print('self.latmin=',self.latmin)
+    #if(Diag): print('self.boxes_labs=',self.boxes_labs)
+
+    return(None) #end of class box_indices
+
 class nino_indices:
   def __init__(self,**kwargs):
     
@@ -5626,7 +5757,7 @@ class nino_indices:
       self.indices_i,self.indices_j=[[110,159],[130,189],[80,129],[190,199]],[[122,151],[122,151],[122,151],[107,136]] #check this, whether I need +1 also...what about fractional cells?
     elif(grid_label=='gr2'):
       self.indices_i,self.indices_j=[[190,239],[210,269],[150,209],[270,280]],[[85,94],[85,94],[85,94],[80,89]] #check this, whether I need +1 also...what about fractional cells?
-    elif(grid_label=='ncep2'):
+    elif(grid_label=='ncep1' or grid_label=='ncep2'):
       self.indices_i,self.indices_j=[[101,128],[112,144],[86,112],[144,149]], [[44,49],[44,49],[44,49],[42,52]]
     elif(grid_label=='20crv2'):
       self.indices_i,self.indices_j=[[102,128],[112,144],[86,112],[144,149]], [[44,49],[44,49],[44,49],[42,51]]
@@ -5805,10 +5936,10 @@ def get_idir_from_experimet_json(json_idir,json_file,experiment):
       idir=top_directory_no4
 
   if not 'idir' in locals():
-    raise SystemExit('Could not determine input directory, idir ',' in file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    raise SystemExit('Could not determine input directory, '+idir+', file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   if not os.path.exists(idir):
-    raise SystemExit('Physical input directory specified does not exist, file:'+__file__+' line number: '+str(inspect.stack()[0][2]))    
+    raise SystemExit('Physical input directory, '+idir+', specified does not exist, file:'+__file__+' line number: '+str(inspect.stack()[0][2]))    
 
   return(idir) #end of get_idir_from_experimet_json
 
@@ -6506,3 +6637,205 @@ def file_sort_ripf(input_files,diag):
     #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     
   return(output_files) #end of file_sort_ripf
+
+def plot_box_indices(**kwargs):
+  import matplotlib.pyplot as plt
+  from mpl_toolkits.basemap import Basemap
+
+  latmin=latmax=lonmin=lonmax=labs=colors=None
+
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      Diag=bool(value)
+      if(Diag): print('plot_box_indices: Diagnostics turned on.')
+    elif(key=='latmin'):
+      latmin=value
+    elif(key=='latmax'):
+      latmax=value
+    elif(key=='lonmin'):
+      lonmin=value
+    elif(key=='lonmax'):
+      lonmax=value
+    elif(key=='labs'):
+      labs=value
+    elif(key=='colors'):
+      colors=value
+
+  if(type(colors)==type(None)):
+   colors=['black','red','green','blue','orange','brown','purple','pink']
+
+#     ind_list=[]
+#     for f,ff in enumerate(ind):
+#       ind_list.append(indices_nino.index(ind[f]))
+
+  fig,ax=plt.subplots()
+  fig.set_size_inches(30,30)
+  
+  map = Basemap(projection='cyl',
+  llcrnrlat=-30, llcrnrlon=0,
+  urcrnrlat=30, urcrnrlon=360,
+  lat_0=0, lon_0=180)
+
+  map.drawmapboundary() #fill_color='aqua'
+  map.fillcontinents() #color='coral',lake_color='aqua'
+  map.drawcoastlines()
+
+  map.drawparallels([-30,-20,-10,10,20,30], labels=[True,True,True,True]) #, linewidth=2, dashes=[4, 2], labels=[1,0,0,1], color='r', zorder=0 )
+  map.drawmeridians(range(0, 360, 20), labels=[True,True,True,True])
+
+    #print('len(lons_nino)=',len(lons_nino))
+
+  for i,ii in enumerate(labs):
+    lons=[lonmin[i],lonmax[i],lonmax[i],lonmin[i],lonmin[i]]
+    lats=[latmin[i],latmin[i],latmax[i],latmax[i],latmin[i]]
+      
+    print('color=',colors[i])
+    print('lons=',lons)
+    print('lats=',lats)
+      
+    x,y = map(lons,lats)
+    map.plot(x, y, marker=None,color=colors[i],linewidth=1)
+      
+    xmid,ymid = map((lonmin[i]+lonmax[i])/2,(latmin[i]+latmax[i])/2)
+    plt.text(xmid,ymid,labs[i],fontsize=6,horizontalalignment='left',verticalalignment='center')
+  map.plot([0,360], [0,0], marker=None, color='black', linewidth=1, linestyle='--')
+
+  plt.show()
+  return() #end of plot_box_indices
+
+def smooth(x,window_len=11,window='hanning'):
+#http://scipy-cookbook.readthedocs.io/items/SignalSmooth.html
+    """smooth the data using a window with requested size.
+    
+    This method is based on the convolution of a scaled window with the signal.
+    The signal is prepared by introducing reflected copies of the signal 
+    (with the window size) in both ends so that transient parts are minimized
+    in the begining and end part of the output signal.
+    
+    input:
+        x: the input signal 
+        window_len: the dimension of the smoothing window; should be an odd integer
+        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
+            flat window will produce a moving average smoothing.
+
+    output:
+        the smoothed signal
+        
+    example:
+
+    t=linspace(-2,2,0.1)
+    x=sin(t)+randn(len(t))*0.1
+    y=smooth(x)
+    
+    see also: 
+    
+    numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve
+    scipy.signal.lfilter
+ 
+    TODO: the window parameter could be the window itself if an array instead of a string
+    NOTE: length(output) != length(input), to correct this: return y[(window_len/2-1):-(window_len/2)] instead of just y.
+    """
+    import numpy as np
+    if x.ndim != 1:
+        raise ValueError("smooth only accepts 1 dimension arrays.")
+
+    if x.size < window_len:
+        raise ValueError("Input vector needs to be bigger than window size.")
+
+
+    if window_len<3:
+        return x
+
+
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+
+
+    s=np.r_[x[window_len-1:0:-1],x,x[-2:-window_len-1:-1]]
+    #print(len(s))
+    if window == 'flat': #moving average
+        w=np.ones(window_len,'d')
+    else:
+        w=eval('np.'+window+'(window_len)')
+
+    y=np.convolve(w/w.sum(),s,mode='valid')
+#     print(y.shape)
+#     print(window_len/2-1)
+#     print(window_len/2)
+#     return y
+#     return(y[(window_len/2-1):-(window_len/2)])
+#     return(y[5:-5])
+    return(y[int(window_len/2):-int(window_len/2)]) #end of smooth
+
+def test_reload():
+  import numpy as np
+  print('hello')
+  return
+
+def plot_2d_scatter(x,y,**kwargs):
+  """
+  """
+  import matplotlib
+  import matplotlib.pyplot as plt
+  import numpy as np
+  
+  Diag=False
+  xlim=ylim=xbox_indices=ybox_indices=title=None
+  
+  xsize,ysize=15,15
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      Diag=bool(value)
+    elif(key=='find'):
+      ifnds,strings=value
+    elif(key=='xlim'):
+      xlim=value
+    elif(key=='ylim'):
+      ylim=value
+    elif(key=='xysize'):
+      if(Diag): print('Inputing xsize,ysize.')
+      xsize,ysize=value
+    elif(key=='xybox_indices'):
+      if(Diag): print('Inputing xbox_indices,ybox_indices.')
+      xbox_indices,ybox_indices=value
+    elif(key=='xy_index'):
+      if(Diag): print('Inputing x_index,y_index.')
+      x_index,y_index=value
+    elif(key=='title'):
+      title=value
+    else:
+      raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      
+  if(type(xbox_indices)==type(None) or type(ybox_indices)==type(None)):
+    raise SystemExit('Must supply xbox_indices & ybox_indices.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  if(type(x_index)==type(None) or type(y_index)==type(None)):
+    print('Using default values of x_index,y_index=0,0')
+    x_index,y_index=0,0
+
+  fig,ax=plt.subplots()
+  fig.set_size_inches(xsize, ysize)
+
+  plt.plot(x, y, 'C3', zorder=1, lw=1)
+  plt.scatter(x, y)
+
+  for cnt,ifnd in enumerate(ifnds):
+    plt.text(x[ifnd], y[ifnd], str(ifnd_times[cnt]), fontsize=9)
+
+  plt.grid(True,linestyle='--')
+  
+  if(type(xlim)!=type(None)):
+    plt.xlim(xlim)
+    plt.plot([xlim[0],xlim[1]], [0,0], color='black', linestyle='--')
+  if(type(ylim)!=type(None)):
+    plt.ylim(ylim)
+    plt.plot([0,0], [ylim[0],ylim[1]], color='black', linestyle='--')
+
+  plt.xlabel(xbox_indices.boxes_labs[x_index], fontsize=16)
+  plt.ylabel(ybox_indices.boxes_labs[y_index], fontsize=16)
+  
+  if(type(title)!=type(None)):
+    plt.title(title, fontsize=16)
+
+  plt.show()
+  return #plot_2d_scatter
