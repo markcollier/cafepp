@@ -112,7 +112,7 @@
                     "CSIRO"
                 ],
                 "source_id":"CAFE-1-0",
-                "source":"CAFE-1-0 (2018): \naerosol: GFDL (v1.0)\natmos: GFDL (r1.1; N96, 90 x 144 longitude/latitude; 24 levels; top level 39255 m)\natmosChem: none\nland: GFDL\nlandIce: GFDL\nocean: GFDL (MOM4p1; tripolar primarily 1deg, 360 x 300 longitude/latitude; 50 levels; top grid cell 0-10 m)\nocnBgchem: GFDL\nseaIce: GFDL"
+                "source":"CAFE-1-0 (2018): \naerosol: CM2.1 (no indirect effects) \n atmos: CM2.1 (AM2, N96; 144 x 90 longitude/latitude; 24 hybrid vertical levels; top level 85 km) \n atmosChem: none \n land: CM2.1 (LM2, 144 x 90 longitude/latitude; 18 vertical layers to 6m total depth) \n landIce: CM2.1 (LM2, 144 x 90 longitude/latitude; 5 vertical layers) \n ocean: CM2.1 (MOM4p1; tripolar primarily 1deg, 360 x 300 longitude/latitude; 50 vertical levels; top grid cell 0-10 m) \n ocnBgchem: CSIRO (Matear, tripolar primarily 1deg; 360 x 300 longitude/latitude) \n seaIce: CM2.1 (SIS, tripolar primarily 1deg; 360 x 300 longitude/latitude; 3 vertical layers + 1 snow + 2 ice; 5 ice thickness categories)"
             },
             "ACCESS-1-0":{
                 "activity_participation":[

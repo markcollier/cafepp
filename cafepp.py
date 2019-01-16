@@ -936,8 +936,11 @@ def main(json_input_instructions):
     xfh=netCDF4.Dataset('CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
   elif os.path.exists('/home/mon137/cafepp/cafepp/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
     xfh=netCDF4.Dataset('/home/mon137/cafepp/cafepp/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
-  else:
+
+  elif os.path.exists('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc'):
     xfh=netCDF4.Dataset('/g/data/p66/mac599/CMIP5/ancillary_files/grid_spec.auscom.20110618.nc')
+  else:
+    xfh=netCDF4.Dataset('./grid_spec.auscom.20110618.nc')
   if(area_t):
     #afh=netCDF4.Dataset('/short/v19/mtc599/ao_am2/sep16f/OUTPUT/ocean_month_0001_01.nc')
     #area_t=afh.variables['area_t']

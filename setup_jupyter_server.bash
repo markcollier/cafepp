@@ -25,4 +25,5 @@ echo "https://$value:9990/"
 
 conda activate cafepp_27_scipy
 
-jupyter notebook --certfile=mycert.pem --keyfile=mykey.key &
+#put & at end if want put in background:
+jupyter notebook --certfile=mycert.pem --keyfile=mykey.key

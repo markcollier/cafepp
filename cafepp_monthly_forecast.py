@@ -155,10 +155,18 @@ def main(**kwargs):
           top_directory_no3='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v1/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
 	elif(cafe_experiment=='v2_forecast'): #January and July are 5 year forecasts, else 2 years.
           top_directory_no2='/g/data1/v14/forecast/v2/OUTPUT/'+str('{0:04d}'.format(ynow))+'/'+str('{0:02d}'.format(mnow))+'/OUTPUT.'+str('{0:02d}'.format(enow))
+        if(cafe_experiment=='v3_forecast'): #All 2 year forecasts.
+          top_directory_no2='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no3='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v0/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no1='/g/data1/v14/forecast/v3/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no2='/g/data1/v14/forecast/v3/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no3='/g/data1/v14/forecast/v3/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
         else:
           raise SystemExit('Dont know that experiment:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
+        print('top_directory_no1=',top_directory_no1)
         print('top_directory_no2=',top_directory_no2)
+        print('top_directory_no3=',top_directory_no3)
         print('Processing cafepp_experiments.json')
         ifh=open(rundir+'/'+'JsonTemplates'+'/'+'cafepp_experiments.json')
         ofh=open(rundir+'/'+'JsonTemplates'+'/'+'cafepp_experiments_tmp.json','w')
@@ -166,6 +174,8 @@ def main(**kwargs):
           token1=[str(x) for x in line.split(':')]
           token2=(token1[0].replace(' ',''))
           token3=(token2.replace('"',''))
+          if(token3=='top_directory_no1'):
+            line='     "top_directory_no1":"'+top_directory_no1+'",\n'
           if(token3=='top_directory_no2'):
             line='     "top_directory_no2":"'+top_directory_no2+'",\n'
           elif(token3=='top_directory_no3'):

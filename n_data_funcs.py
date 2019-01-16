@@ -205,7 +205,7 @@ class n_data_funcs:
     #self.lat=self.ifhs0.variables['latitude'][:,0]
     #self.lon=self.ifhs0.variables['longitude'][0,:]
 
-    self.clat=np.cos(self.lat[:]*self.rad)
+    self.clat=np.abs(np.cos(self.lat[:]*self.rad))
     self.nlat=len(self.lat)
     self.nlon=len(self.lon)
 
@@ -335,6 +335,7 @@ class n_data_funcs:
       
   #def calculate(self, **kwargs):
     calendar_check=units_check=Diag=False
+    self.time_var_name='time'
     
     for key, value in kwargs.items():
       #print('key,value=',key,value)
@@ -346,6 +347,8 @@ class n_data_funcs:
       elif(key=='units'):
         self.time_tfreq_units=kwargs[key]
         units_check=True
+      elif(key=='time'):
+        self.time_var_name=value
       else:
         raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
         
@@ -372,7 +375,7 @@ class n_data_funcs:
       if(Diag): print('self.input_files[0][0]=',self.input_files[0][0])
       self.ifhN=netCDF4.Dataset(self.input_files[0][0])
       self.ifh0=[self.ifhN]
-      self.time_tfreq=self.ifh0[0].variables['time']
+      self.time_tfreq=self.ifh0[0].variables[self.time_var_name]
       self.ntime_tfreq=len(self.time_tfreq)
       if(units_check):
         self.date_time_stamp_tfreq=netCDF4.num2date(self.time_tfreq[:],self.time_tfreq_units,self.time_tfreq_calendar)
@@ -384,7 +387,7 @@ class n_data_funcs:
       print('calculate_filedatetime_info: case 2: no ensembles, multiple input files.')
       self.ifhN=netCDF4.MFDataset(self.input_files[0][:])
       self.ifh0=[netCDF4.Dataset(self.input_files[0][0])]
-      self.time_tfreq=self.ifhN.variables['time']
+      self.time_tfreq=self.ifhN.variables[self.time_var_name]
       self.ntime_tfreq=len(self.time_tfreq)
       self.date_time_stamp_tfreq=netCDF4.num2date(self.time_tfreq[:],self.time_tfreq.units,self.time_tfreq_calendar)
       self.year_fraction_tfreq=fractional_year_from_num2date(self.date_time_stamp_tfreq,self.time_tfreq_calendar)
@@ -401,7 +404,7 @@ class n_data_funcs:
       
       self.time_tfreq,self.ntime_tfreq=[],[]
       for cnt,ifh0 in enumerate(self.ifh0):
-        self.time_tfreq.append(ifh0[0].variables['time'])
+        self.time_tfreq.append(ifh0[0].variables[self.time_var_name])
         self.ntime_tfreq.append(len(self.time_tfreq[cnt]))
     
       self.date_time_stamp_tfreq,self.year_fraction_tfreq=[],[]
@@ -420,7 +423,7 @@ class n_data_funcs:
         
       self.time_tfreq,self.ntime_tfreq=[],[]
       for cnt,ifhN in enumerate(self.ifhN):
-        self.time_tfreq.append(ifhN.variables['time'])
+        self.time_tfreq.append(ifhN.variables[self.time_var_name])
         self.ntime_tfreq.append(len(self.time_tfreq[cnt]))
         
       #print('self.time_tfreq[0].units=',self.time_tfreq[0].units)
@@ -479,7 +482,7 @@ class n_data_funcs:
           self.nlon_regrid=360
           self.lat_regrid=np.linspace(-89.5,89.5,self.nlat_regrid)
           self.lon_regrid=np.linspace(.5,359.5,self.nlon_regrid)
-          self.clat_regrid=np.cos(self.lat_regrid[:]*self.rad)
+          self.clat_regrid=np.abs(np.cos(self.lat_regrid[:]*self.rad))
           
           if(value=='1x1o2d'):
             self.ls_mask_file=topdir+'/short/v14/mac599/data/dst1x1_lsm.nc'
@@ -506,7 +509,7 @@ class n_data_funcs:
           self.nlon_regrid=180
           self.lat_regrid=np.linspace(-89.,89.,self.nlat_regrid)
           self.lon_regrid=np.linspace(1.,359.,self.nlon_regrid)
-          self.clat_regrid=np.cos(self.lat_regrid[:]*self.rad)
+          self.clat_regrid=np.abs(np.cos(self.lat_regrid[:]*self.rad))
           #self.weights_file=topdir+'/short/v14/mac599/data/curvilinear_wgt_SCRIP.nc'
           if(outmask):
             self.weights_file=topdir+'/short/v14/mac599/data/curvilinear2x2_wgt_SCRIP_outmask.nc'
@@ -527,7 +530,7 @@ class n_data_funcs:
           self.nlon_regrid=72
           self.lat_regrid=np.linspace(-87.5,87.5,self.nlat_regrid)
           self.lon_regrid=np.linspace(2.5,357.5,self.nlon_regrid)
-          self.clat_regrid=np.cos(self.lat_regrid[:]*self.rad)
+          self.clat_regrid=np.abs(np.cos(self.lat_regrid[:]*self.rad))
           if(outmask):
             self.weights_file=topdir+'/short/v14/mac599/data/curvilinear5x5_wgt_SCRIP_outmask.nc'
           else:
@@ -943,12 +946,48 @@ class n_data_funcs:
                 self.output_tfreq[:,n,]=self.ifhN[n].variables[self.input_var_name][:,]
           else:  #non-ensembles
             if(len(value_split)==7):
-              self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,self.imin:self.imax+1]
-            elif(len(value_split)==5 or type(instance)!=type('abc')):
+
+              if(self.imin>self.imax):
+                print('warning: lon wraps end, need to stitch two parts.')
+
+                if(type(_input)==type(None)):
+                  _A=self.ifhN.variables[self.input_var_name][:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,self.imin:self.nlon+1]
+                  _B=self.ifhN.variables[self.input_var_name][:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,0:self.imax+1]
+                else:
+                  _A=_input[:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,self.imin:self.nlon+1]
+                  _B=_input[:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,0:self.imax+1]
+
+                #print('_A.shape,_B.shape=',_A.shape,_B.shape)
+                _C=ma.concatenate((_A,_B),axis=3) #need to use ma to preserve masks...
+                #print('_C.shape=',_C.shape)
+
+                self.output_tfreq=_C
+
+                _newlons = np.concatenate((self.lon[self.imin:self.nlon+1],self.lon[0:self.imax+1]))
+                #print('_newlons=',_newlons)
+                _lon_0_360 = np.where(_newlons<0,_newlons+360,_newlons)
+                #print('_lon_0_360=',_lon_0_360)
+
+ #do i need to overwrite self.lons, self.nlon ?
+
+              else:
+
+                if(type(_input)==type(None)):
+                  self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,self.imin:self.imax+1]
+                else:
+                  self.output_tfreq=_input[:,self.kmin:self.kmax+1,self.jmin:self.jmax+1,self.imin:self.imax+1]
+
+              #print('fuck')
+              #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+            elif(len(value_split)==5): # or type(instance)!=type('abc')):
               #print('xxx',self.jmin,self.jmax,self.imin,self.imax)
-              self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
-            else:
-              self.output_tfreq=self.ifhN.variables[self.input_var_name][:,]
+              if(type(_input)==type(None)):
+                self.output_tfreq=self.ifhN.variables[self.input_var_name][:,self.jmin:self.jmax+1,self.imin:self.imax+1]
+              else:
+                self.output_tfreq=_input[:,self.jmin:self.jmax+1,self.imin:self.imax+1]
+            #else:
+            #  self.output_tfreq=self.ifhN.variables[self.input_var_name][:,]
             
         elif(value_split[0]=='wwv'):
 
@@ -1036,10 +1075,17 @@ class n_data_funcs:
           #print(self.nfiles_flat)
           #print(len(self.ifhN))
 
-          if(self.nfiles==1):
-            _var_shape=self.ifhN.variables[self.input_var_name].shape
+          #print('hello')
+          #print('dir(instance)=',dir(instance))
+          #print('_input.shape=',_input.shape)
+
+          if(type(_input)==type(None)):
+            if(self.nfiles==1):
+              _var_shape=self.ifhN.variables[self.input_var_name].shape
+            else:
+              _var_shape=self.ifhN[0].variables[self.input_var_name].shape
           else:
-            _var_shape=self.ifhN[0].variables[self.input_var_name].shape
+            _var_shape=_input.shape
           _new_shape=[]
           if(self.nfiles>1): #ensembles
             if(type(_input)==type(None)):

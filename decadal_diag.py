@@ -3704,7 +3704,8 @@ def shade_2d_simple(data,**kwargs):
   import matplotlib.colors as colors
   import numpy as np
   import inspect
-  from matplotlib.ticker import FormatStrFormatter
+  #from matplotlib.ticker import FormatStrFormatter
+  from matplotlib.ticker import ScalarFormatter, FormatStrFormatter, FixedLocator
 
   # set the colormap and centre the colorbar
   class MidpointNormalize(colors.Normalize):
@@ -3723,12 +3724,16 @@ def shade_2d_simple(data,**kwargs):
 #colormap = cm.LinearColormap(colors=['red','lightblue','blue'], index=[-3,0,12],vmin=-3,vmax=12)
 #colormap
 
-  xlab=ylab=xtik=ytik=output=n_contour=contour_arrays=None
+  xlab=ylab=xtik=ytik=output=n_contour=contour_arrays=hatching=None
   Diag = add_contours = title_check = units_check = extend_check = reverse_xaxis = reverse_yaxis = \
     xyvals_check = xlim_check = ylim_check = grid = xtik_check = ytik_check = cmap_check = \
     clevs_check = False
+  polygons=None
   xsize,ysize=6.0,4.0
   yscale='linear'
+  colorbar_orientation='vertical'
+  x_lab_rotation='horizontal'
+  y_lab_rotation='horizontal'
   for key, value in kwargs.items():
     if(Diag): print('key,value=',key,value)
     if(key=='Diag'):
@@ -3787,6 +3792,18 @@ def shade_2d_simple(data,**kwargs):
       n_contour=value
     elif(key=='contour_arrays'):
       contour_arrays=value
+    elif(key=='polygons'):
+      polygons=value
+    elif(key=='hatching'):
+      hatching,hatching_x,hatching_y,hatching_lev_min,hatching_lev_max=value
+    elif(key=='colorbar_orientation'):
+      colorbar_orientation=value
+    elif(key=='x_lab_rotation'):
+      x_lab_rotation=value
+      if(Diag): print('Rotating x labels.')
+    elif(key=='y_lab_rotation'):
+      y_lab_rotation=value
+      if(Diag): print('Rotating y labels.')
     else:
       raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -3833,11 +3850,15 @@ def shade_2d_simple(data,**kwargs):
   else:
     cs=plt.contourf(X, Y, data, clevs, extend=extend, cmap=cmap) #good
 
+  #print(hatching)
+  if(type(hatching)!=type(None)):
+    #print('hatching')
+    ch=plt.contourf(hatching_x, hatching_y, hatching, levels=[hatching_lev_min, hatching_lev_max], colors='none', \
+      hatches=['.', '/', '\\', None, '\\\\', '*'], extend='lower')
+    
   if(type(n_contour)!=type(None)):
     nc=plt.contour(X, Y, data, levels=n_contour, colors='black')
     plt.clabel(nc, inline=False, fontsize=10, fmt='%3.0f') #, manual=manual_locations)
-
-#fuck
 
   if(type(contour_arrays)!=type(None)):
     colours=['black','pink','green','orange','purple','cyan']
@@ -3859,8 +3880,8 @@ def shade_2d_simple(data,**kwargs):
     #cs=plt.contourf(X, Y, data, extend=extend, norm=MidpointNormalize(midpoint=0.,vmin=np.min(data),vmax=np.max(data)), cmap=cmap)
   
   if(add_contours): plt.contour(X, Y, data,colors='black')
-
-  cb=plt.colorbar(cs) #,extend=extend)
+#plt.colorbar(fill, orientation='horizontal')
+  cb=plt.colorbar(cs, orientation=colorbar_orientation) #,extend=extend)
   cb.set_label(units)
   
   ###
@@ -3890,10 +3911,26 @@ def shade_2d_simple(data,**kwargs):
   plt.yscale(yscale)
 
   if(yscale!='linear'):
-    ax.tick_params(axis='y', which='minor')
-    ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
+    #minorLocator = FixedLocator([100,500,900])
+    #ax.yaxis.set_major_locator(minorLocator)
+    ax.yaxis.set_major_formatter(ScalarFormatter())
+    ax.yaxis.set_major_formatter(FormatStrFormatter("%d"))
+    #ax.tick_params(axis='y', which='minor')
+    #ax.yaxis.set_minor_formatter(FormatStrFormatter("%.0f"))
   
   if(grid): plt.grid(True,linestyle='-')
+   
+  if(type(polygons)!=type(None)):
+    for ppp in range(len(polygons)):
+      #print('ppp=',ppp)
+      ax.plot(np.array([polygons[ppp][0],polygons[ppp][1]]), \
+              np.array([polygons[ppp][2],polygons[ppp][3]]), \
+              color=polygons[ppp][4], \
+              linestyle=polygons[ppp][5], \
+              linewidth=polygons[ppp][6], \
+             )
+      
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   
   locs, labels = plt.xticks()
   
@@ -3904,17 +3941,17 @@ def shade_2d_simple(data,**kwargs):
   if(type(xtik)!=type(None)):
     if(len(xtik)==2):
       xtik_vals,xtik_labs=xtik
-      plt.xticks(xtik_vals,xtik_labs)
+      plt.xticks(xtik_vals,xtik_labs,rotation=x_lab_rotation)
     else:
-      plt.xticks(xtik) 
+      plt.xticks(xtik,rotation=x_lab_rotation) 
 
   #print('len(ytik)=',len(ytik))
   if(type(ytik)!=type(None)):
     if(len(ytik)==2):
       ytik_vals,ytik_labs=ytik
-      plt.yticks(ytik_vals,ytik_labs)
+      plt.yticks(ytik_vals,ytik_labs,rotation=y_lab_rotation)
     else:
-      plt.yticks(ytik) 
+      plt.yticks(ytik,rotation=y_lab_rotation) 
 
   #plt.yticks(range(12), ['J','F','M','A','M','J','J','A','S','O','N','D'], rotation='horizontal')
 
@@ -3938,7 +3975,9 @@ def shade_2d_latlon(data,**kwargs):
   import numpy as np
   Diag = add_contours = cmap_check = title_check = units_check = extend_check = \
     xyvals_check = clevs_check = False
+  n_contour = hatching = vector_arrays = output = None
   xsize,ysize=6.0,4.0
+  title_fontsize=16.0
 
   for key, value in kwargs.items():
     if(key=='Diag'):
@@ -3958,13 +3997,28 @@ def shade_2d_latlon(data,**kwargs):
       add_contours=bool(value)
     elif(key=='extend'):
       extend=value
-      extend_check=True
     elif(key=='clevs'):
       clevs=value
       clevs_check=True
     elif(key=='xyvals'):
       xvals,yvals=value
       xyvals_check=True
+    elif(key=='title_fontsize'):
+      title_fontsize=value
+    elif(key=='n_contour'):
+      n_contour=value
+    elif(key=='hatching'):
+      hatching=value
+      hatch_data,hatch_styles,hatch_levs=hatching
+    elif(key=='vector_arrays'):
+      vector_arrays=value
+    elif(key=='output'):
+      output=value
+      if(Diag): print('Generating output file.')
+    
+#       (above_Mean, [None,'.'], [0,50,100])
+
+      if(Diag): print('shade_2d_latlon: hatching on')
     else:
       raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -3989,14 +4043,43 @@ def shade_2d_latlon(data,**kwargs):
   ax = plt.axes(projection=ccrs.PlateCarree(central_longitude=180))
   #clevs = [0,50,100,150,200,250,300,10000]
   #clevs = [0,50,100,150,200,250,300]
-  
+
   #print('extend=',extend)
-  
+
   if(not clevs_check or type(clevs)==type(None)):
     fill = ax.contourf(xvals, yvals, data, cmap=cmap, transform=ccrs.PlateCarree(), extend=extend)
   else:
     fill = ax.contourf(xvals, yvals, data, clevs, cmap=cmap, transform=ccrs.PlateCarree(), extend=extend)
   if(add_contours): plt.contour(data,colors='black')
+
+  if(type(n_contour)!=type(None)):
+    nc = ax.contour(xvals, yvals, data, transform=ccrs.PlateCarree(), levels=n_contour, colors='black')
+    plt.clabel(nc, inline=False, fontsize=10, fmt='%3.0f') #, manual=manual_locations)
+    
+#     (above_Mean, [None,'.'], [0,50,100])
+#   print('hatch_levs=',hatch_levs)
+#   print('hatch_styles=',hatch_styles)
+#   print('hatch_data=',hatch_data)
+  
+  #print(type(hatching))
+  if(type(hatching)!=type(None)):
+  #hatch_data,hatch_styles,hatch_levs=hatching
+    #print('hello')
+    stip = ax.contourf(xvals, yvals, hatch_data, levels=hatch_levs, hatches=hatch_styles, transform=ccrs.PlateCarree(), colors='none')
+
+  vectors = []
+  if(type(vector_arrays)!=type(None)):
+    for cnt in range(len(vector_arrays)):
+      anotherX, anotherY, anotherdataU, anotherdataV, anotherpivot, anotherscale, anotherwidth = vector_arrays[cnt]
+      #print('anotherdataU=',anotherdataU)
+      #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      vectors = ax.quiver(anotherX, anotherY, anotherdataU, anotherdataV, \
+                          transform=ccrs.PlateCarree(), \
+                          pivot=anotherpivot, \
+                          scale=anotherscale, \
+                          width=anotherwidth) #, width=0.022)
+#                           transform=ccrs.PlateCarree(), pivot='mid', scale=500) #, width=0.022)
+      
   ax.coastlines()
   ax.gridlines()
   ax.set_xticks([0, 60, 120, 180, 240, 300, 359.99], crs=ccrs.PlateCarree())
@@ -4005,20 +4088,28 @@ def shade_2d_latlon(data,**kwargs):
   lat_formatter = LatitudeFormatter()
   ax.xaxis.set_major_formatter(lon_formatter)
   ax.yaxis.set_major_formatter(lat_formatter)
-  
+
   plt.colorbar(fill, orientation='horizontal')
-  
+
   if(type(units)==type(None)):
-    plt.title(title, fontsize=16)
+    plt.title(title, fontsize=title_fontsize)
   else:
-    plt.title(title+' ('+units+')', fontsize=16)
+    plt.title(title+' ('+units+')', fontsize=title_fontsize)
   #plt.savefig('test.png')
-  if('output' in locals()):
-    plt.savefig(output+'.png')
-    print('Image saved to ',output+'.png')
-  else:
-    plt.show()
-    
+
+  if(type(output)!=type(None)):
+    prefix,suffix=output
+    plt.savefig(prefix+'.'+suffix)
+    print('Image saved to ',prefix+'.'+suffix)
+#   else:
+  plt.show()
+  
+#   if('output' in locals()):
+#     plt.savefig(output+'.png')
+#     print('Image saved to ',output+'.png')
+#   else:
+#     plt.show()
+
   return() #end shade_2d_latlon
 
 def diag_zmld_boyer(temp,salt,*argv):
@@ -5451,8 +5542,8 @@ def basic_stats(data):
   print('max ',np.max(data))
   print('avg ',np.mean(data))
   print('Total Points ',data.size)
-  print('No. Missing ',data.count())
-  print('No. Good ',data.size-data.count())
+  print('No. Good ',data.count())
+  print('No. Bad ',data.size-data.count())
   print('STD ',np.std(data))      
   return()
 
@@ -5471,7 +5562,7 @@ def myfile_copy(inf,outf):
     shutil.copy(inf,outf)
   else:
     print('Not copying '+inf+' to '+outf)
-  return() #end basic_stats
+  return() #myfile_copy
 
 def shade_2d_curvilinear(data,**kwargs):
   """
@@ -5664,6 +5755,10 @@ class box_indices:
       self.lonmin.append(float(stuff[4]))
       self.lonmax.append(float(stuff[5]))
 
+      _lon_0_360 = np.where(_instance.lon<0,_instance.lon+360,_instance.lon)
+
+      #print('_lon_0_360=',_lon_0_360)
+
       #if(_instance.lat[0]<_instance.lat[1]):
       #  if(Diag): print('latitudes arranged SH to NH')
       #  self.jmin.append( np.abs(_instance.lat - self.latmin[cnt]).argmin() )
@@ -5682,11 +5777,15 @@ class box_indices:
       #self.jmax.append(np.abs(_instance.lat - self.latmax[cnt]).argmin())
       self.jmax.append( _instance.nlat - np.abs((_instance.lat[::-1] - self.latmax[cnt])).argmin() -1)
 
-      self.imin.append(np.abs(_instance.lon - self.lonmin[cnt]).argmin())
-      self.imax.append(np.abs(_instance.lon - self.lonmax[cnt]).argmin())
+      #self.imin.append(np.abs(_instance.lon - self.lonmin[cnt]).argmin())
+      #self.imax.append(np.abs(_instance.lon - self.lonmax[cnt]).argmin())
+
+      self.imin.append(np.abs(_lon_0_360 - self.lonmin[cnt]).argmin())
+      self.imax.append(np.abs(_lon_0_360 - self.lonmax[cnt]).argmin())
 
       #print('aaa',aaa,_instance.lat[aaa])
 
+      #keep them like this then we know that we need to join two parts together to get the full range...
       if(self.imin[cnt] > self.imax[cnt]):
         print('warning: self.imin[cnt] > self.imax[cnt],cnt',cnt)
 
@@ -5984,7 +6083,7 @@ def plot_xy(**kwargs):
 
   input_datas=input_xvals=reverse_xaxis=reverse_yaxis=title=units=xysize=xlab=ylab=grid=xticks=yticks=xlim=ylim= \
     line_colors=line_alphas=fill_between=line_labels=legend_title=legend_item_reorder=output=vertical_lines= \
-    box_overlay=texts= \
+    box_overlay=texts=polygons=line_styles= \
     None
   Diag=zero1=zero2=False
   x_lab_rotation='horizontal'
@@ -6078,6 +6177,9 @@ def plot_xy(**kwargs):
     elif(key=='line_colors'):
       line_colors=value
       if(Diag): print('Adding line colors.')
+    elif(key=='line_styles'):
+      line_styles=value
+      if(Diag): print('Adding line styles.')
     elif(key=='line_alphas'):
       line_alphas=value
       if(Diag): print('Adding line alphas.')
@@ -6122,10 +6224,13 @@ def plot_xy(**kwargs):
       if(Diag): print('Inserting box with opacity.')
     elif(key=='texts'):
       texts=value
-      if(Diag): print('Inserting text via list of tuples:x,y,fontsize,WorldCoords,BBox')
+      if(Diag): print('Inserting text via list of tuples:x,y,text,fontsize,WorldCoords,BBox')
+    elif(key=='polygons'):
+      polygons=value
     else:
       raise SystemExit('plot_xy: option '+key+' not known:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
+      
   if(type(input_datas)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(type(input_xvals)==type(None)): SystemExit('plot_xy: Set dvar:'+__file__+' line number: '+str(inspect.stack()[0][2]))
     
@@ -6217,9 +6322,15 @@ def plot_xy(**kwargs):
         line_colors = []
         for cnt in range(len(vector)):
           line_colors.append('black')
+
+      if(type(line_styles)==type(None)):
+        line_styles = []
+        for cnt in range(len(vector)):
+          line_styles.append('-')
+      #print('line_styles=',line_styles)
           
       if(type(line_alphas)==type(None)):
-        line_colors = []
+        line_alphas = []
         for cnt in range(len(vector)):
           line_alphas.append(0.7)   
           
@@ -6238,7 +6349,7 @@ def plot_xy(**kwargs):
           plot_element=int(vector[series][0])
           input_data=input_datas[plot_element]
           input_xval=input_xvals[plot_element]
-          ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+          ax.plot(input_xval, input_data, color=line_colors[series], linestyle=line_styles[series], alpha=line_alphas[series], label=line_labels[series])
         else:
           if(Diag): print('plot_xy: Plotting filled area between 2 lines.')
 
@@ -6249,7 +6360,7 @@ def plot_xy(**kwargs):
           plot_element=int(vector[series][1])
           input_data2=input_datas[plot_element]
           input_xval2=input_xvals[plot_element]
-          ax.fill_between(input_xval1, input_data1, input_data2, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+          ax.fill_between(input_xval1, input_data1, input_data2, color=line_colors[series], linestyle=line_styles[series], alpha=line_alphas[series], label=line_labels[series])
 
     else:
       
@@ -6257,6 +6368,11 @@ def plot_xy(**kwargs):
         line_colors = []
         for cnt in range(len(input_datas)):
           line_colors.append('black')
+
+      if(type(line_styles)==type(None)):
+        line_styles = []
+        for cnt in range(len(input_datas)):
+          line_styles.append('-')
           
       if(type(line_alphas)==type(None)):
         line_alphas = []
@@ -6272,7 +6388,7 @@ def plot_xy(**kwargs):
         if(Diag): print('series=',series)
         input_data=input_datas[series]
         input_xval=input_xvals[series]
-        ax.plot(input_xval, input_data, color=line_colors[series], alpha=line_alphas[series], label=line_labels[series])
+        ax.plot(input_xval, input_data, color=line_colors[series], linestyle=line_styles[series], alpha=line_alphas[series], label=line_labels[series])
         if(zero2):
           find_xmin=np.zeros(input_xval.size+1)
           find_xmin[0:input_xval.size]=input_xval 
@@ -6296,7 +6412,17 @@ def plot_xy(**kwargs):
 
       if(Diag): print('plot_xy: series,xval_min,max=',series,xval_min,xval_max)
       if(Diag): print('plot_xy: series,yval_min,max=',series,yval_min,yval_max)
-    
+
+  if(type(polygons)!=type(None)):
+    for ppp in range(len(polygons)):
+      #print('ppp=',ppp)
+      ax.plot(np.array([polygons[ppp][0],polygons[ppp][1]]), \
+              np.array([polygons[ppp][2],polygons[ppp][3]]), \
+              color=polygons[ppp][4], \
+              linestyle=polygons[ppp][5], \
+              linewidth=polygons[ppp][6], \
+             )
+      
   if(zero1):
     Zero=np.zeros(len(input_xval))
     ax.plot(input_xval,Zero,color='black')
@@ -6455,7 +6581,7 @@ def check_valid_data_plot(**kwargs):
     if(key=='Diag'):
       Diag=bool(value)
       #if(Diag): print('Diag=',Diag)
-      if(Diag): print('plot_xy: Diagnostics turned on.')
+      if(Diag): print('check_valid_data_plot: Diagnostics turned on.')
     elif(key=='times'):
       if(Diag): print('Inputing times.')
       times=value
@@ -6639,15 +6765,20 @@ def file_sort_ripf(input_files,diag):
   return(output_files) #end of file_sort_ripf
 
 def plot_box_indices(**kwargs):
+  import inspect
   import matplotlib.pyplot as plt
   from mpl_toolkits.basemap import Basemap
 
-  latmin=latmax=lonmin=lonmax=labs=colors=None
+  latmin=latmax=lonmin=lonmax=labs=colors=var_lats=var_lons=None
 
   for key, value in kwargs.items():
     if(key=='Diag'):
       Diag=bool(value)
       if(Diag): print('plot_box_indices: Diagnostics turned on.')
+#    elif(key=='var_lats'):
+#      var_lats=value
+#    elif(key=='var_lons'):
+#      var_lons=value
     elif(key=='latmin'):
       latmin=value
     elif(key=='latmax'):
@@ -6661,12 +6792,31 @@ def plot_box_indices(**kwargs):
     elif(key=='colors'):
       colors=value
 
+#  if(type(var_lats)==type(None)):
+#    raise SystemExit('Need var_lats.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#  if(type(var_lons)==type(None)):
+#    raise SystemExit('Need var_lons.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
   if(type(colors)==type(None)):
-   colors=['black','red','green','blue','orange','brown','purple','pink']
+    colors=['black','red','green','blue','orange','brown','purple','pink']
 
 #     ind_list=[]
 #     for f,ff in enumerate(ind):
 #       ind_list.append(indices_nino.index(ind[f]))
+
+#  print('var_lons=',var_lons)
+#  for iii in range(try_lons.size):
+#    jjj=np.roll(try_lons,iii)
+#    kkk=np.where(jjj<0,jjj+360,jjj)
+#    lll=np.gradient(kkk)
+#    mmm=np.where(lll>=0)
+#    nnn,=mmm
+#    if(len(nnn)==try_lons.size):
+#    #print('hello',i)
+#      roll_this_amount=iii
+#      fixed_lons = kkk
+#  raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
   fig,ax=plt.subplots()
   fig.set_size_inches(30,30)
@@ -6778,10 +6928,10 @@ def plot_2d_scatter(x,y,**kwargs):
   import matplotlib
   import matplotlib.pyplot as plt
   import numpy as np
-  
+
   Diag=False
   xlim=ylim=xbox_indices=ybox_indices=title=None
-  
+
   xsize,ysize=15,15
   for key, value in kwargs.items():
     if(key=='Diag'):
@@ -6805,10 +6955,15 @@ def plot_2d_scatter(x,y,**kwargs):
       title=value
     else:
       raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
-      
+
+#   print('ifnds=',ifnds)
+#   print('strings=',strings)
+#   print(type(strings))
+#   #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
   if(type(xbox_indices)==type(None) or type(ybox_indices)==type(None)):
     raise SystemExit('Must supply xbox_indices & ybox_indices.'+__file__+' line number: '+str(inspect.stack()[0][2]))
-    
+
   if(type(x_index)==type(None) or type(y_index)==type(None)):
     print('Using default values of x_index,y_index=0,0')
     x_index,y_index=0,0
@@ -6820,10 +6975,11 @@ def plot_2d_scatter(x,y,**kwargs):
   plt.scatter(x, y)
 
   for cnt,ifnd in enumerate(ifnds):
-    plt.text(x[ifnd], y[ifnd], str(ifnd_times[cnt]), fontsize=9)
+#     print('xxx',x[ifnd], y[ifnd], str(strings[cnt]))
+    plt.text(x[ifnd], y[ifnd], str(strings[cnt]), fontsize=9)
 
   plt.grid(True,linestyle='--')
-  
+
   if(type(xlim)!=type(None)):
     plt.xlim(xlim)
     plt.plot([xlim[0],xlim[1]], [0,0], color='black', linestyle='--')
@@ -6833,9 +6989,784 @@ def plot_2d_scatter(x,y,**kwargs):
 
   plt.xlabel(xbox_indices.boxes_labs[x_index], fontsize=16)
   plt.ylabel(ybox_indices.boxes_labs[y_index], fontsize=16)
-  
+
   if(type(title)!=type(None)):
     plt.title(title, fontsize=16)
 
   plt.show()
   return #plot_2d_scatter
+
+def lagcorr(x,y,lag=None,verbose=True):
+    '''Compute lead-lag correlations between 2 time series.
+
+    <x>,<y>: 1-D time series.
+    <lag>: lag option, could take different forms of <lag>:
+          if 0 or None, compute ordinary correlation and p-value;
+          if positive integer, compute lagged correlation with lag
+          upto <lag>;
+          if negative integer, compute lead correlation with lead
+          upto <-lag>;
+          if pass in an list or tuple or array of integers, compute 
+          lead/lag correlations at different leads/lags.
+
+    Note: when talking about lead/lag, uses <y> as a reference.
+    Therefore positive lag means <x> lags <y> by <lag>, computation is
+    done by shifting <x> to the left hand side by <lag> with respect to
+    <y>.
+    Similarly negative lag means <x> leads <y> by <lag>, computation is
+    done by shifting <x> to the right hand side by <lag> with respect to
+    <y>.
+
+    Return <result>: a (n*2) array, with 1st column the correlation 
+    coefficients, 2nd column correpsonding p values.
+
+    Currently only works for 1-D arrays.
+    '''
+
+    import numpy
+    from scipy.stats import pearsonr
+
+    if len(x)!=len(y):
+        raise('Input variables of different lengths.')
+
+    #--------Unify types of <lag>-------------
+    if numpy.isscalar(lag):
+        if abs(lag)>=len(x):
+            raise('Maximum lag equal or larger than array.')
+        if lag<0:
+            lag=-numpy.arange(abs(lag)+1)
+        elif lag==0:
+            lag=[0,]
+        else:
+            lag=numpy.arange(lag+1)    
+    elif lag is None:
+        lag=[0,]
+    else:
+        lag=numpy.asarray(lag)
+
+    #-------Loop over lags---------------------
+    result=[]
+    if verbose:
+        print('\n#<lagcorr>: Computing lagged-correlations at lags:',lag)
+
+    for ii in lag:
+        if ii<0:
+            result.append(pearsonr(x[:ii],y[-ii:]))
+        elif ii==0:
+            result.append(pearsonr(x,y))
+        elif ii>0:
+            result.append(pearsonr(x[ii:],y[:-ii]))
+
+    result=numpy.asarray(result)
+
+    return result #lagcorr
+
+def convert_bytes(num):
+  """
+  this function will convert bytes to MB.... GB... etc
+  """
+  for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+    if num < 1024.0:
+      return "%3.1f %s" % (num, x)
+    num /= 1024.0
+
+def file_size(file_path):
+  """
+  this function will return the file size
+  """
+  import os
+  
+  if os.path.isfile(file_path):
+    file_info = os.stat(file_path)
+    return convert_bytes(file_info.st_size)
+ 
+def compress_nc(input_file, output_file, **kwargs):
+  '''
+  Copy the entire contents of a file and apply compression to output variables.
+  Note all options & combinations tested.
+  
+  If Diag=True, put it first in the list of option/arguments.
+
+  compress_nc(input, output, Diag=True/False, nc_model=['NETCDF4_CLASSIC',...], compresssion=[1...9], history=True/False, Clobber=True/False)
+  
+  '''
+  
+  import numpy as np
+  import netCDF4
+  import inspect
+  import os
+  import timeit
+  import datetime
+
+  Diag=zlib=Clobber=False
+  history=True
+  nc_model='NETCDF4_CLASSIC'
+
+  #print('kwargs.items()=',kwargs.items())
+
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      if(value=='True'):
+        Diag=True
+      elif(value=='False'):
+        Diag=False
+      else:
+        raise SystemExit('Diag either True or False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      if(Diag): print('Turning on diagnostics.')
+    elif(key=='nc_model'):
+      nc_model=value
+      if(Diag): print('Using nc model=',nc_model)
+    elif(key=='compression'):
+      zlib=True
+      complevel=int(value)
+      if(Diag and zlib): print('Compressing with level (b/w 1-9)=',complevel)
+    elif(key=='history'):
+      if(value=='True'):
+        history=True
+      elif(value=='False'):
+        history=False
+      else:
+        raise SystemExit('history either True or False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      if(Diag and history): print('global history attribute being appended to or created.')
+    elif(key=='Clobber'):
+      if(value=='True'):
+        Clobber=True
+      elif(value=='False'):
+        Clobber=False
+      else:
+        raise SystemExit('Clobber either True or False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      if(Diag and Clobber): print('Overwriting output file if it exists.')
+    
+  #print('Clobber=',Clobber)
+  #print('type(Clobber)=',type(Clobber))
+
+  #if(Diag): time_start = timeit.timeit()
+  
+  input_file_size=file_size(input_file)
+  
+  if(Diag): print('Input file: '+input_file+', File size='+input_file_size)
+  if(Diag): print('Output file: '+output_file)
+
+  if(not Clobber and os.path.exists(output_file)):
+    raise SystemExit('not Clobber and output exists:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  if(Clobber and os.path.exists(output_file)):
+    os.remove(output_file)
+
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      
+  ifh = netCDF4.Dataset(input_file, 'r')
+
+  global_dictionary = {}
+  for attr in ifh.ncattrs():
+    global_dictionary[attr] = getattr(ifh,attr)
+
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  dims_dictionary = {}
+  for dims in ifh.dimensions.keys():
+    dims_dictionary[ifh.dimensions[dims].name] = ifh.dimensions[dims].size
+
+  ofh = netCDF4.Dataset(output_file, 'w', format=nc_model)
+
+  dims_dictionary_out = {}
+  for dims in dims_dictionary.keys():
+
+    dims_dictionary_out[dims] = ofh.createDimension(dims, dims_dictionary[dims])
+
+  vars_dictionary_out = {}
+  for cnt, var in enumerate(ifh.variables.keys()):
+    if(Diag): print('cnt,var=',cnt,var)
+
+    input_variable = ifh.variables[var]
+    
+    input_variable_atts_tmp=input_variable.ncattrs()
+    
+    try:
+      fill_value_locator=input_variable_atts_tmp.index('_FillValue')
+    except ValueError:
+      fill_value_locator=-1
+    
+    #print('fill_value_locator=',fill_value_locator)
+    
+    if(fill_value_locator>=0):
+      fill_value=getattr(input_variable, '_FillValue')
+    else:
+      fill_value=None
+      
+    #print('fill_value=',fill_value)
+    
+    #print('input_variable_atts_tmp',input_variable_atts_tmp)
+    
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      
+    dims_dictionary_out[var] = ofh.createVariable(var, \
+                                                    ifh.variables[var].datatype, \
+                                                    ifh.variables[var].dimensions, \
+                                                    zlib=zlib, \
+                                                    complevel=complevel, fill_value=fill_value)
+
+
+    
+    #print('var_dictionary=',var_dictionary)
+    
+    var_dictionary = {}
+    
+    #strip off _FillValue as defined at variable definition time.
+    input_variable_atts=[]
+    for input_variable_att in input_variable_atts_tmp:
+      if(input_variable_att!='_FillValue'):
+        input_variable_atts.append(input_variable_att)
+        
+    #print('input_variable_atts=',input_variable_atts)
+    
+    for attr in input_variable_atts:
+      #print('attr=',attr)
+      var_dictionary[attr] = getattr(input_variable, attr)
+      
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+    #print('var_dictionary=',var_dictionary)
+    
+    dims_dictionary_out[var][:] = input_variable[:]
+    
+    dims_dictionary_out[var].setncatts(var_dictionary)
+
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  ofh.sync()
+  
+  output_file_size=file_size(output_file)
+  
+  compression=100* (1 - float(output_file_size.split()[0])/float(input_file_size.split()[0]))
+  
+  if(history):
+    history_to_append = ' compress_nc.py: input_file='+input_file+ \
+    ', output file='+output_file+ \
+    ', compressions='+str(compression)+ \
+    ', creation time='+str(datetime.datetime.now())+'.'
+  
+    try:
+      history_value=global_dictionary['history']+history_to_append
+    except KeyError:
+      history_value=history_to_append
+    
+  #print(history)
+  
+    global_dictionary['history'] = history_value
+  
+  ofh.setncatts(global_dictionary)
+
+  if(Diag): print('Output file: '+output_file+', File size='+output_file_size+', Compression (approx.)='+str(compression)+'%.')
+    
+  ofh.close()
+
+  #if(Diag): print('Total time =',timeit.timeit() - time_start)
+  
+  return(0) #end of compress_nc
+
+def convert_bytes(num):
+    """
+    this function will convert bytes to MB.... GB... etc
+    """
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+        if num < 1024.0:
+            return "%3.1f %s" % (num, x)
+        num /= 1024.0
+
+
+def file_size(file_path):
+    """
+    this function will return the file size
+    """
+    import os
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        return convert_bytes(file_info.st_size)
+      
+def prepare_vertintp(input_data_file, input_grid_file, output_file, **kwargs):
+  '''
+  Copy the entire contents of a file and apply compression to output variables.
+  Note all options & combinations tested.
+  
+  If Diag=True, put it first in the list of option/arguments.
+
+  prepare_vertintp(input_data_file, input_grid_file, output_filet, Diag=True/False, nc_model=['NETCDF4_CLASSIC',...], compresssion=[1...9], history=True/False, Clobber=True/False)
+  
+  '''
+  
+  import numpy as np
+  import netCDF4
+  import inspect
+  import os
+  import timeit
+  import datetime
+
+  Diag=zlib=Clobber=False
+  history=True
+  nc_model='NETCDF4_CLASSIC'
+
+  #print('kwargs.items()=',kwargs.items())
+
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      if(str(value)=='True'):
+        Diag=True
+      elif(str(value)=='False'):
+        Diag=False
+      else:
+        raise SystemExit('Diag either True or False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      if(Diag): print('Turning on diagnostics.')
+    elif(key=='nc_model'):
+      nc_model=value
+      if(Diag): print('Using nc model=',nc_model)
+    elif(key=='compression'):
+      zlib=True
+      complevel=int(value)
+      if(Diag and zlib): print('Compressing with level (b/w 1-9)=',complevel)
+    elif(key=='history'):
+      if(str(value)=='True'):
+        history=True
+      elif(str(value)=='False'):
+        history=False
+      else:
+        raise SystemExit('history either True or False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      if(Diag and history): print('global history attribute being appended to or created.')
+    elif(key=='Clobber'):
+      if(str(value)=='True'):
+        Clobber=True
+      elif(str(value)=='False'):
+        Clobber=False
+      else:
+        raise SystemExit('Clobber either True or False:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      if(Diag and Clobber): print('Overwriting output file if it exists.')
+    
+  #print('input grid file=',input_grid_file)
+  
+  if(not os.path.exists(input_data_file)):
+    raise SystemExit('input data file, '+input_data_file+', doesnt exist:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  if(type(input_grid_file)!=type(None) and not os.path.exists(input_grid_file)):
+    raise SystemExit('input grid file, '+input_grid_file+', doesnt exist:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  #print('Clobber=',Clobber)
+  #print('type(Clobber)=',type(Clobber))
+
+  #if(Diag): time_start = timeit.timeit()
+  
+  input_data_file_size=file_size(input_data_file)
+  
+  if(type(input_grid_file)!=type(None)):
+    input_grid_file_size=file_size(input_grid_file)
+  
+  if(Diag): print('Input data file: '+input_data_file+', File size='+input_data_file_size)
+  if(type(input_grid_file)!=type(None)):
+    if(Diag): print('Input grid file: '+input_grid_file+', File size='+input_grid_file_size)
+  if(Diag): print('Output file: '+output_file)
+  
+  if(not Clobber and os.path.exists(output_file)):
+    raise SystemExit('not Clobber and output exists:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  if(Clobber and os.path.exists(output_file)):
+    os.remove(output_file)
+
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  
+  if(type(input_grid_file)!=type(None)):
+    ifh_grid = netCDF4.Dataset(input_grid_file, 'r')
+
+    ak = ifh_grid.variables['ak']
+    bk = ifh_grid.variables['bk']
+    zsurf = ifh_grid.variables['zsurf']
+  
+      
+  ifh_data = netCDF4.Dataset(input_data_file, 'r')
+
+#   print(dir(ifh_data.dimensions['lat']))
+#   print(ifh_data.dimensions['lat'].size)
+#   print(ifh_data.dimensions['lat'].isunlimited)
+  
+#   raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  ofh = netCDF4.Dataset(output_file, 'w', format=nc_model)
+    
+  global_dictionary = {}
+  for attr in ifh_data.ncattrs():
+    global_dictionary[attr] = getattr(ifh_data,attr)
+
+  dims_dictionary = {}
+  for dims in ifh_data.dimensions.keys():
+#     print('dims=', dims, ifh_data.dimensions[dims].size, ifh_data.dimensions[dims].isunlimited)
+    
+#     if(ifh_data.dimensions[dims].isunlimited):
+#       print('yes')
+    
+#currently, convert all time dimensions to unlimited.
+    if(dims=='time'): #PLEV.exe seems to need unlimited time dimensions to work.
+      dims_dictionary[ifh_data.dimensions[dims].name] = 0
+      #dims_dictionary[ifh_data.dimensions[dims].name] = ifh_data.dimensions[dims].size
+    else:
+      dims_dictionary[ifh_data.dimensions[dims].name] = ifh_data.dimensions[dims].size
+
+  #dims_dictionary['phalf'] = ifh_grid.dimensions['phalf'].size
+  
+  #print(dims_dictionary)
+  
+#   phalf_test=True #assume in file.
+  ps_test=phalf_test=bk_test=pk_test=zsurf_test=False #assume not in file.
+  
+#   try:
+#     dummy=dims_dictionary['phalf']
+#   except KeyError:
+#     dims_dictionary['phalf'] = ifh_grid.dimensions['phalf'].size
+#     phalf = ifh_grid.variables['phalf']
+#     phalf_test=False
+
+  #ofh.close()
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))      
+
+  dims_dictionary_out = {}
+  for dims in dims_dictionary.keys():
+    #print('xxx',dims,dims_dictionary[dims],ifh_data.dimensions[dims].isunlimited)
+    
+#     if(ifh_data.dimensions[dims].isunlimited):
+#       print('aaa')
+#     else:
+#       print('bbb')
+
+#     if(dims=='time'):
+#       dims_size = None
+#     else:
+#       dims_size = ifh_data.dimensions[dims].size
+      
+    dims_dictionary_out[dims] = ofh.createDimension(dims, dims_dictionary[dims])
+    #dims_dictionary_out[dims] = ofh.createDimension(dims, size=dims_size)
+    #dims_dictionary_out[dims] = ofh.createDimension(dims), size=ifh_data.dimensions[dims].isunlimited)
+    
+#     if(dims=='time'):
+#       ofh.sync()
+#       ofh.close()
+#       raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+#   all_vars=ifh_data.variables
+  
+#   print(type(all_vars))
+  
+#   #print(ifh_data.variables.values())
+
+#   pk_test = all_vars.get('pk', None)
+  
+  #print(pk_test)
+  
+#   try:
+#     dummy=dims_dictionary['phalf']
+#   except KeyError:
+#     dims_dictionary['phalf'] = ifh_grid.dimensions['phalf'].size
+#     phalf = ifh_grid.variables['phalf']
+#     phalf_test=False
+
+  #if all_vars.has_key('key1'):
+    
+  #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  #vars_dictionary_out = {}
+
+
+  for cnt, var in enumerate(ifh_data.variables.keys()):
+    if(Diag): print('cnt,var=',cnt,var)
+      
+    if(var=='pk'):
+      pk_test=True
+    elif(var=='bk'):
+      bk_test=True
+    elif(var=='zsurf'):
+      zsurf_test=True
+    elif(var=='phalf'):
+      phalf_test=True
+    elif(var=='ps'):
+      ps_test=True   
+      
+    input_variable = ifh_data.variables[var]
+    
+    input_variable_atts_tmp=input_variable.ncattrs()
+    
+    try:
+      fill_value_locator=input_variable_atts_tmp.index('_FillValue')
+    except ValueError:
+      fill_value_locator=-1
+    
+    #print('fill_value_locator=',fill_value_locator)
+    
+    if(fill_value_locator>=0):
+      fill_value=getattr(input_variable, '_FillValue')
+    else:
+      fill_value=None
+      
+    #print('fill_value=',fill_value)
+    
+    #print('input_variable_atts_tmp',input_variable_atts_tmp)
+    
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+      
+#     dims_dictionary_out[var] = ofh.createVariable(var, \
+#                                                     ifh_data.variables[var].datatype, \
+#                                                     ifh_data.variables[var].dimensions, \
+#                                                     zlib=zlib, \
+#                                                     complevel=complevel, fill_value=fill_value)
+
+
+    dims_dictionary_out[var] = ofh.createVariable(var, \
+                                                    ifh_data.variables[var].datatype, \
+                                                    ifh_data.variables[var].dimensions, \
+                                                    zlib=False, \
+                                                    complevel=complevel, fill_value=fill_value)
+    
+    #print('var_dictionary=',var_dictionary)
+    
+    var_dictionary = {}
+    
+    #strip off _FillValue as defined at variable definition time.
+    input_variable_atts=[]
+    for input_variable_att in input_variable_atts_tmp:
+      if(input_variable_att!='_FillValue'):
+        input_variable_atts.append(input_variable_att)
+        
+    #print('input_variable_atts=',input_variable_atts)
+    
+    for attr in input_variable_atts:
+      #print('attr=',attr)
+      var_dictionary[attr] = getattr(input_variable, attr)
+      
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+    #print('var_dictionary=',var_dictionary)
+    
+    dims_dictionary_out[var][:] = input_variable[:]
+    
+    dims_dictionary_out[var].setncatts(var_dictionary)
+
+    #raise SystemExit('STOP!:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  if(not ps_test):
+    raise SystemExit('ps missing from data file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+    
+  if(type(input_grid_file)!=type(None)):
+
+    if(not pk_test):
+      try:
+        pk_fill=ifh_grid.variables['ak']._FillValue
+      except:
+        pk_fill=None
+      pk_var = ofh.createVariable('pk', ifh_grid.variables['ak'].datatype, \
+                                 ifh_grid.variables['ak'].dimensions, \
+                                fill_value=pk_fill \
+                                 )
+      pk_var[:] = ak[:]
+      ak_atts=ak.ncattrs()
+      ak_dictionary={}
+      for ak_att in ak_atts:
+        if(ak_att!='_FillValue'):
+          ak_dictionary[ak_att] = getattr(ak, ak_att)
+      pk_setatts=pk_var.setncatts(ak_dictionary)
+    
+    if(not bk_test):
+      try:
+        bk_fill=ifh_grid.variables['bk']._FillValue
+      except:
+        bk_fill=None
+      bk_var = ofh.createVariable('bk', ifh_grid.variables['bk'].datatype, \
+                                 ifh_grid.variables['bk'].dimensions, \
+                                fill_value=bk_fill \
+                                 )
+      bk_var[:] = bk[:]
+      bk_atts=bk.ncattrs()
+      bk_dictionary={}
+      for bk_att in bk_atts:
+        if(bk_att!='_FillValue'):
+          bk_dictionary[bk_att] = getattr(bk, bk_att)
+      bk_setatts=bk_var.setncatts(bk_dictionary)
+    
+    if(not zsurf_test):
+      try:
+        zsurf_fill=ifh_grid.variables['zsurf']._FillValue
+      except:
+        zsurf_fill=None
+      zsurf_var = ofh.createVariable('zsurf', ifh_grid.variables['zsurf'].datatype, \
+                                 ifh_grid.variables['zsurf'].dimensions, \
+                                fill_value=zsurf_fill \
+                                 )
+      zsurf_var[:] = zsurf[:]
+      zsurf_atts=zsurf.ncattrs()
+      zsurf_dictionary={}
+      for zsurf_att in zsurf_atts:
+        if(zsurf_att!='_FillValue'):
+          zsurf_dictionary[zsurf_att] = getattr(zsurf, zsurf_att)
+      zsurf_setatts=zsurf_var.setncatts(zsurf_dictionary)
+    
+    if(not phalf_test):
+      try:
+        phalf_fill=ifh_grid.variables['phalf']._FillValue
+      except:
+        phalf_fill=None      
+      phalf_var = ofh.createVariable('phalf', ifh_grid.variables['phalf'].datatype, \
+                               ifh_grid.variables['phalf'].dimensions, \
+                              fill_value=phalf_fill \
+                               )
+      phalf_var[:] = phalf[:]
+      
+      phalf_atts=phalf.ncattrs()
+      phalf_dictionary={}
+      for phalf_att in phalf_atts:
+        if(phalf_att!='_FillValue'):
+          phalf_dictionary[phalf_att] = getattr(phalf, phalf_att)
+      phalf_setatts=phalf_var.setncatts(phalf_dictionary)
+    
+  ofh.sync()
+  
+  output_file_size=file_size(output_file)
+  
+  compression=100* (1 - float(output_file_size.split()[0])/float(input_data_file_size.split()[0]))
+  
+  if(history):
+    history_to_append = ' prepare_vertintp.py:'+ \
+    ' input_data_file='+input_data_file+ \
+    ' input_grid_file='+str(input_grid_file)+ \
+    ', output file='+output_file+ \
+    ', compressions='+str(compression)+ \
+    ', creation time='+str(datetime.datetime.now())+'.'
+  
+    try:
+      history_value=global_dictionary['history']+history_to_append
+    except KeyError:
+      history_value=history_to_append
+    
+  #print(history)
+  
+    global_dictionary['history'] = history_value
+  
+  ofh.setncatts(global_dictionary)
+
+  if(Diag): print('Output file: '+output_file+', File size='+output_file_size+', Compression (approx.)='+str(compression)+'%.')
+    
+  ofh.close()
+
+  #if(Diag): print('Total time =',timeit.timeit() - time_start)
+  
+  return(0) #end of prepare_vertintp
+
+def get_exitcode_stdout_stderr(cmd):
+    """
+    Execute the external command and get its exitcode, stdout and stderr.
+    """
+    import sys
+    import shlex
+    from subprocess import Popen, PIPE
+    args = shlex.split(cmd)
+ 
+    proc = Popen(args, stdout=PIPE, stderr=PIPE)
+    out, err = proc.communicate()
+    exitcode = proc.returncode
+    #
+    return(exitcode, out, err)
+
+#got from: https://stackoverflow.com/questions/19936033/finding-turning-points-of-an-array-in-python
+def turning_points(array):
+    ''' turning_points(array) -> min_indices, max_indices
+    Finds the turning points within an 1D array and returns the indices of the minimum and 
+    maximum turning points in two separate lists.
+    '''
+    idx_max, idx_min = [], []
+    if (len(array) < 3): 
+        return idx_min, idx_max
+
+    NEUTRAL, RISING, FALLING = range(3)
+    def get_state(a, b):
+        if a < b: return RISING
+        if a > b: return FALLING
+        return NEUTRAL
+
+    ps = get_state(array[0], array[1])
+    begin = 1
+    for i in range(2, len(array)):
+        s = get_state(array[i - 1], array[i])
+        if s != NEUTRAL:
+            if ps != NEUTRAL and ps != s:
+                if s == FALLING: 
+                    idx_max.append((begin + i - 1) // 2)
+                else:
+                    idx_min.append((begin + i - 1) // 2)
+            begin = i
+            ps = s
+    return(idx_min, idx_max)
+
+def plot_bar(data, xticks, **kwargs):
+  """
+  """
+  import matplotlib
+  import matplotlib.pyplot as plt
+  import numpy as np
+  import inspect
+
+  Diag=legend=False
+  bar_width=xysize=title=xlab=ylab=None
+
+  xsize,ysize=15,5
+  for key, value in kwargs.items():
+    if(key=='Diag'):
+      Diag=bool(value)
+    elif(key=='legend'):
+      legend=value
+    elif(key=='bar_width'):
+      bar_width=value
+    elif(key=='xysize'):
+      if(Diag): print('Inputing xsize,ysize.')
+      xsize,ysize=value
+    elif(key=='title'):
+      title=value
+    elif(key=='xlab'):
+      xlab=value
+    elif(key=='ylab'):
+      ylab=value
+    else:
+      raise SystemExit('Dont know that key.'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+  fig, ax = plt.subplots()
+
+  fig.set_size_inches(xsize, ysize)
+
+  index = np.arange(len(xticks))
+
+  #print('len(data)=',len(data))
+  
+  #print('index=',index)
+  
+  rects = ()
+  for d in range(len(data)):
+    #print('d=',d)
+    #print(data[d])
+    
+    rects = rects + plt.bar(index+d*bar_width, data[d][0], bar_width, alpha=data[d][2], color=data[d][1], label=data[d][3])
+    
+  if(type(xlab)!=type(None)):
+    plt.xlabel(xlab[0], fontsize=xlab[1])
+
+  if(type(ylab)!=type(None)):
+    plt.ylabel(ylab[0], fontsize=ylab[1])
+
+  if(type(title)!=type(None)):
+    plt.title(title[0], fontsize=title[1])
+
+  plt.xticks(index + bar_width*.5*(len(data)-1), (xticks))
+
+  if(type(legend)!=type(None) and bool(legend[0])):
+    plt.legend(fontsize=legend[1], loc=legend[2])
+
+  plt.tight_layout()
+  plt.show()
+
+  #print(rects)
+  return #plot_bar
+
+#http://xarray.pydata.org/en/stable/generated/xarray.apply_ufunc.html
+def magnitude(a, b):
+  func = lambda x, y: np.sqrt(x ** 2 + y ** 2)
+  return xr.apply_ufunc(func, a, b)

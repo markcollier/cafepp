@@ -1635,6 +1635,43 @@
     "dummy_shape":"1,50,300,360", #generate a dummy input dimensions for testing of function.
     "dummy_dimensions":"time, st_ocean, yt_ocean, xt_ocean", #generate a dummy input dimension names for testing of function.
     "lat_lon_type":"y_T,x_T"
+    },
+    "o3m":{
+    "info":"None",
+    "inputs":"qo3",
+    "realm":"atmos",
+    "ounits":"kg kg-1",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_plev_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"pfull"
+    },
+    "o3":{
+    "info":"None",
+    "inputs":"qo3v",
+    "realm":"atmos",
+    "ounits":"mol mol-1",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_plev_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"pfull"
+    },
+    "o3col":{
+    "info":"None",
+    "area_t":"False",
+    "inputs":"qo3_col",
+    "realm":"atmos",
+    "ounits":"molecules m-2",
+    "table":"Amon,day",
+    "table_frequency":"month,daily",
+    "ovars":"dvar",
+    "OutputVarStructure":"time_lat_lon",
+    "output_type":"broadcast",
+    "plev_type":"None"
     }
 }
 #EOF

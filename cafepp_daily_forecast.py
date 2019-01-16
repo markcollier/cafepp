@@ -146,6 +146,10 @@ def main(**kwargs):
           top_directory_no2='/g/data1/v14/forecast/v2/OUTPUT/'+str('{0:04d}'.format(ynow))+'/'+str('{0:02d}'.format(mnow))+'/OUTPUT.'+str('{0:02d}'.format(enow))
           top_directory_no2='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v2/OUTPUT/'+str('{0:04d}'.format(ynow))+'/'+str('{0:02d}'.format(mnow))+'/OUTPUT.'+str('{0:02d}'.format(enow))
           physics=3
+        elif(cafe_experiment=='v3_forecast'): #January and July are 5 year forecasts, else 2 years.
+          top_directory_no2='/OSM/CBR/OA_DCFP/data/model_output/CAFE/forecasts/v3/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          top_directory_no2='/g/data1/v14/forecast/v3/yr'+str(ynow)+'/mn'+str(mnow)+'/OUTPUT.'+str(enow)
+          physics=16
 
         files_string=top_directory_no2+'/'+realm+'_daily_????_??_01.nc'
         files=glob.glob(files_string)

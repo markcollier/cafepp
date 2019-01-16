@@ -5,7 +5,8 @@ from __future__ import print_function #this is to allow print(,file=xxx) feature
 def main(**kwargs):
 
   #realm='atmos' #temporary
-  physics=2 #temporary, shouldn't be necessary as set only once in cafepp_experiments.json
+  #physics=2 #temporary, shouldn't be necessary as set only once in cafepp_experiments.json
+  #physics=16 #temporary, shouldn't be necessary as set only once in cafepp_experiments.json
 
   import sys,os
   import cafepp_daily
@@ -15,10 +16,12 @@ def main(**kwargs):
 
   from decadal_diag import process_json
   from decadal_diag import get_daily_indices_for_monthlyave
+  from decadal_diag import get_idir_from_experimet_json
 
-  cafe_experiment_check=rundir_check=dvar_check=ybeg_check=yend_check=ybeg_first_check=yend_last_check=mbeg_first_check=mend_last_check=mbeg_norm_check=mend_norm_check=False
+  cafe_experiment_check=rundir_check=dvar_check=ybeg_check=yend_check=ybeg_first_check=yend_last_check=mbeg_first_check=mend_last_check=mbeg_norm_check=mend_norm_check=ybeg_first_check=yend_first_check=False
 
   for key, value in kwargs.iteritems():
+    #print('key,value=',key,',',value)
     if(key=='cafe_experiment'):
       cafe_experiment=value
       cafe_experiment_check=True
@@ -37,6 +40,7 @@ def main(**kwargs):
     elif(key=='ybeg_first'):
       ybeg_first=int(value)
       ybeg_first_check=True
+      #print('yesxxxx')
     elif(key=='yend_last'):
       yend_last=int(value)
       yend_last_check=True
@@ -58,6 +62,8 @@ def main(**kwargs):
   if(not cafe_experiment_check):SystemExit('Set cafe_experiment:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not ybeg_check):SystemExit('Set ybeg:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not yend_check):SystemExit('Set yend:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  if(not ybeg_first_check):SystemExit('Set ybeg_first:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+  if(not yend_last_check):SystemExit('Set yend_last:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not mbeg_first_check):SystemExit('Set mbeg_first:'+__file__+' line number: '+str(inspect.stack()[0][2]))
   if(not mend_last_check):SystemExit('Set mend_last:'+__file__+' line number: '+str(inspect.stack()[0][2]))
 
@@ -77,9 +83,9 @@ def main(**kwargs):
     elif(token3=='dvar'):
       line='    "dvar":"'+dvar+'",\n'
     elif(token3=='ybeg'):
-      line='    "ybeg":2002,\n'
+      line='    "ybeg":'+str(ybeg_first)+',\n'
     elif(token3=='yend'):
-      line='    "yend":2016,\n'
+      line='    "yend":'+str(yend_last)+',\n'
     elif(token3=='mbeg'):
       line='    "mbeg":1,\n'
     elif(token3=='mend'):
@@ -119,8 +125,24 @@ def main(**kwargs):
       mend=mend_norm
     for mcnt,mnow in enumerate(range(mbeg,mend+1)):
 
-      top_directory_no2='/OSM/CBR/OA_DCFP/data3/CAFEPP/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2/'+ \
-        str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
+      top_directory_no1=top_directory_no2=get_idir_from_experimet_json(rundir+'/'+'JsonTemplates','cafepp_experiments.json',cafe_experiment)
+
+      #print('top_directory_no2=',top_directory_no2)
+      #raise SystemExit('Forced exit file:'+__file__+' line number: '+str(inspect.stack()[0][2]))
+
+      #if(cafe_experiment=='CAFE-88-T2'):
+      #  top_directory_no1='/short/v14/pas548/cm-runs/CAFE-88-T2/'+ \
+      #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
+      #  top_directory_no2='/short/v14/pas548/cm-runs/CAFE-88-T2/'+ \
+      #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
+      #elif(cafe_experiment=='CAFE-88-T4'):
+      #  top_directory_no1='/short/v14/pas548/cm-runs/CAFE-88-T4/'+ \
+      #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
+      #  top_directory_no2='/short/v14/pas548/cm-runs/CAFE-88-T4/'+ \
+      #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
+      #else:
+      #  top_directory_no2='/OSM/CBR/OA_DCFP/data3/CAFEPP/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2/'+ \
+      #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
 
 #      top_directory_no2='/short/v14/tok599/coupled/ao_am2/coupled_da/workdir2/OUTPUT-2step-nobreeding-carbon2/'+ \
 #        str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+'01'
@@ -132,10 +154,12 @@ def main(**kwargs):
         token1=[str(x) for x in line.split(':')]
         token2=(token1[0].replace(' ',''))
         token3=(token2.replace('"',''))
-        if(token3=='top_directory_no2'):
+        if(token3=='top_directory_no1'):
+          line='     "top_directory_no1":"'+top_directory_no1+'",\n'
+        elif(token3=='top_directory_no2'):
           line='     "top_directory_no2":"'+top_directory_no2+'",\n'
-        elif(token3=='physics'):
-          line='     "physics":'+str(physics)+',\n'
+#        elif(token3=='physics'):
+#          line='     "physics":'+str(physics)+',\n'
         print(line,file=ofh,end='')
       ifh.close()
       ofh.close()
@@ -146,6 +170,20 @@ def main(**kwargs):
       ofh=open(output,'w')
 
       for dcnt,dnow in enumerate(range(1,days_in_month[mnow-1]+1)):
+        top_directory_no1=get_idir_from_experimet_json(rundir+'/'+'JsonTemplates','cafepp_experiments.json',cafe_experiment)+'/'+ \
+          str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+str('{0:02d}'.format(dnow))
+        top_directory_no2=top_directory_no1
+        #if(cafe_experiment=='CAFE-88-T2'):
+        #  top_directory_no1='/short/v14/pas548/cm-runs/CAFE-88-T2/'+ \
+        #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+str('{0:02d}'.format(dnow))
+        #  top_directory_no2='/short/v14/pas548/cm-runs/CAFE-88-T2/'+ \
+        #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+str('{0:02d}'.format(dnow))
+        #elif(cafe_experiment=='CAFE-88-T4'):
+        #  top_directory_no1='/short/v14/pas548/cm-runs/CAFE-88-T4/'+ \
+        #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+str('{0:02d}'.format(dnow))
+        #  top_directory_no2='/short/v14/pas548/cm-runs/CAFE-88-T4/'+ \
+        #    str('{0:04d}'.format(ynow))+str('{0:02d}'.format(mnow))+str('{0:02d}'.format(dnow))
+
         ifil='REALM_daily_'+str('{0:04d}'.format(ynow))+'_'+str('{0:02d}'.format(mnow))+'_'+str('{0:02d}'.format(dnow))+'.nc'
         print(top_directory_no2+'/'+ifil,file=ofh,end='\n')
       ofh.close()
